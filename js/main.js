@@ -1,37 +1,42 @@
 // js/main.js
 // ---------------------------------------------------
-// Связываем всё вместе: меню, рендер, логика игры
+// Связываем всё: меню, рендер, логика игры
 // ---------------------------------------------------
 
-import { initRendering, toggleFog }          from './rendering.js';
+import { initRendering, toggleFog }               from './rendering.js';
 import { newGame, handleCanvasClick, endTurnBtn } from './gameLogic.js';
+import { generateMap }                            from './map.js';      // ⬅️ добавили
 
-// ————————————————————————————————————————————————
-// DOM‑элементы (берём один раз)
-// ————————————————————————————————————————————————
+// ———————————————————————————————————————————
+// DOM‑элементы
+// ———————————————————————————————————————————
 const twoBtn     = document.getElementById('twoBtn');
 const betaBtn    = document.getElementById('betaBtn');
 const revealBtn  = document.getElementById('revealBtn');
 const endTurnUI  = document.getElementById('endTurnBtn');
 const canvas     = document.getElementById('canvas');
+const startPanel = document.getElementById('startPanel');
 
-// ————————————————————————————————————————————————
-// 1. Инициализация: только рендер + меню
-// ————————————————————————————————————————————————
+// ———————————————————————————————————————————
+// Инициализация
+// ———————————————————————————————————————————
 window.addEventListener('DOMContentLoaded', () => {
 
-  // подготовить канвас (размер, первое отрисовывание пустой карты)
+  // 1) Создаём пустую карту, чтобы рендер мог сразу отрисовать фон
+  generateMap();
+
+  // 2) Настраиваем канвас (resize + первый redraw)
   initRendering();
 
-  // показать стартовое меню (оно скрывается внутри newGame())
-  document.getElementById('startPanel').style.display = 'flex';
+  // 3) Показываем стартовое меню
+  startPanel.style.display = 'flex';
 
-  // ——— кнопки выбора режима ———
-  twoBtn .addEventListener('click', () => newGame(false));  // человек + AI
-  betaBtn.addEventListener('click', () => newGame(true));   // «2 игрока β» (локал)
+  // ——— кнопки меню ———
+  twoBtn .addEventListener('click', () => newGame(false)); // человек + AI
+  betaBtn.addEventListener('click', () => newGame(true));  // «2 игрока β» (локально)
 
-  // ——— гейм‑UI ———
-  revealBtn.addEventListener('click', toggleFog);      // показать/скрыть туман
+  // ——— игровое UI ———
+  revealBtn.addEventListener('click', toggleFog);      // показать / скрыть туман
   endTurnUI.addEventListener('click', endTurnBtn);     // передать ход
-  canvas.addEventListener('click', handleCanvasClick); // выбор/движение/атака
+  canvas.addEventListener('click', handleCanvasClick); // клик по карте
 });
