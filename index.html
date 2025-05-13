@@ -1,43 +1,51 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>5×5 Strategy Dev</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>Fog of Conquest</title>
 
-  <!-- мини‑CSS прямо тут, чтоб был один файл -->
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif;}
-    body{background:#222;color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
-    #canvas{background:#000;border:2px solid #555;image-rendering:pixelated;touch-action:none;}
-    #bottomPanel{width:100%;max-width:640px;margin-top:4px;display:flex;flex-direction:column;gap:4px;}
-    #stats{padding:4px 6px;background:#333;border:1px solid #555;font-size:14px;text-align:center;}
-    #controls{display:flex;gap:6px;justify-content:center;}
-    #controls button{flex:1 1 0;background:#555;border:0;padding:8px 4px;font-size:14px;color:#fff;cursor:pointer;}
-    #controls button:hover{background:#777;}
-    #eventsLog,#spawnPanel{min-height:40px;background:#2a2a2a;border:1px solid #444;padding:4px 6px;font-size:13px;overflow-y:auto;}
-    #eventsLog{max-height:80px;}
-  </style>
+  <!-- старый стиль никуда не пропал -->
+  <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
-  <!-- Игровое поле -->
-  <canvas id="canvas"></canvas>
-
-  <!-- Нижняя панель с инфой и кнопками -->
-  <div id="bottomPanel">
-    <div id="stats">Статистика появится здесь…</div>
-
-    <div id="controls">
-      <button id="endTurnBtn">Конец хода</button>
-      <button id="fogToggleBtn">Туман войны</button>
+  <!-- 💠 стартовое меню -->
+  <div id="startPanel">
+    <h1>Fog of Conquest</h1>
+    <div id="summary">
+      <strong>Сводка правил и концепции игры:</strong><br>
+      … (текст как был) …
     </div>
-
-    <div id="eventsLog">Лог событий…</div>
-    <div id="spawnPanel">Панель найма (пока пусто)…</div>
+    <button id="twoBtn">2 игрока</button>
+    <button id="betaBtn">2 игрока (бета)</button>
   </div>
 
-  <!-- ЕДИНАЯ точка входа -->
+  <!-- 💠 оверлей «ДА / НЕТ» -->
+  <div id="overlay">
+    <div id="overlayMessage"></div>
+    <button id="yesBtn">Да</button>
+    <button id="noBtn">Нет</button>
+  </div>
+
+  <!-- 💠 поле боя -->
+  <canvas id="canvas"></canvas>
+
+  <!-- 💠 правая панель -->
+  <div id="spawnPanel"></div>
+
+  <div id="infoPanel">
+    <div id="controls">
+      <button id="revealBtn">Открыть туман</button>
+      <button id="endTurnBtn">Передать ход</button>
+    </div>
+    <div id="statsLog">
+      <div id="leftStats"></div>
+      <div id="rightLog"></div>
+    </div>
+  </div>
+
+  <!-- теперь точка входа – ES‑модуль -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
