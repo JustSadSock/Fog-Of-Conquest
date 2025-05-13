@@ -1,143 +1,165 @@
 // js/rendering.js
 // ---------------------------------------------------
-// Работа с canvas + быстрая отрисовка карты / юнитов
+// Канвас, меню, панель справа, туман войны, события
 // ---------------------------------------------------
 
 import {
-  ROWS, COLS, TILE_SIZE,
-  TERRAIN
+  ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE   // TILE_SIZE возьмём из utils
 } from './map.js';
 
-// -------- локальные переменные --------
-let canvas, ctx;
-let fogMask = [];              // двумерный массив true/false
+import { abs } from './utils.js';
 
-// ---------------------------------------------------
-// Публичные функции
-// ---------------------------------------------------
+// ————————————————————————————————————————————————
+// DOM‑элементы (получаем один раз при загрузке)
+// ————————————————————————————————————————————————
+const canvas        = document.getElementById('canvas');
+const ctx           = canvas.getContext('2d');
+const startPanel    = document.getElementById('startPanel');
+const spawnPanel    = document.getElementById('spawnPanel');
+const leftStats     = document.getElementById('leftStats');
+const rightLog      = document.getElementById('rightLog');
+const overlay       = document.getElementById('overlay');
+const overlayMsg    = document.getElementById('overlayMessage');
 
-/** Подготовка канваса под размер сетки */
+export const TILE = 28;                           // px — чуть меньше старого
+canvas.style.imageRendering = 'pixelated';
+
+// ————————————————————————————————————————————————
+// Локальный state (не путать с gameLogic.js)
+// ————————————————————————————————————————————————
+let fogMask = [];           // true → закрыто
+let fogVisible = true;      // переключается из main.js
+
+// ————————————————————————————————————————————————
+// 1. Публичный API
+// ————————————————————————————————————————————————
 export function initRendering () {
-  canvas = document.getElementById('canvas');
-  ctx     = canvas.getContext('2d');
-
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 }
 
-/** Полная перерисовка всего кадра */
 export function redraw () {
   drawTerrain();
   drawUnits();
   drawBuildings();
-  drawFog();
+  if (fogVisible) drawFog();
 }
 
-/** Пересчитать зону видимости (просто радиус 2 клетки от всех юнитов игрока‑1) */
-export function updateFog () {
-  const { units } = window;              // глобальный массив, создан в gameLogic.js
-  fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(true)); // всё закрыто
+/** пересчитываем видимость по массиву юнитов (owner === 1) */
+export function updateFog (units) {
+  fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(true));
 
-  units
-    .filter(u => u.owner === 1)          // видимость только для игрока‑1
-    .forEach(u => {
-      for (let r = u.r - 2; r <= u.r + 2; r++) {
-        for (let c = u.c - 2; c <= u.c + 2; c++) {
-          if (r >= 0 && r < ROWS && c >= 0 && c < COLS) fogMask[r][c] = false;
-        }
+  units.filter(u => u.owner === 1).forEach(u => {
+    for (let r = u.r - 2; r <= u.r + 2; r++) {
+      for (let c = u.c - 2; c <= u.c + 2; c++) {
+        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) fogMask[r][c] = false;
       }
-    });
+    }
+  });
 }
 
-/** Вывод быстрого текста статистики снизу */
-export function drawStats () {
-  const el = document.getElementById('stats');
-  const { turn, currentPlayer, units } = window;
-  const total1 = units.filter(u => u.owner === 1).length;
-  const total2 = units.filter(u => u.owner === 2).length;
-
-  el.textContent =
-    `Ход: ${turn} | Очередь игрока #${currentPlayer} | Юнитов: ${total1} vs ${total2}`;
+/** записываем строку в лог событий (справа внизу) */
+export function pushLog (txt, isWarning = false) {
+  const line = document.createElement('div');
+  line.textContent = txt;
+  if (isWarning) line.style.color = '#f66';
+  rightLog.append(line);
+  rightLog.scrollTop = rightLog.scrollHeight;
 }
 
-// ---------------------------------------------------
-// Внутренние функции отрисовки
-// ---------------------------------------------------
+/** инфо‑панель (число юнитов, ход и т.д.) */
+export function writeStats (turn, currentPlayer, units) {
+  const p1 = units.filter(u => u.owner === 1).length;
+  const p2 = units.filter(u => u.owner === 2).length;
+  leftStats.textContent =
+    `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
+}
 
+/** включить / выключить стартовое меню */
+export function toggleStart (show = false) {
+  startPanel.style.display = show ? 'flex' : 'none';
+}
+
+/** оверлей «Да/Нет» (используется для подтверждений) */
+export function askYesNo (msg, cbYes) {
+  overlayMsg.textContent = msg;
+  overlay.style.display = 'flex';
+  const yes = document.getElementById('yesBtn');
+  const no  = document.getElementById('noBtn');
+
+  const clear = () => { overlay.style.display = 'none'; yes.onclick = no.onclick = null; };
+  yes.onclick = () => { clear(); cbYes(); };
+  no.onclick  = () => { clear(); };
+}
+
+/** показать или спрятать туман */
+export function toggleFog () {
+  fogVisible = !fogVisible;
+  redraw();
+}
+
+// ————————————————————————————————————————————————
+// 2. Частные функции (canvas)
+// ————————————————————————————————————————————————
 function resizeCanvas () {
-  canvas.width  = COLS * TILE_SIZE;
-  canvas.height = ROWS * TILE_SIZE;
+  canvas.width  = COLS * TILE;
+  canvas.height = ROWS * TILE;
   redraw();
 }
 
 function drawTerrain () {
-  const { map } = window;
+  const { map } = window;              // карта лежит глобально из map.js
 
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      ctx.fillStyle = terrainColor(map[r][c]);
-      ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      ctx.fillStyle = TERR_COL[map[r][c]];
+      ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
     }
   }
 }
 
 function drawUnits () {
   const { units } = window;
-  ctx.font = `${TILE_SIZE * 0.6}px sans-serif`;
+  ctx.font = `${TILE * 0.6}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   units.forEach(u => {
-    // фон кружочком
-    ctx.fillStyle = u.owner === 1 ? '#ffffffaa' : '#000000aa';
+    // скрываем противника за туманом
+    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return;
+
+    ctx.fillStyle = u.owner === 1 ? '#fff8' : '#0008';
     ctx.beginPath();
-    ctx.arc(
-      u.c * TILE_SIZE + TILE_SIZE / 2,
-      u.r * TILE_SIZE + TILE_SIZE / 2,
-      TILE_SIZE * 0.4,
-      0, Math.PI * 2
-    );
+    ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // буква типа
     ctx.fillStyle = u.owner === 1 ? '#000' : '#fff';
-    ctx.fillText(u.type[0],                       // первая буква
-      u.c * TILE_SIZE + TILE_SIZE / 2,
-      u.r * TILE_SIZE + TILE_SIZE / 2
-    );
+    ctx.fillText(u.type[0], u.c * TILE + TILE / 2, u.r * TILE + TILE / 2);
   });
 }
 
 function drawBuildings () {
   const { buildings } = window;
   buildings.forEach(b => {
-    ctx.fillStyle = b.owner === 1 ? '#88c' : '#c88';
+    // здания видны даже в тумане (можно поменять)
+    ctx.fillStyle = b.owner === 1 ? '#77c' : '#c77';
     ctx.fillRect(
-      b.c * TILE_SIZE + TILE_SIZE * 0.15,
-      b.r * TILE_SIZE + TILE_SIZE * 0.15,
-      TILE_SIZE * 0.7,
-      TILE_SIZE * 0.7
+      b.c * TILE + TILE * 0.15,
+      b.r * TILE + TILE * 0.15,
+      TILE * 0.7,
+      TILE * 0.7
     );
   });
 }
 
+/** полупрозрачные квадраты поверх закрытых клеток */
 function drawFog () {
-  ctx.fillStyle = '#00000099';               // полупрозрачный чёрный
+  ctx.fillStyle = '#000a';
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (fogMask[r][c]) {
-        ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
       }
     }
-  }
-}
-
-function terrainColor (t) {
-  switch (t) {
-    case TERRAIN.PLAIN :  return '#9db359';
-    case TERRAIN.FOREST:  return '#2f7d32';
-    case TERRAIN.HILL  :  return '#b79f58';
-    case TERRAIN.WATER :  return '#3a72a5';
-    default           :  return '#555';
   }
 }
