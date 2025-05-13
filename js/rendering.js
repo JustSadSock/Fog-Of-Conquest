@@ -1,6 +1,6 @@
 // js/rendering.js
 // ---------------------------------------------------
-// Канвас, старт‑меню, туман, лог, статистика
+// Канвас, старт-меню, туман, лог, статистика
 // ---------------------------------------------------
 
 import {
@@ -22,7 +22,7 @@ let fogVisible = true;             // переключатель
 const TILE = TILE_SIZE;            // псевдоним
 
 // ===================================================
-// 1. Публичный API
+// 1. Публичный API
 // ===================================================
 
 export function initRendering () {
@@ -55,7 +55,7 @@ export function writeStats (turn, currentPlayer, units) {
   const p1 = units.filter(u => u.owner === 1).length;
   const p2 = units.filter(u => u.owner === 2).length;
   leftStats.textContent =
-    `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
+    `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
 }
 
 export function pushLog (txt, warn = false) {
@@ -81,7 +81,7 @@ export function askYesNo (msg, cbYes) {
 export function toggleFog () { fogVisible = !fogVisible; redraw(); }
 
 // ===================================================
-// 2. Внутренние функции: canvas‑рендер
+// 2. Внутренние функции: canvas-рендер
 // ===================================================
 
 function resizeCanvas () {
@@ -110,7 +110,7 @@ function drawUnits () {
   units.forEach(u => {
     if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return; // враг в тумане
 
-    // фон‑круг
+    // фон-круг
     ctx.fillStyle = u.owner === 1 ? '#fff9' : '#0009';
     ctx.beginPath();
     ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
