@@ -1,223 +1,252 @@
 // js/gameLogic.js
 // ---------------------------------------------------
-// Игровой state, клики, ход, ИИ‑оппонент
+// Игровой state, обработка кликов, спавн, ИИ, победа
 // ---------------------------------------------------
 
+import { ROWS, COLS, TERRAIN, TERR_COST, generateMap } from './map.js';
 import {
-  ROWS, COLS, TILE_SIZE,
-  TERRAIN, TERR_COST, map          // данные карты
-} from './map.js';
-
-import {
-  redraw, updateFog, drawStats     // функции рендера
+  redraw, updateFog, writeStats,
+  pushLog, askYesNo, toggleStart
 } from './rendering.js';
+import { randChoice, abs } from './utils.js';
 
-// ---------- глобальный state (экспортируем для других модулей) ----------
-export let units      = [];        // все юниты на карте
-export let buildings  = [];        // здания (пока не используются)
-export let turn       = 1;
-export let currentPlayer = 1;      // 1 – человек, 2 – AI
-
-// ---------- настройки юнитов ----------
-const UNIT_TYPES = {
-  INF : { move: 3, hpMax: 3, atk: 1, rng: 1 },   // пехота
-  CAV : { move: 5, hpMax: 3, atk: 1, rng: 1 },   // кавалерия
-  ART : { move: 2, hpMax: 2, atk: 2, rng: 3 },   // артиллерия
+// ————————————————————————————————————————————————
+// 0. Константы юнитов и зданий
+// ————————————————————————————————————————————————
+const UNITS = {
+  INF : { hp: 3, move: 3, rng: 1, atk: 1, cost: 2 },
+  CAV : { hp: 3, move: 5, rng: 1, atk: 1, cost: 3 },
+  ART : { hp: 2, move: 2, rng: 3, atk: 2, cost: 4 },
 };
 
-// ---------- служебные переменные ----------
-let selected = null;   // юнит, на котором сейчас курсор
-let fogEnabled = true; // переключатель тумана
+const START_GOLD = 10;
+const BASE_HP    = 10;
+
+// ————————————————————————————————————————————————
+// 1. Глобальный state (экспортируем частично)
+// ————————————————————————————————————————————————
+let units      = [];     // все боевые юниты
+let buildings  = [];     // {id,owner,r,c,hp}
+let turn       = 1;
+let current    = 1;      // 1 – человек, 2 – AI
+let gold       = { 1: START_GOLD, 2: START_GOLD };
+
+let selected   = null;   // выбранный юнит
+let modeBeta   = false;  // «2 игрока бета»
 
 // ---------------------------------------------------
-// 1. Инициализация начального состояния
+// Экспортируемое API (main.js пользуется)
 // ---------------------------------------------------
-export function initGameLogic () {
-
-  // два отряда игрока‑1
-  units = [
-    { id: 1, owner: 1, type: 'INF', hp: 3, r:  1,        c: 1 },
-    { id: 2, owner: 1, type: 'CAV', hp: 3, r:  2,        c: 1 },
-
-    // два отряда AI (игрок‑2)
-    { id: 3, owner: 2, type: 'INF', hp: 3, r: ROWS - 2,  c: COLS - 2 },
-    { id: 4, owner: 2, type: 'ART', hp: 2, r: ROWS - 3,  c: COLS - 2 },
-  ];
-
-  buildings = []; // пока пусто
-  turn = 1;
-  currentPlayer = 1;
-
-  // пробрасываем важное в window — старый код может к ним обращаться
-  Object.assign(window, { units, buildings, turn, currentPlayer });
-
-  // пересчёт тумана и отрисовка
-  updateFog();
+export function newGame (beta = false) {
+  modeBeta = beta;
+  resetState();
+  toggleStart(false);                  // спрятать стартовое меню
+  pushLog('Новая игра началась!');
+  drawEverything();
 }
 
-/* -------------------------------------------------- *
- * 2. Обработка кликов по карте (canvas.onclick)      *
- * -------------------------------------------------- */
 export function handleCanvasClick (evt) {
-  // координата клетки
-  const rect = evt.currentTarget.getBoundingClientRect();
-  const c = Math.floor((evt.clientX - rect.left) / TILE_SIZE);
-  const r = Math.floor((evt.clientY - rect.top ) / TILE_SIZE);
-  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+  const { r, c } = cellFromEvent(evt);
+  if (r === null) return;
 
-  const clickedUnit = units.find(u => u.r === r && u.c === c);
+  const u = units.find(x => x.r === r && x.c === c && x.owner === current);
 
   if (selected) {
-    // 2‑й клик → попытка действия
-    //   — если кликнули по своему — просто пере‑select
-    if (clickedUnit && clickedUnit.owner === currentPlayer) {
-      selected = clickedUnit;
-      return;
-    }
-
-    //   — иначе двигаемся/атакуем
-    attemptAction(selected, r, c);
+    if (u) { selected = u; drawEverything(); return; }
+    doAction(selected, r, c);
     selected = null;
-
-    redraw();
-    drawStats();
-
+    endPhaseIfNeeded();
   } else {
-    // 1‑й клик → если это наш юнит — выбираем
-    if (clickedUnit && clickedUnit.owner === currentPlayer) {
-      selected = clickedUnit;
-    }
+    if (u) selected = u;
   }
+  drawEverything();
 }
 
-/* -------------------------------------------------- *
- * 3. Конец хода игрока‑1 + AI‑ход                    *
- * -------------------------------------------------- */
-export function endTurn () {
-  // ► смена игрока
-  currentPlayer = currentPlayer === 1 ? 2 : 1;
-  window.currentPlayer = currentPlayer;
-  turn += 1;
-  window.turn = turn;
+export function endTurnBtn () {
+  askYesNo('Передать ход ИИ?', endTurn);
+}
 
-  healUnits();      // лёгкий авто‑реген
+// ————————————————————————————————————————————————
+// 2. Служебные функции — инициализация и перерисовка
+// ————————————————————————————————————————————————
+function resetState () {
+  generateMap();                       // новая карта
 
-  if (currentPlayer === 2) {   // очередь AI
-    aiTurn();
-    // сразу же передаём ход обратно человеку
-    currentPlayer = 1;
-    window.currentPlayer = 1;
-    turn += 1;
-    window.turn = turn;
-  }
+  // базы по углам
+  buildings = [
+    { id: 1, owner: 1, r: 1,       c: 1,       hp: BASE_HP },
+    { id: 2, owner: 2, r: ROWS-2,  c: COLS-2,  hp: BASE_HP },
+  ];
 
-  updateFog();
+  // стартовые отряды
+  units = [
+    { id: 1, owner: 1, type:'INF', r: 2,        c: 1, hp: UNITS.INF.hp },
+    { id: 2, owner: 1, type:'CAV', r: 2,        c: 2, hp: UNITS.CAV.hp },
+    { id: 3, owner: 2, type:'INF', r: ROWS-3,   c: COLS-2, hp: UNITS.INF.hp },
+    { id: 4, owner: 2, type:'ART', r: ROWS-4,   c: COLS-3, hp: UNITS.ART.hp },
+  ];
+
+  gold = { 1: START_GOLD, 2: START_GOLD };
+  turn = 1;
+  current = 1;
+  selected = null;
+
+  // сделать доступным для rendering.js
+  Object.assign(window, { units, buildings });
+  updateFog(units);
+}
+
+function drawEverything () {
+  writeStats(turn, current, units);
   redraw();
-  drawStats();
 }
 
-/* -------------------------------------------------- *
- * 4. Переключатель тумана войны                      *
- * -------------------------------------------------- */
-export function toggleFog () {
-  fogEnabled = !fogEnabled;
-  window.fogEnabled = fogEnabled;   // вдруг понадобится в других модулях
-  redraw();
+// клетка из события клика
+function cellFromEvent (evt) {
+  const rect = evt.currentTarget.getBoundingClientRect();
+  const x = evt.clientX - rect.left;
+  const y = evt.clientY - rect.top;
+  if (x < 0 || y < 0) return { r:null, c:null };
+  const c = Math.floor(x / 28);
+  const r = Math.floor(y / 28);
+  return (r >= ROWS || c >= COLS) ? { r:null, c:null } : { r, c };
 }
 
-/* -------------------------------------------------- *
- * 5. Внутренние функции                              *
- * -------------------------------------------------- */
+// ————————————————————————————————————————————————
+// 3. Движение / атака
+// ————————————————————————————————————————————————
+function doAction (unit, r, c) {
+  const cfg   = UNITS[unit.type];
+  const dist  = abs(unit.r - r) + abs(unit.c - c);
 
-/** Проверка проходного тайла */
-function passable (r, c) {
-  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
-  return TERR_COST[map[r][c]] < Infinity && !units.find(u => u.r === r && u.c === c);
-}
+  const target = units.find(x => x.r === r && x.c === c && x.owner !== unit.owner);
+  const base   = buildings.find(b => b.r === r && b.c === c && b.owner !== unit.owner);
 
-/** Пытаемся передвинуться или атаковать */
-function attemptAction (unit, r, c) {
-
-  const cfg  = UNIT_TYPES[unit.type];
-  const dist = Math.abs(unit.r - r) + Math.abs(unit.c - c);
-
-  // ------ Атака ------
-  const target = units.find(u => u.owner !== currentPlayer && u.r === r && u.c === c);
-  if (target && dist <= cfg.rng) {
-    target.hp -= cfg.atk;
-    if (target.hp <= 0) {
-      units = units.filter(u => u.id !== target.id);
-      window.units = units;
+  // атака
+  if ((target || base) && dist <= cfg.rng) {
+    if (target) {
+      target.hp -= cfg.atk;
+      pushLog(`${typeName(unit)} атакует ${typeName(target)}!`);
+      if (target.hp <= 0) killUnit(target);
+    } else if (base) {
+      base.hp -= cfg.atk;
+      pushLog(`${typeName(unit)} бьёт вражескую базу!`);
+      if (base.hp <= 0) gameOver(unit.owner);
     }
     return;
   }
 
-  // ------ Движение ------
+  // движение
   if (dist <= cfg.move && passable(r, c)) {
     unit.r = r;
     unit.c = c;
+    pushLog(`${typeName(unit)} перемещается.`);
   }
 }
 
-/** Простой «рест/починка» в конце хода */
-function healUnits () {
+function passable (r, c) {
+  if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return false;
+  if (TERR_COST[window.map[r][c]] >= 999) return false;
+  if (units.find(x => x.r === r && x.c === c)) return false;
+  return true;
+}
+
+function killUnit (u) {
+  units = units.filter(x => x.id !== u.id);
+  window.units = units;
+  pushLog(`${typeName(u)} уничтожен!`, true);
+}
+
+// ————————————————————————————————————————————————
+// 4. Ход / ИИ
+// ————————————————————————————————————————————————
+function endTurn () {
+  current = current === 1 ? 2 : 1;
+  turn += 1;
+
+  regenUnits();
+  gold[current] += 2;                   // маленький доход за ход
+
+  if (current === 2 && !modeBeta) aiTurn();
+  updateFog(units);
+  selected = null;
+  drawEverything();
+}
+
+function regenUnits () {
   units.forEach(u => {
-    const cfg = UNIT_TYPES[u.type];
-    if (u.hp < cfg.hpMax) u.hp += 1;
+    const max = UNITS[u.type].hp;
+    if (u.hp < max) u.hp += 1;
   });
 }
 
-/* -------------------------------------------------- *
- * 6. Черновой AI‑ход                                 *
- * -------------------------------------------------- */
 function aiTurn () {
+  // супер‑просто: каждый юнит идёт к ближайшему врагу или базе
+  units.filter(u => u.owner === 2).forEach(me => {
+    const target = nearestEnemyOrBase(me);
+    if (!target) return;
+    const cfg = UNITS[me.type];
+    const dist = abs(me.r - target.r) + abs(me.c - target.c);
 
-  const myUnits  = units.filter(u => u.owner === 2);
-  const enemies  = units.filter(u => u.owner === 1);
+    // если можем стрелять — стреляем
+    if (dist <= cfg.rng) { doAction(me, target.r, target.c); return; }
 
-  myUnits.forEach(me => {
-    // --- выбор ближайшего врага ---
-    let best = null, bestDist = Infinity;
-    enemies.forEach(en => {
-      const d = Math.abs(me.r - en.r) + Math.abs(me.c - en.c);
-      if (d < bestDist) { bestDist = d; best = en; }
-    });
-    if (!best) return;
-
-    const cfg = UNIT_TYPES[me.type];
-
-    /* 1) Если можем стрелять — стрелять */
-    if (bestDist <= cfg.rng) {
-      best.hp -= cfg.atk;
-      if (best.hp <= 0) {
-        units = units.filter(u => u.id !== best.id);
-        window.units = units;
-        return; // цель уничтожена
-      }
-    }
-
-    /* 2) Иначе идём ближе (до cfg.move клеток) */
-    const dr = Math.sign(best.r - me.r);
-    const dc = Math.sign(best.c - me.c);
-
-    let newR = me.r;
-    let newC = me.c;
-    for (let step = 0; step < cfg.move; step++) {
-      const tryR = newR + (dr !== 0 ? dr : 0);
-      const tryC = newC + (dc !== 0 ? dc : 0);
-      if (passable(tryR, tryC)) {
-        newR = tryR;
-        newC = tryC;
-      }
-    }
-    me.r = newR;
-    me.c = newC;
+    // иначе шагаем ближе
+    const step = bestStepTowards(me, target, cfg.move);
+    if (step) doAction(me, step.r, step.c);
   });
 }
 
-/* -------------------------------------------------- *
- * 7. Экспорт для main.js                             *
- * -------------------------------------------------- */
+function nearestEnemyOrBase (me) {
+  const enemies = units.filter(u => u.owner === 1);
+  const bases   = buildings.filter(b => b.owner === 1);
+  return [...enemies, ...bases].reduce((best, cur) => {
+    const d = abs(me.r-cur.r)+abs(me.c-cur.c);
+    return (!best || d < best.d) ? { ...cur, d } : best;
+  }, null);
+}
+
+function bestStepTowards (me, target, steps) {
+  const queue = [{ r: me.r, c: me.c, s:0 }];
+  const seen  = new Set([`${me.r}|${me.c}`]);
+
+  while (queue.length) {
+    const { r, c, s } = queue.shift();
+    if (s >= steps) continue;
+    const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ]
+      .sort(() => Math.random() - 0.5);         // рандомим порядок
+    for (const [dr,dc] of dirs) {
+      const nr = r+dr, nc = c+dc;
+      const key = `${nr}|${nc}`;
+      if (!passable(nr,nc) || seen.has(key)) continue;
+      if (abs(nr-target.r)+abs(nc-target.c) < abs(me.r-target.r)+abs(me.c-target.c)) return { r:nr,c:nc };
+      seen.add(key);
+      queue.push({ r:nr, c:nc, s:s+1 });
+    }
+  }
+  return null;
+}
+
+// ————————————————————————————————————————————————
+// 5. Победа / поражение
+// ————————————————————————————————————————————————
+function gameOver (winner) {
+  pushLog(winner === 1 ? 'Вы победили!' : 'Поражение…', true);
+  askYesNo('Сыграть ещё раз?', () => newGame(modeBeta));
+}
+
+// ————————————————————————————————————————————————
+// 6. Вспомогалки
+// ————————————————————————————————————————————————
+function typeName (u) {
+  const names = { INF:'Пехота', CAV:'Кавалерия', ART:'Артиллерия' };
+  return `${names[u.type]} #${u.id}`;
+}
+
+// ————————————————————————————————————————————————
+// 7. Экспорт для main.js
+// ————————————————————————————————————————————————
 export {
-  attemptAction as _attemptAction // (если захочется покрутить тесты)
+  units, buildings, turn, current, gold,
+  endTurn
 };
