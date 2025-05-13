@@ -1,6 +1,6 @@
 // js/rendering.js
 // ---------------------------------------------------
-// Канвас, меню, панель, туман войны, события
+// Канвас, меню, панель, туман войны, события/статистика
 // ---------------------------------------------------
 
 import {
@@ -8,37 +8,35 @@ import {
 } from './map.js';
 import { abs } from './utils.js';
 
-// ---------------------------------------------------
-// DOM‑элементы
-// ---------------------------------------------------
-const canvas        = document.getElementById('canvas');
-const ctx           = canvas.getContext('2d');
-const startPanel    = document.getElementById('startPanel');
-const spawnPanel    = document.getElementById('spawnPanel');
-const leftStats     = document.getElementById('leftStats');
-const rightLog      = document.getElementById('rightLog');
-const overlay       = document.getElementById('overlay');
-const overlayMsg    = document.getElementById('overlayMessage');
+// ---------- DOM ----------
+const canvas     = document.getElementById('canvas');
+const ctx        = canvas.getContext('2d');
+const startPanel = document.getElementById('startPanel');
+const leftStats  = document.getElementById('leftStats');
+const rightLog   = document.getElementById('rightLog');
+const overlay    = document.getElementById('overlay');
+const overlayMsg = document.getElementById('overlayMessage');
 
-// ---------------------------------------------------
-// Локальный state
-// ---------------------------------------------------
-let fogMask   = [];              // двумерный массив true/false
-let fogVisible = true;           // переключатель тумана
-const TILE = TILE_SIZE;          // для краткости в коде
+// ---------- локальный state ----------
+let fogMask    = [];           // двумерный массив boolean
+let fogVisible = true;         // переключатель показа тумана
+const TILE = TILE_SIZE;        // для краткости в коде
 
-// ---------------------------------------------------
-// Публичный API
-// ---------------------------------------------------
+// ===================================================
+// 1. Публичный API
+// ===================================================
+
+/** готовит canvas, вешает ресайз, ставит пустую маску тумана */
 export function initRendering () {
   resizeCanvas();
 
-  // 🔸 заглушка: карта открыта полностью, пока updateFog() не сделает реальную маску
+  // заглушка: карта полностью видима, пока updateFog() не пересчитает маску
   fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
 
   window.addEventListener('resize', resizeCanvas);
 }
 
+/** полная перерисовка кадра */
 export function redraw () {
   drawTerrain();
   drawUnits();
@@ -46,9 +44,9 @@ export function redraw () {
   if (fogVisible) drawFog();
 }
 
+/** пересчёт тумана по юнитам игрока‑1 */
 export function updateFog (units) {
   fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(true));
-
   units.filter(u => u.owner === 1).forEach(u => {
     for (let r = u.r - 2; r <= u.r + 2; r++) {
       for (let c = u.c - 2; c <= u.c + 2; c++) {
@@ -58,13 +56,15 @@ export function updateFog (units) {
   });
 }
 
-export function drawStats (turn, currentPlayer, units) {
+/** выводит статистику в левый блок панели */
+export function writeStats (turn, currentPlayer, units) {
   const p1 = units.filter(u => u.owner === 1).length;
   const p2 = units.filter(u => u.owner === 2).length;
   leftStats.textContent =
     `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
 }
 
+/** добавляет строку в правый лог */
 export function pushLog (txt, warn = false) {
   const line = document.createElement('div');
   line.textContent = txt;
@@ -73,10 +73,10 @@ export function pushLog (txt, warn = false) {
   rightLog.scrollTop = rightLog.scrollHeight;
 }
 
-export function toggleStart (show = false) {
-  startPanel.style.display = show ? 'flex' : 'none';
-}
+/** показать / скрыть стартовое меню */
+export const toggleStart = show => { startPanel.style.display = show ? 'flex' : 'none'; };
 
+/** модальное «Да/Нет» */
 export function askYesNo (msg, cbYes) {
   overlayMsg.textContent = msg;
   overlay.style.display = 'flex';
@@ -87,22 +87,23 @@ export function askYesNo (msg, cbYes) {
   no.onclick  = clear;
 }
 
-export function toggleFog () {
-  fogVisible = !fogVisible;
-  redraw();
-}
+/** переключить видимость тумана */
+export function toggleFog () { fogVisible = !fogVisible; redraw(); }
 
-// ---------------------------------------------------
-// Внутренние функции — canvas
-// ---------------------------------------------------
+// ===================================================
+// 2. Внутренние функции: canvas‑рендер
+// ===================================================
+
+/** подгоняем размер canvas под сетку */
 function resizeCanvas () {
   canvas.width  = COLS * TILE;
   canvas.height = ROWS * TILE;
   redraw();
 }
 
+/** фон карты */
 function drawTerrain () {
-  const { map } = window;
+  const { map } = window;                       // глобал из map.js
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       ctx.fillStyle = TERR_COL[map[r][c]];
@@ -111,6 +112,7 @@ function drawTerrain () {
   }
 }
 
+/** юниты (скрываем противника в тумане) */
 function drawUnits () {
   const { units } = window;
   ctx.font = `${TILE * 0.6}px sans-serif`;
@@ -118,17 +120,29 @@ function drawUnits () {
   ctx.textBaseline = 'middle';
 
   units.forEach(u => {
-    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return; // скрываем врага
+    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return; // враг в тумане — не рисуем
+
+    // фон‑кружок
     ctx.fillStyle = u.owner === 1 ? '#fff8' : '#0008';
     ctx.beginPath();
-    ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
+    ctx.arc(
+      u.c * TILE + TILE / 2,
+      u.r * TILE + TILE / 2,
+      TILE * 0.4,
+      0, Math.PI * 2
+    );
     ctx.fill();
 
+    // буква типа
     ctx.fillStyle = u.owner === 1 ? '#000' : '#fff';
-    ctx.fillText(u.type[0], u.c * TILE + TILE / 2, u.r * TILE + TILE / 2);
+    ctx.fillText(u.type[0],
+      u.c * TILE + TILE / 2,
+      u.r * TILE + TILE / 2
+    );
   });
 }
 
+/** здания (видны всегда) */
 function drawBuildings () {
   const { buildings } = window;
   buildings.forEach(b => {
@@ -142,6 +156,7 @@ function drawBuildings () {
   });
 }
 
+/** полупрозрачные квадраты тумана */
 function drawFog () {
   ctx.fillStyle = '#000a';
   for (let r = 0; r < ROWS; r++) {
