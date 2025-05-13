@@ -1,17 +1,16 @@
 // js/rendering.js
 // ---------------------------------------------------
-// Канвас, меню, панель справа, туман войны, события
+// Канвас, меню, панель, туман войны, события
 // ---------------------------------------------------
 
 import {
-  ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE   // TILE_SIZE возьмём из utils
+  ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE
 } from './map.js';
-
 import { abs } from './utils.js';
 
-// ————————————————————————————————————————————————
-// DOM‑элементы (получаем один раз при загрузке)
-// ————————————————————————————————————————————————
+// ---------------------------------------------------
+// DOM‑элементы
+// ---------------------------------------------------
 const canvas        = document.getElementById('canvas');
 const ctx           = canvas.getContext('2d');
 const startPanel    = document.getElementById('startPanel');
@@ -21,20 +20,22 @@ const rightLog      = document.getElementById('rightLog');
 const overlay       = document.getElementById('overlay');
 const overlayMsg    = document.getElementById('overlayMessage');
 
-export const TILE = 28;                           // px — чуть меньше старого
-canvas.style.imageRendering = 'pixelated';
+// ---------------------------------------------------
+// Локальный state
+// ---------------------------------------------------
+let fogMask   = [];              // двумерный массив true/false
+let fogVisible = true;           // переключатель тумана
+const TILE = TILE_SIZE;          // для краткости в коде
 
-// ————————————————————————————————————————————————
-// Локальный state (не путать с gameLogic.js)
-// ————————————————————————————————————————————————
-let fogMask = [];           // true → закрыто
-let fogVisible = true;      // переключается из main.js
-
-// ————————————————————————————————————————————————
-// 1. Публичный API
-// ————————————————————————————————————————————————
+// ---------------------------------------------------
+// Публичный API
+// ---------------------------------------------------
 export function initRendering () {
   resizeCanvas();
+
+  // 🔸 заглушка: карта открыта полностью, пока updateFog() не сделает реальную маску
+  fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+
   window.addEventListener('resize', resizeCanvas);
 }
 
@@ -45,7 +46,6 @@ export function redraw () {
   if (fogVisible) drawFog();
 }
 
-/** пересчитываем видимость по массиву юнитов (owner === 1) */
 export function updateFog (units) {
   fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(true));
 
@@ -58,49 +58,43 @@ export function updateFog (units) {
   });
 }
 
-/** записываем строку в лог событий (справа внизу) */
-export function pushLog (txt, isWarning = false) {
+export function drawStats (turn, currentPlayer, units) {
+  const p1 = units.filter(u => u.owner === 1).length;
+  const p2 = units.filter(u => u.owner === 2).length;
+  leftStats.textContent =
+    `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
+}
+
+export function pushLog (txt, warn = false) {
   const line = document.createElement('div');
   line.textContent = txt;
-  if (isWarning) line.style.color = '#f66';
+  if (warn) line.style.color = '#f66';
   rightLog.append(line);
   rightLog.scrollTop = rightLog.scrollHeight;
 }
 
-/** инфо‑панель (число юнитов, ход и т.д.) */
-export function writeStats (turn, currentPlayer, units) {
-  const p1 = units.filter(u => u.owner === 1).length;
-  const p2 = units.filter(u => u.owner === 2).length;
-  leftStats.textContent =
-    `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
-}
-
-/** включить / выключить стартовое меню */
 export function toggleStart (show = false) {
   startPanel.style.display = show ? 'flex' : 'none';
 }
 
-/** оверлей «Да/Нет» (используется для подтверждений) */
 export function askYesNo (msg, cbYes) {
   overlayMsg.textContent = msg;
   overlay.style.display = 'flex';
   const yes = document.getElementById('yesBtn');
   const no  = document.getElementById('noBtn');
-
   const clear = () => { overlay.style.display = 'none'; yes.onclick = no.onclick = null; };
   yes.onclick = () => { clear(); cbYes(); };
-  no.onclick  = () => { clear(); };
+  no.onclick  = clear;
 }
 
-/** показать или спрятать туман */
 export function toggleFog () {
   fogVisible = !fogVisible;
   redraw();
 }
 
-// ————————————————————————————————————————————————
-// 2. Частные функции (canvas)
-// ————————————————————————————————————————————————
+// ---------------------------------------------------
+// Внутренние функции — canvas
+// ---------------------------------------------------
 function resizeCanvas () {
   canvas.width  = COLS * TILE;
   canvas.height = ROWS * TILE;
@@ -108,8 +102,7 @@ function resizeCanvas () {
 }
 
 function drawTerrain () {
-  const { map } = window;              // карта лежит глобально из map.js
-
+  const { map } = window;
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       ctx.fillStyle = TERR_COL[map[r][c]];
@@ -125,9 +118,7 @@ function drawUnits () {
   ctx.textBaseline = 'middle';
 
   units.forEach(u => {
-    // скрываем противника за туманом
-    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return;
-
+    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return; // скрываем врага
     ctx.fillStyle = u.owner === 1 ? '#fff8' : '#0008';
     ctx.beginPath();
     ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
@@ -141,7 +132,6 @@ function drawUnits () {
 function drawBuildings () {
   const { buildings } = window;
   buildings.forEach(b => {
-    // здания видны даже в тумане (можно поменять)
     ctx.fillStyle = b.owner === 1 ? '#77c' : '#c77';
     ctx.fillRect(
       b.c * TILE + TILE * 0.15,
@@ -152,14 +142,11 @@ function drawBuildings () {
   });
 }
 
-/** полупрозрачные квадраты поверх закрытых клеток */
 function drawFog () {
   ctx.fillStyle = '#000a';
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (fogMask[r][c]) {
-        ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
-      }
+      if (fogMask[r][c]) ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
     }
   }
 }
