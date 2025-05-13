@@ -1,15 +1,8 @@
 // js/main.js
-// ---------------------------------------------------
-// Связываем всё: меню, рендер, логика игры
-// ---------------------------------------------------
-
 import { initRendering, toggleFog }               from './rendering.js';
 import { newGame, handleCanvasClick, endTurnBtn } from './gameLogic.js';
-import { generateMap }                            from './map.js';      // ⬅️ добавили
+import { generateMap }                            from './map.js';
 
-// ———————————————————————————————————————————
-// DOM‑элементы
-// ———————————————————————————————————————————
 const twoBtn     = document.getElementById('twoBtn');
 const betaBtn    = document.getElementById('betaBtn');
 const revealBtn  = document.getElementById('revealBtn');
@@ -17,26 +10,27 @@ const endTurnUI  = document.getElementById('endTurnBtn');
 const canvas     = document.getElementById('canvas');
 const startPanel = document.getElementById('startPanel');
 
-// ———————————————————————————————————————————
-// Инициализация
-// ———————————————————————————————————————————
 window.addEventListener('DOMContentLoaded', () => {
 
-  // 1) Создаём пустую карту, чтобы рендер мог сразу отрисовать фон
+  // 🔸 заглушки, чтобы drawUnits()/drawBuildings() не падали
+  window.units     = [];
+  window.buildings = [];
+
+  // карта уже есть до первой перерисовки
   generateMap();
 
-  // 2) Настраиваем канвас (resize + первый redraw)
+  // канвас подгоняется по размеру и сразу рисуется
   initRendering();
 
-  // 3) Показываем стартовое меню
+  // показываем меню режима
   startPanel.style.display = 'flex';
 
-  // ——— кнопки меню ———
-  twoBtn .addEventListener('click', () => newGame(false)); // человек + AI
-  betaBtn.addEventListener('click', () => newGame(true));  // «2 игрока β» (локально)
+  // ——— выбор режима ———
+  twoBtn .addEventListener('click', () => newGame(false));
+  betaBtn.addEventListener('click', () => newGame(true));
 
   // ——— игровое UI ———
-  revealBtn.addEventListener('click', toggleFog);      // показать / скрыть туман
-  endTurnUI.addEventListener('click', endTurnBtn);     // передать ход
-  canvas.addEventListener('click', handleCanvasClick); // клик по карте
+  revealBtn.addEventListener('click', toggleFog);
+  endTurnUI.addEventListener('click', endTurnBtn);
+  canvas.addEventListener('click', handleCanvasClick);
 });
