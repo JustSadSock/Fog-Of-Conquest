@@ -1,46 +1,43 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport"
-        content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-  <title>Fog of Conquest</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>5×5 Strategy Dev</title>
+
+  <!-- мини‑CSS прямо тут, чтоб был один файл -->
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif;}
+    body{background:#222;color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+    #canvas{background:#000;border:2px solid #555;image-rendering:pixelated;touch-action:none;}
+    #bottomPanel{width:100%;max-width:640px;margin-top:4px;display:flex;flex-direction:column;gap:4px;}
+    #stats{padding:4px 6px;background:#333;border:1px solid #555;font-size:14px;text-align:center;}
+    #controls{display:flex;gap:6px;justify-content:center;}
+    #controls button{flex:1 1 0;background:#555;border:0;padding:8px 4px;font-size:14px;color:#fff;cursor:pointer;}
+    #controls button:hover{background:#777;}
+    #eventsLog,#spawnPanel{min-height:40px;background:#2a2a2a;border:1px solid #444;padding:4px 6px;font-size:13px;overflow-y:auto;}
+    #eventsLog{max-height:80px;}
+  </style>
 </head>
 <body>
-  <!-- Стартовое меню -->
-  <div id="startPanel">
-    <h1>Fog of Conquest</h1>
-    <button id="oneBtn" disabled>1 игрок (недоступно)</button>
-    <button id="twoBtn">2 игрока (бета)</button>
-    <div id="rules" class="scrollable">
-      <!-- Здесь можно прокручиваемую сводку правил вставить -->
-    </div>
-  </div>
 
-  <!-- Поле боя -->
+  <!-- Игровое поле -->
   <canvas id="canvas"></canvas>
 
-  <!-- Панель спавна (скрыта до клика по базе) -->
-  <div id="spawnPanel"></div>
+  <!-- Нижняя панель с инфой и кнопками -->
+  <div id="bottomPanel">
+    <div id="stats">Статистика появится здесь…</div>
 
-  <!-- Нижняя панель: статистика, лог событий, кнопки -->
-  <div id="stats"></div>
-  <div id="eventsLog" class="scrollable"></div>
-  <div id="controls">
-    <button id="toggleFogBtn">Скрыть туман</button>
-    <button id="endTurnBtn">Передать ход</button>
-  </div>
-
-  <!-- Оверлей при передаче хода -->
-  <div id="overlay">
-    <div id="overlayContent">
-      <div id="overlayMessage"></div>
-      <button id="confirmBtn">ОК</button>
+    <div id="controls">
+      <button id="endTurnBtn">Конец хода</button>
+      <button id="fogToggleBtn">Туман войны</button>
     </div>
+
+    <div id="eventsLog">Лог событий…</div>
+    <div id="spawnPanel">Панель найма (пока пусто)…</div>
   </div>
 
-  <!-- единственная точка входа: игра импортирует map.js и rendering.js -->
-  <script type="module" src="js/gameLogic.js"></script>
+  <!-- ЕДИНАЯ точка входа -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
