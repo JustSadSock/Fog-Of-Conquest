@@ -1,66 +1,37 @@
 // js/main.js
 // ---------------------------------------------------
-// ЕДИНАЯ ТОЧКА ВХОДА: импортирует и связывает все модули
+// Связываем всё вместе: меню, рендер, логика игры
 // ---------------------------------------------------
 
-import { generateMap } from './map.js';
+import { initRendering, toggleFog }          from './rendering.js';
+import { newGame, handleCanvasClick, endTurnBtn } from './gameLogic.js';
 
-import {
-  initRendering,
-  redraw,
-  updateFog,
-  drawStats
-} from './rendering.js';
+// ————————————————————————————————————————————————
+// DOM‑элементы (берём один раз)
+// ————————————————————————————————————————————————
+const twoBtn     = document.getElementById('twoBtn');
+const betaBtn    = document.getElementById('betaBtn');
+const revealBtn  = document.getElementById('revealBtn');
+const endTurnUI  = document.getElementById('endTurnBtn');
+const canvas     = document.getElementById('canvas');
 
-import {
-  initGameLogic,
-  handleCanvasClick,
-  endTurn,
-  toggleFog
-} from './gameLogic.js';
-
-// ---------------------------------------------------
-// DOMContentLoaded: готовим всё и навешиваем обработчики
-// ---------------------------------------------------
+// ————————————————————————————————————————————————
+// 1. Инициализация: только рендер + меню
+// ————————————————————————————————————————————————
 window.addEventListener('DOMContentLoaded', () => {
 
-  // 1. Генерируем карту и стартовые объекты
-  generateMap();
-
-  // 2. Инициализируем игровую логику (state, клики, UI, ИИ)
-  initGameLogic();
-
-  // 3. Настраиваем canvas‑рендер и первый кадр
+  // подготовить канвас (размер, первое отрисовывание пустой карты)
   initRendering();
-  updateFog();
-  redraw();
-  drawStats();
 
-  // ---------- кнопки, клики, UI ----------
-  const canvas       = document.getElementById('canvas');
-  const endTurnBtn   = document.getElementById('endTurnBtn');
-  const fogToggleBtn = document.getElementById('fogToggleBtn');
+  // показать стартовое меню (оно скрывается внутри newGame())
+  document.getElementById('startPanel').style.display = 'flex';
 
-  // клик по карте
-  canvas.addEventListener('click', handleCanvasClick);
+  // ——— кнопки выбора режима ———
+  twoBtn .addEventListener('click', () => newGame(false));  // человек + AI
+  betaBtn.addEventListener('click', () => newGame(true));   // «2 игрока β» (локал)
 
-  // «Конец хода»
-  endTurnBtn.addEventListener('click', () => {
-    endTurn();
-    updateFog();
-    redraw();
-    drawStats();
-  });
-
-  // переключатель тумана войны
-  fogToggleBtn.addEventListener('click', () => {
-    toggleFog();
-    redraw();
-  });
-
-  // ресайз окна → перерисовать всё
-  window.addEventListener('resize', () => {
-    redraw();
-    drawStats();
-  });
+  // ——— гейм‑UI ———
+  revealBtn.addEventListener('click', toggleFog);      // показать/скрыть туман
+  endTurnUI.addEventListener('click', endTurnBtn);     // передать ход
+  canvas.addEventListener('click', handleCanvasClick); // выбор/движение/атака
 });
