@@ -1,10 +1,11 @@
 // js/rendering.js
 // ---------------------------------------------------
-// Канвас, меню, туман войны, лог, статистика
+// Канвас, старт‑меню, туман, лог, статистика
 // ---------------------------------------------------
 
-import { ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE } from './map.js';
-import { abs } from './utils.js';
+import {
+  ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE
+} from './map.js';
 
 // ---------- DOM ----------
 const canvas     = document.getElementById('canvas');
@@ -16,22 +17,19 @@ const overlay    = document.getElementById('overlay');
 const overlayMsg = document.getElementById('overlayMessage');
 
 // ---------- локальный state ----------
-let fogMask    = [];              // двумерный boolean‑массив
-let fogVisible = true;            // переключатель отображения
-const TILE = TILE_SIZE;
+let fogMask    = [];               // [][]bool — закрыто/открыто
+let fogVisible = true;             // переключатель
+const TILE = TILE_SIZE;            // псевдоним
 
 // ===================================================
 // 1. Публичный API
 // ===================================================
 
 export function initRendering () {
-  /* 1) заглушка: создаём маску, чтобы drawFog() имел валидный массив
-        (делаем ДО первого redraw) */
+  // создаём пустую маску, чтобы drawFog() не упал первым кадром
   fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
 
-  /* 2) первый resize → redraw (drawTerrain / drawFog и т.д.) */
   resizeCanvas();
-
   window.addEventListener('resize', resizeCanvas);
 }
 
@@ -72,7 +70,7 @@ export const toggleStart = show => { startPanel.style.display = show ? 'flex' : 
 
 export function askYesNo (msg, cbYes) {
   overlayMsg.textContent = msg;
-  overlay.style.display = 'flex';
+  overlay.style.display  = 'flex';
   const yes = document.getElementById('yesBtn');
   const no  = document.getElementById('noBtn');
   const clear = () => { overlay.style.display = 'none'; yes.onclick = no.onclick = null; };
@@ -83,7 +81,7 @@ export function askYesNo (msg, cbYes) {
 export function toggleFog () { fogVisible = !fogVisible; redraw(); }
 
 // ===================================================
-// 2. Внутренние функции — canvas‑рендер
+// 2. Внутренние функции: canvas‑рендер
 // ===================================================
 
 function resizeCanvas () {
@@ -93,7 +91,7 @@ function resizeCanvas () {
 }
 
 function drawTerrain () {
-  const { map } = window;
+  const { map } = window;                  // глобал из map.js
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       ctx.fillStyle = TERR_COL[map[r][c]];
@@ -104,16 +102,28 @@ function drawTerrain () {
 
 function drawUnits () {
   const { units } = window;
-  ctx.font = `${TILE * 0.6}px sans-serif`;
+
+  ctx.font = `600 ${TILE * 0.65}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   units.forEach(u => {
-    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return;   // враг в тумане
-    ctx.fillStyle = u.owner === 1 ? '#fff8' : '#0008';
+    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return; // враг в тумане
+
+    // фон‑круг
+    ctx.fillStyle = u.owner === 1 ? '#fff9' : '#0009';
     ctx.beginPath();
     ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
     ctx.fill();
+
+    // контур
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = u.owner === 1 ? '#000' : '#fff';
+    ctx.beginPath();
+    ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // буква типа
     ctx.fillStyle = u.owner === 1 ? '#000' : '#fff';
     ctx.fillText(u.type[0], u.c * TILE + TILE / 2, u.r * TILE + TILE / 2);
   });
@@ -122,13 +132,16 @@ function drawUnits () {
 function drawBuildings () {
   const { buildings } = window;
   buildings.forEach(b => {
-    ctx.fillStyle = b.owner === 1 ? '#77c' : '#c77';
-    ctx.fillRect(
-      b.c * TILE + TILE * 0.15,
-      b.r * TILE + TILE * 0.15,
-      TILE * 0.7,
-      TILE * 0.7
-    );
+    const x = b.c * TILE + TILE * 0.15;
+    const y = b.r * TILE + TILE * 0.15;
+    const s = TILE * 0.7;
+
+    ctx.fillStyle   = b.owner === 1 ? '#77c' : '#c77';
+    ctx.fillRect(x, y, s, s);
+
+    ctx.lineWidth   = 2;
+    ctx.strokeStyle = '#000';
+    ctx.strokeRect(x, y, s, s);
   });
 }
 
