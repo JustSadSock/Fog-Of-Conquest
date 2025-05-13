@@ -1,67 +1,38 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>Fog of Conquest</title>
-  <style>
-    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#222; color:#fff; font:1em sans-serif; }
-    #startPanel {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      display:flex; align-items:center; justify-content:center; flex-direction:column;
-      background:#000; z-index:20;
-    }
-    #startPanel h1 { margin-bottom:20px; }
-    #startPanel button {
-      margin:6px; padding:10px 20px; font:1.2em sans-serif;
-      background:#444; border:none; border-radius:4px; color:#888;
-    }
-    #startPanel button.enabled { color:#fff; cursor:pointer; }
-    #canvas { display:block; }
-    #stats {
-      position:absolute; bottom:0; left:0; right:0;
-      background:rgba(0,0,0,0.8); padding:8px; box-sizing:border-box; z-index:10;
-    }
-    #controls {
-      position:absolute; bottom:60px; left:0; right:0; display:flex;
-      justify-content:center; gap:10px; z-index:10;
-    }
-    #controls button {
-      padding:6px 12px; font:1em sans-serif; border:none;
-      border-radius:4px; background:#444; color:#fff; cursor:pointer;
-    }
-    #overlay {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      display:none; align-items:center; justify-content:center;
-      background:rgba(0,0,0,0.8); z-index:30;
-    }
-    #overlayContent {
-      background:#222; padding:20px; border-radius:8px; text-align:center;
-    }
-    #overlayContent button { margin-top:12px; padding:6px 12px; }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <!-- Стартовое меню -->
   <div id="startPanel">
     <h1>Fog of Conquest</h1>
-    <button id="oneBtn">1 игрок (недоступно)</button>
-    <button id="twoBtn" class="enabled">2 игрока (бета)</button>
+    <button id="oneBtn" disabled>1 игрок (недоступно)</button>
+    <button id="twoBtn">2 игрока (бета)</button>
+    <div id="rules" class="scrollable">
+      <!-- Здесь можно прокручиваемую сводку правил вставить -->
+    </div>
   </div>
 
-  <!-- Основной canvas -->
+  <!-- Поле боя -->
   <canvas id="canvas"></canvas>
 
-  <!-- Панель управления -->
+  <!-- Панель спавна (скрыта до клика по базе) -->
+  <div id="spawnPanel"></div>
+
+  <!-- Нижняя панель: статистика, лог событий, кнопки -->
+  <div id="stats"></div>
+  <div id="eventsLog" class="scrollable"></div>
   <div id="controls">
     <button id="toggleFogBtn">Скрыть туман</button>
     <button id="endTurnBtn">Передать ход</button>
   </div>
 
-  <!-- Статистика -->
-  <div id="stats"></div>
-
-  <!-- Оверлей передачи хода -->
+  <!-- Оверлей при передаче хода -->
   <div id="overlay">
     <div id="overlayContent">
       <div id="overlayMessage"></div>
@@ -69,7 +40,7 @@
     </div>
   </div>
 
-  <!-- Единственная точка входа модуля -->
+  <!-- единственная точка входа: игра импортирует map.js и rendering.js -->
   <script type="module" src="js/gameLogic.js"></script>
 </body>
 </html>
