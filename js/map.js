@@ -1,82 +1,60 @@
 // js/map.js
+// ---------------------------------------------------
+// Константы карты и генерация ландшафта
+// ---------------------------------------------------
 
-export const ROWS = 30;
+// размеры сетки (можно менять — рендер подстроится)
+export const ROWS = 20;
 export const COLS = 20;
+export const TILE_SIZE = 32;              // px
 
+// типы тайлов (enum)
 export const TERRAIN = {
-  PLAIN:    0,
-  WATER:    1,
-  FOREST:   2,
-  HILL:     3,
-  MOUNTAIN: 4
+  PLAIN : 0,
+  FOREST: 1,
+  HILL  : 2,
+  WATER : 3,
 };
 
-export const TERR_COL = ['#888','#58a','#292','#aa2','#666'];
-export const TERR_COST = [1,2,1,2,999];
-export const TERR_DEF  = [0,-1,0,1,0];
+// стоимость хода по тайлу для ИИ/логики
+export const TERR_COST = {
+  [TERRAIN.PLAIN] : 1,
+  [TERRAIN.FOREST]: 2,
+  [TERRAIN.HILL]  : 2,
+  [TERRAIN.WATER] : Infinity,            // нельзя пройти
+};
+
+// бонус защиты (пример: +DEF при битве)
+export const TERR_DEF = {
+  [TERRAIN.PLAIN] : 0,
+  [TERRAIN.FOREST]: 1,
+  [TERRAIN.HILL]  : 2,
+  [TERRAIN.WATER] : 0,
+};
+
+// сама карта (2‑D массив ROWS × COLS)
+export let map = [];
 
 /**
- * Генерирует карту terrain и начальные здания.
- * Ставит воду, лес, холмы, горы, потом базы и ресурсные здания.
- * Массив `window.map` будет заполняться типами TERRAIN, а `window.buildings` — объектами {r,c,owner,type}.
+ * Генерирует новую карту случайным образом и кидает её
+ * и в export, и в window.map (для старого кода, если вдруг понадобился)
  */
-export function generateMap() {
-  // Инициализируем массив карты
-  window.map = Array.from({ length: ROWS }, () => Array(COLS).fill(TERRAIN.PLAIN));
-  window.buildings = [];
-  window.units = [];
+export function generateMap () {
+  map = Array.from({ length: ROWS }, () =>
+    Array.from({ length: COLS }, () => randomTerrain())
+  );
 
-  // Вспомогательная функция для рисования пятен местности
-  function add(type, count, sizeMin = 6, sizeMax = 12) {
-    for (let k = 0; k < count; k++) {
-      const stack = [];
-      const r0 = Math.floor(Math.random() * ROWS);
-      const c0 = Math.floor(Math.random() * COLS);
-      stack.push([r0, c0]);
-      let s = sizeMin + Math.floor(Math.random() * (sizeMax - sizeMin));
-      while (s-- > 0 && stack.length) {
-        const [r, c] = stack.pop();
-        if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
-        if (window.map[r][c] !== TERRAIN.PLAIN) continue;
-        window.map[r][c] = type;
-        stack.push([r+1,c],[r-1,c],[r,c+1],[r,c-1]);
-      }
-    }
-  }
+  // ← legacy: пусть старый код тоже видит карту
+  window.map = map;
+}
 
-  // Расставляем природные объекты
-  add(TERRAIN.WATER,    4);
-  add(TERRAIN.FOREST,   5);
-  add(TERRAIN.HILL,     4);
-  add(TERRAIN.MOUNTAIN, 3);
-
-  // Вспомогалка поиска свободной клетки
-  function freeCell() {
-    for (let i = 0; i < 500; i++) {
-      const r = 2 + Math.floor(Math.random()*(ROWS-4));
-      const c = 2 + Math.floor(Math.random()*(COLS-4));
-      if (window.map[r][c] === TERRAIN.PLAIN &&
-        !window.buildings.find(b => b.r === r && b.c === c) &&
-        !window.units.find(u => u.r === r && u.c === c)) {
-        return { r, c };
-      }
-    }
-    return null;
-  }
-
-  // Ставим стартовые базы игроков
-  window.buildings.push({ r:1, c:1, owner:1, type:'base' });
-  window.buildings.push({ r:ROWS-2, c:COLS-2, owner:2, type:'base' });
-
-  // Ставим по одной ресурсной постройке рядом с каждой стартовой базой
-  window.buildings.push({ r:1, c:2, owner:1, type:'mine' });
-  window.buildings.push({ r:ROWS-2, c:COLS-3, owner:2, type:'lumber' });
-
-  // Случайно размещаем ещё по 2 казармы, конюшни и магические башни на нейтральных клетках
-  ['barracks','stable','mageTower','fort'].forEach(type => {
-    for (let i = 0; i < (type === 'fort' ? 4 : 2); i++) {
-      const p = freeCell();
-      if (p) window.buildings.push({ r:p.r, c:p.c, owner:0, type });
-    }
-  });
+// ---------------------------------------------------
+// Вспомогалка — случайный тайл по простым вероятностям
+// ---------------------------------------------------
+function randomTerrain () {
+  const r = Math.random();
+  if (r < 0.60) return TERRAIN.PLAIN;   // 60 %
+  if (r < 0.80) return TERRAIN.FOREST;  // 20 %
+  if (r < 0.95) return TERRAIN.HILL;    // 15 %
+  return TERRAIN.WATER;                 // 5 %
 }
