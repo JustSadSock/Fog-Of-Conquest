@@ -1,36 +1,43 @@
 // js/main.js
-import { initRendering, toggleFog }               from './rendering.js';
-import { newGame, handleCanvasClick, endTurnBtn } from './gameLogic.js';
-import { generateMap }                            from './map.js';
+// ---------------------------------------------------
+// Старт приложения: меню, холст, события
+// ---------------------------------------------------
 
-const twoBtn     = document.getElementById('twoBtn');
-const betaBtn    = document.getElementById('betaBtn');
-const revealBtn  = document.getElementById('revealBtn');
-const endTurnUI  = document.getElementById('endTurnBtn');
-const canvas     = document.getElementById('canvas');
-const startPanel = document.getElementById('startPanel');
+import './globals.js';                             // ← заглушки window.*
+import { generateMap }            from './map.js';
+import {
+  initRendering, toggleFog, toggleStart
+} from './rendering.js';
+import {
+  newGame, handleCanvasClick, endTurnBtn
+} from './gameLogic.js';
 
+// ---------- DOM ----------
+const twoBtn    = document.getElementById('twoBtn');     // «2 игрока»
+const betaBtn   = document.getElementById('betaBtn');    // «2 игрока (β)»
+const revealBtn = document.getElementById('revealBtn'); // открыть туман
+const passBtn   = document.getElementById('endTurnBtn'); // передать ход
+const canvas    = document.getElementById('canvas');
+
+// ---------------------------------------------------
+// boot
+// ---------------------------------------------------
 window.addEventListener('DOMContentLoaded', () => {
-
-  // 🔸 заглушки, чтобы drawUnits()/drawBuildings() не падали
-  window.units     = [];
-  window.buildings = [];
-
-  // карта уже есть до первой перерисовки
+  // 1) пустая карта → первый redraw не упадёт
   generateMap();
 
-  // канвас подгоняется по размеру и сразу рисуется
+  // 2) канвас + первый кадр
   initRendering();
 
-  // показываем меню режима
-  startPanel.style.display = 'flex';
+  // 3) показать стартовое меню
+  toggleStart(true);
 
-  // ——— выбор режима ———
-  twoBtn .addEventListener('click', () => newGame(false));
-  betaBtn.addEventListener('click', () => newGame(true));
+  // --- меню режима ---
+  twoBtn .addEventListener('click', () => newGame(false)); // AI
+  betaBtn.addEventListener('click', () => newGame(true));  // локальный 2P
 
-  // ——— игровое UI ———
+  // --- игровое UI ---
   revealBtn.addEventListener('click', toggleFog);
-  endTurnUI.addEventListener('click', endTurnBtn);
-  canvas.addEventListener('click', handleCanvasClick);
+  passBtn  .addEventListener('click', endTurnBtn);
+  canvas   .addEventListener('click', handleCanvasClick);
 });
