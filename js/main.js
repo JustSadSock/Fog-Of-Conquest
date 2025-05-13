@@ -3,20 +3,16 @@
 // Старт приложения: меню, холст, события
 // ---------------------------------------------------
 
-import './globals.js';                             // ← заглушки window.*
+import './globals.js';                             // заглушки window.*
 import { generateMap }            from './map.js';
-import {
-  initRendering, toggleFog, toggleStart
-} from './rendering.js';
-import {
-  newGame, handleCanvasClick, endTurnBtn
-} from './gameLogic.js';
+import { initRendering, toggleFog, toggleStart }   from './rendering.js';
+import { newGame, handleCanvasClick, endTurnBtn }  from './gameLogic.js';
 
 // ---------- DOM ----------
-const twoBtn    = document.getElementById('twoBtn');     // «2 игрока»
-const betaBtn   = document.getElementById('betaBtn');    // «2 игрока (β)»
-const revealBtn = document.getElementById('revealBtn'); // открыть туман
-const passBtn   = document.getElementById('endTurnBtn'); // передать ход
+const twoBtn    = document.getElementById('twoBtn');     // «2 игрока»
+const betaBtn   = document.getElementById('betaBtn');    // «2 игрока (β)»
+const revealBtn = document.getElementById('revealBtn');  // открыть туман
+const passBtn   = document.getElementById('endTurnBtn');// передать ход
 const canvas    = document.getElementById('canvas');
 
 // ---------------------------------------------------
@@ -33,8 +29,8 @@ window.addEventListener('DOMContentLoaded', () => {
   toggleStart(true);
 
   // --- меню режима ---
-  twoBtn .addEventListener('click', () => newGame(false)); // AI
-  betaBtn.addEventListener('click', () => newGame(true));  // локальный 2P
+  twoBtn .addEventListener('click', () => newGame(false)); // человек + AI
+  betaBtn.addEventListener('click', () => newGame(true));  // «2 игрока (β)»
 
   // --- игровое UI ---
   revealBtn.addEventListener('click', toggleFog);
