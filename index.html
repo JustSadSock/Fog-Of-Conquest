@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>Fog of Conquest</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+  <div id="startPanel">
+    <h1>Fog of Conquest</h1>
+    <div id="summary">
+      <strong>Сводка правил и концепции игры:</strong><br>
+      Цель: захватить все военные базы противника или уничтожить его армию.<br><br>
+      <em>Юниты:</em><br>
+      • Мечник: ближний бой, прочность и скорость средние.<br>
+      • Лучник: стреляет на расстоянии, не получает ответный урон.<br>
+      • Тяжпех: медленный но крепкий боец.<br>
+      • Конница: быстрое наступление, уязвимее в обороне.<br>
+      • Маг: исцеляет союзников в радиусе.<br>
+      • Бог (бета): тестовый юнит с особыми возможностями.<br><br>
+      <em>Постройки:</em><br>
+      • Военные базы — выпускают юнитов.<br>
+      • Рудники и лесопилки — приносят ресурсы.<br>
+      • Форты — укрепляют оборону.<br><br>
+      <em>Рельеф:</em><br>
+      Лес и холмы дают укрытие, вода замедляет, горы непроходимы.<br><br>
+      <em>Интерфейс:</em><br>
+      • Передача хода после ваших действий.<br>
+      • Туман войны скрывает неизведанные зоны.<br>
+    </div>
+    <button id="twoBtn">2 игрока</button>
+    <button id="betaBtn">2 игрока (бета)</button>
+  </div>
+
+  <div id="overlay">
+    <div id="overlayMessage"></div>
+    <button id="yesBtn">Да</button>
+    <button id="noBtn">Нет</button>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div id="spawnPanel"></div>
+
+  <div id="infoPanel">
+    <div id="controls">
+      <button id="revealBtn">Открыть туман</button>
+      <button id="endTurnBtn">Передать ход</button>
+    </div>
+    <div id="statsLog">
+      <div id="leftStats"></div>
+      <div id="rightLog"></div>
+    </div>
+  </div>
+
+  <script src="js/core.js"></script>
+</body>
+</html>
