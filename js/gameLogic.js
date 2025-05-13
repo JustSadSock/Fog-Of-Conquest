@@ -3,7 +3,7 @@
 import { ROWS, COLS, TERRAIN, TERR_COST, TERR_DEF, generateMap } from './map.js';
 import { initRendering, redraw, updateFog }                       from './rendering.js';
 
-// Типы юнитов
+// Описания юнитов
 export const UNIT_TYPES = {
   swordsman: { move:2, atk:2, def:1, range:1, hpMax:5, cost:3, color:'#a00' },
   archer:    { move:2, atk:3, def:0, range:2, hpMax:4, cost:3, color:'#0a0' },
@@ -13,7 +13,7 @@ export const UNIT_TYPES = {
   bog:       { move:0, atk:2, def:1, range:1, hpMax:1000, cost:0, color:'#fff' }
 };
 
-// Типы зданий
+// Описания зданий
 export const BUILD_TYPES = {
   base:      { spawn:['swordsman','archer','bog'], gen:0 },
   barracks:  { spawn:['heavy'], gen:0 },
@@ -24,13 +24,13 @@ export const BUILD_TYPES = {
   fort:      { spawn:[], gen:0, def:+2 }
 };
 
-// Короткие метки зданий
+// Краткие метки зданий
 export const BUILD_LABELS = {
   base:'баз', barracks:'каз', stable:'кон', mageTower:'баш',
   mine:'руд', lumber:'лес', fort:'форт'
 };
 
-// Глобальное состояние
+// Глобальное состояние игры
 window.state = {
   currentPlayer: 1,
   gold:           {1:5,2:5},
@@ -46,21 +46,29 @@ window.zoneList  = [];
 window.spawnB    = null;
 let continueAfterOverlay;
 
-// Инициализация игры (генерация карты + подготовка fog/seen)
+// Генерация карты и стартовых объектов
 export function initGame() {
   generateMap();
+
+  // Инициализация тумана и_seen_
   [1,2].forEach(p=>{
     window.state.fog[p]  = Array.from({length:ROWS},()=>Array(COLS).fill(true));
     window.state.seen[p] = Array.from({length:ROWS},()=>Array(COLS).fill(false));
   });
+
+  // Дать единицы передвижения новосозданным юнитам
   window.units.forEach(u => u.mp = UNIT_TYPES[u.type].move);
+
+  // Запустить первый ход
   prepareTurn(1);
 }
 
 // Подготовка хода игрока p
 function prepareTurn(p) {
   window.state.currentPlayer = p;
-  window.units.filter(u=>u.owner===p).forEach(u=>u.mp = UNIT_TYPES[u.type].move);
+  window.units
+    .filter(u=>u.owner===p)
+    .forEach(u=>u.mp = UNIT_TYPES[u.type].move);
   updateFog();
   redraw();
   drawStats();
@@ -83,7 +91,7 @@ function nextTurn() {
     window.zoneMap = null;
     window.zoneList = [];
     window.spawnB = null;
-    if (window.state.currentPlayer === 1) {
+    if (window.state.currentPlayer===1) {
       window.state.turn++;
       prepareTurn(2);
     } else {
@@ -92,7 +100,7 @@ function nextTurn() {
   };
 }
 
-// Расчёт зоны передвижения
+// Вычисление зоны передвижения для юнита
 function computeZone(u) {
   const rem = Array.from({length:ROWS},()=>Array(COLS).fill(-1));
   const q = [{r:u.r,c:u.c,mp:u.mp}];
@@ -116,22 +124,24 @@ function computeZone(u) {
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     if(rem[r][c]>=0 && !(r===u.r&&c===u.c)) list.push({r,c});
   }
-  return {rem, list};
+  return {rem,list};
 }
 
-// Проверка безопасности для ближнего боя
-function safeForMelee(att, def) {
+// Проверка, безопасен ли ближний бой
+function safeForMelee(att,def) {
   const defVal = UNIT_TYPES[def.type].def + TERR_DEF[window.map[att.r][att.c]];
   let ret = UNIT_TYPES[def.type].atk - defVal;
-  return att.hp > (ret<1?1:ret);
+  if(ret<1) ret = 1;
+  return att.hp > ret;
 }
 
-// Выполнение атаки
-function doAttack(att, def) {
+// Выполняем атаку att→def
+function doAttack(att,def) {
   const info = UNIT_TYPES[att.type];
   let defVal = UNIT_TYPES[def.type].def + TERR_DEF[window.map[def.r][def.c]];
   let dmg = info.atk - defVal; if(dmg<1) dmg=1;
   if(def.type!=='bog') def.hp -= dmg;
+  // ответка для melee
   if(info.range===1 && def.hp>0){
     let attDef = UNIT_TYPES[att.type].def + TERR_DEF[window.map[att.r][att.c]];
     let rdmg = UNIT_TYPES[def.type].atk - attDef; if(rdmg<1) rdmg=1;
@@ -141,15 +151,18 @@ function doAttack(att, def) {
   if(att.hp<=0 && att.type!=='bog') window.units.splice(window.units.indexOf(att),1);
 }
 
-// Спавн юнита
+// Спавн юнита типа type на spawnB
 function spawn(type) {
   const p = window.state.currentPlayer;
   const cost = UNIT_TYPES[type].cost;
-  if(window.state.gold[p]<cost) return alert('Не хватает золота');
+  if(window.state.gold[p]<cost){
+    alert('Не хватает золота');
+    return;
+  }
   [[-1,0],[1,0],[0,-1],[0,1]].some(([dy,dx])=>{
-    const rr=window.spawnB.r+dy, cc=window.spawnB.c+dx;
+    const rr = window.spawnB.r + dy, cc = window.spawnB.c + dx;
     if(rr<0||rr>=ROWS||cc<0||cc>=COLS) return false;
-    if(window.buildings.find(b=>b.r===rr&&b.c===cc)||window.units.find(u=>u.r===rr&&u.c===cc))
+    if(window.buildings.find(b=>b.r===rr&&b.c===cc) || window.units.find(u=>u.r===rr&&u.c===cc))
       return false;
     window.units.push({r:rr,c:cc,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0});
     window.state.gold[p] -= cost;
@@ -161,12 +174,15 @@ function spawn(type) {
 
 // Логика кликов по canvas
 document.getElementById('canvas').addEventListener('click', e => {
-  const rect = document.getElementById('canvas').getBoundingClientRect();
-  const c = Math.floor((e.clientX-rect.left) / (canvas.width/COLS));
-  const r = Math.floor((e.clientY-rect.top) / (canvas.height/ROWS));
+  const canvas = document.getElementById('canvas');
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const c = Math.floor(x / (rect.width/COLS)), r = Math.floor(y / (rect.height/ROWS));
   const p = window.state.currentPlayer;
 
-  // Возможности телепорта bog
+  if(document.getElementById('overlay').style.display==='flex') return;
+
+  // телепорт bog
   if(window.sel && window.sel.type==='bog'){
     if(!window.units.find(u=>u.r===r&&u.c===c) && window.map[r][c]!==TERRAIN.MOUNTAIN){
       window.sel.r=r; window.sel.c=c; window.sel.mp=0;
@@ -175,54 +191,55 @@ document.getElementById('canvas').addEventListener('click', e => {
     }
   }
 
-  // Авто-атака
+  // auto-attack
   let tgt = window.units.find(u=>u.r===r&&u.c===c&&u.owner!==p);
   if(tgt){
-    let best=null, bestD=Infinity;
+    let best=null,bd=Infinity;
     window.units.filter(u=>u.owner===p&&u.mp>0).forEach(u=>{
       const info=UNIT_TYPES[u.type];
       const {rem,list}=computeZone(u);
       const d0=Math.abs(u.r-tgt.r)+Math.abs(u.c-tgt.c);
       if(d0<=info.range){
-        if(d0<bestD){ best={u,cell:{r:u.r,c:u.c}}; bestD=d0; }
+        if(d0<bd){ best={u,cell:{r:u.r,c:u.c}}; bd=d0; }
       } else {
         list.forEach(z=>{
           const d1=Math.abs(z.r-tgt.r)+Math.abs(z.c-tgt.c);
-          if(d1<=info.range && d1<bestD){
-            best={u,cell:z}; bestD=d1;
+          if(d1<=info.range && d1<bd){
+            best={u,cell:z}; bd=d1;
           }
         });
       }
     });
     if(best){
-      const u=best.u, z=best.cell;
+      const u=best.u,z=best.cell;
       u.r=z.r; u.c=z.c; u.mp=0;
-      doAttack(u, tgt);
+      doAttack(u,tgt);
       window.sel=null; window.zoneMap=null; window.zoneList=[];
       updateFog(); redraw(); return;
     }
   }
 
-  // ... здесь остальной код выбора/движения/спавна, аналогично монолиту ...
+  // select or move or spawn
+  // [аналогично вашему монолитному коду: проверка buildings spawn, zoneMap move, deselect]
 
   redraw();
 });
 
-// Первичная инициализация обработчиков и рендера
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('oneBtn').onclick = () => {};
-  document.getElementById('twoBtn').onclick = () => {
-    document.getElementById('startPanel').style.display = 'none';
+// Навешивание кнопок и первичный рендер
+window.addEventListener('DOMContentLoaded', ()=> {
+  document.getElementById('oneBtn').onclick = ()=>{};
+  document.getElementById('twoBtn').onclick = ()=> {
+    document.getElementById('startPanel').style.display='none';
     initGame();
   };
-  document.getElementById('toggleFogBtn').onclick = () => {
-    const btn = document.getElementById('toggleFogBtn');
+  document.getElementById('toggleFogBtn').onclick = ()=> {
+    const btn=document.getElementById('toggleFogBtn');
     btn.textContent = btn.textContent==='Скрыть туман'?'Показать туман':'Скрыть туман';
     redraw();
   };
   document.getElementById('endTurnBtn').onclick = nextTurn;
-  document.getElementById('confirmBtn').onclick = () => {
-    document.getElementById('overlay').style.display = 'none';
+  document.getElementById('confirmBtn').onclick = ()=> {
+    document.getElementById('overlay').style.display='none';
     continueAfterOverlay();
   };
 
