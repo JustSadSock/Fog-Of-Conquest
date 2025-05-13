@@ -1,0 +1,173 @@
+/* css/style.css */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #222;
+}
+
+#startPanel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+  font: 1.1em sans-serif;
+  z-index: 30;
+}
+
+#summary {
+  width: 80%;
+  height: 40%;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #111;
+  border: 1px solid #444;
+  overflow-y: auto;
+  text-align: left;
+}
+
+#startPanel button {
+  margin: 6px;
+  padding: 10px 20px;
+  background: #444;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#startPanel button:disabled {
+  background: #222;
+  color: #666;
+  cursor: default;
+}
+
+#startPanel button:hover:not(:disabled) {
+  background: #666;
+}
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+  font: 1.2em sans-serif;
+  z-index: 40;
+}
+
+#overlayMessage {
+  margin-bottom: 20px;
+}
+
+#overlay button {
+  margin: 5px 10px;
+  padding: 10px 20px;
+  background: #444;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#overlay button:hover {
+  background: #666;
+}
+
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#spawnPanel {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 6px;
+  border-radius: 4px;
+  display: none;
+  max-width: 40%;
+}
+
+#spawnPanel button {
+  width: 100%;
+  margin: 4px 0;
+  padding: 6px;
+  cursor: pointer;
+  font: 1em sans-serif;
+}
+
+#infoPanel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(30, 30, 30, 0.95);
+  color: #eee;
+  font: 0.9em sans-serif;
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+#controls {
+  flex: 0 0 auto;
+  padding: 8px;
+  border-bottom: 1px solid #555;
+  text-align: right;
+}
+
+#controls button {
+  margin-left: 8px;
+  padding: 6px 12px;
+  background: #444;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #eee;
+  cursor: pointer;
+  font: 1em sans-serif;
+}
+
+#controls button:hover {
+  background: #666;
+}
+
+#statsLog {
+  flex: 1 1 auto;
+  display: flex;
+  overflow: hidden;
+}
+
+#leftStats {
+  flex: 1;
+  padding: 8px;
+  border-right: 1px solid #555;
+  overflow-y: auto;
+}
+
+#rightLog {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+}
