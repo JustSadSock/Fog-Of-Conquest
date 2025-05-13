@@ -1,11 +1,9 @@
 // js/rendering.js
 // ---------------------------------------------------
-// Канвас, меню, панель, туман войны, события/статистика
+// Канвас, меню, туман войны, лог, статистика
 // ---------------------------------------------------
 
-import {
-  ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE
-} from './map.js';
+import { ROWS, COLS, TERRAIN, TERR_COL, TILE_SIZE } from './map.js';
 import { abs } from './utils.js';
 
 // ---------- DOM ----------
@@ -18,25 +16,25 @@ const overlay    = document.getElementById('overlay');
 const overlayMsg = document.getElementById('overlayMessage');
 
 // ---------- локальный state ----------
-let fogMask    = [];           // двумерный массив boolean
-let fogVisible = true;         // переключатель показа тумана
-const TILE = TILE_SIZE;        // для краткости в коде
+let fogMask    = [];              // двумерный boolean‑массив
+let fogVisible = true;            // переключатель отображения
+const TILE = TILE_SIZE;
 
 // ===================================================
 // 1. Публичный API
 // ===================================================
 
-/** готовит canvas, вешает ресайз, ставит пустую маску тумана */
 export function initRendering () {
-  resizeCanvas();
-
-  // заглушка: карта полностью видима, пока updateFog() не пересчитает маску
+  /* 1) заглушка: создаём маску, чтобы drawFog() имел валидный массив
+        (делаем ДО первого redraw) */
   fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+
+  /* 2) первый resize → redraw (drawTerrain / drawFog и т.д.) */
+  resizeCanvas();
 
   window.addEventListener('resize', resizeCanvas);
 }
 
-/** полная перерисовка кадра */
 export function redraw () {
   drawTerrain();
   drawUnits();
@@ -44,7 +42,6 @@ export function redraw () {
   if (fogVisible) drawFog();
 }
 
-/** пересчёт тумана по юнитам игрока‑1 */
 export function updateFog (units) {
   fogMask = Array.from({ length: ROWS }, () => Array(COLS).fill(true));
   units.filter(u => u.owner === 1).forEach(u => {
@@ -56,7 +53,6 @@ export function updateFog (units) {
   });
 }
 
-/** выводит статистику в левый блок панели */
 export function writeStats (turn, currentPlayer, units) {
   const p1 = units.filter(u => u.owner === 1).length;
   const p2 = units.filter(u => u.owner === 2).length;
@@ -64,7 +60,6 @@ export function writeStats (turn, currentPlayer, units) {
     `Ход ${turn} | Очередь: ${currentPlayer === 1 ? 'Игрок' : 'ИИ'} | Юнитов ${p1} vs ${p2}`;
 }
 
-/** добавляет строку в правый лог */
 export function pushLog (txt, warn = false) {
   const line = document.createElement('div');
   line.textContent = txt;
@@ -73,10 +68,8 @@ export function pushLog (txt, warn = false) {
   rightLog.scrollTop = rightLog.scrollHeight;
 }
 
-/** показать / скрыть стартовое меню */
 export const toggleStart = show => { startPanel.style.display = show ? 'flex' : 'none'; };
 
-/** модальное «Да/Нет» */
 export function askYesNo (msg, cbYes) {
   overlayMsg.textContent = msg;
   overlay.style.display = 'flex';
@@ -87,23 +80,20 @@ export function askYesNo (msg, cbYes) {
   no.onclick  = clear;
 }
 
-/** переключить видимость тумана */
 export function toggleFog () { fogVisible = !fogVisible; redraw(); }
 
 // ===================================================
-// 2. Внутренние функции: canvas‑рендер
+// 2. Внутренние функции — canvas‑рендер
 // ===================================================
 
-/** подгоняем размер canvas под сетку */
 function resizeCanvas () {
   canvas.width  = COLS * TILE;
   canvas.height = ROWS * TILE;
   redraw();
 }
 
-/** фон карты */
 function drawTerrain () {
-  const { map } = window;                       // глобал из map.js
+  const { map } = window;
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       ctx.fillStyle = TERR_COL[map[r][c]];
@@ -112,7 +102,6 @@ function drawTerrain () {
   }
 }
 
-/** юниты (скрываем противника в тумане) */
 function drawUnits () {
   const { units } = window;
   ctx.font = `${TILE * 0.6}px sans-serif`;
@@ -120,29 +109,16 @@ function drawUnits () {
   ctx.textBaseline = 'middle';
 
   units.forEach(u => {
-    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return; // враг в тумане — не рисуем
-
-    // фон‑кружок
+    if (fogVisible && fogMask[u.r][u.c] && u.owner !== 1) return;   // враг в тумане
     ctx.fillStyle = u.owner === 1 ? '#fff8' : '#0008';
     ctx.beginPath();
-    ctx.arc(
-      u.c * TILE + TILE / 2,
-      u.r * TILE + TILE / 2,
-      TILE * 0.4,
-      0, Math.PI * 2
-    );
+    ctx.arc(u.c * TILE + TILE / 2, u.r * TILE + TILE / 2, TILE * 0.4, 0, Math.PI * 2);
     ctx.fill();
-
-    // буква типа
     ctx.fillStyle = u.owner === 1 ? '#000' : '#fff';
-    ctx.fillText(u.type[0],
-      u.c * TILE + TILE / 2,
-      u.r * TILE + TILE / 2
-    );
+    ctx.fillText(u.type[0], u.c * TILE + TILE / 2, u.r * TILE + TILE / 2);
   });
 }
 
-/** здания (видны всегда) */
 function drawBuildings () {
   const { buildings } = window;
   buildings.forEach(b => {
@@ -156,7 +132,6 @@ function drawBuildings () {
   });
 }
 
-/** полупрозрачные квадраты тумана */
 function drawFog () {
   ctx.fillStyle = '#000a';
   for (let r = 0; r < ROWS; r++) {
