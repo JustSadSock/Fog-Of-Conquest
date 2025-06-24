@@ -24,7 +24,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Константы ===
   const ROWS = 30, COLS = 20;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
-  const TERR_COL  = ['#a6d88c','#5ab0f5','#287c34','#d4b55c','#7a7a7a'];
+  const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
   const TERR_COST = [1,2,1,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
 
@@ -49,20 +49,20 @@ window.addEventListener('DOMContentLoaded',()=>{
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.WATER] = pat('#5ab0f5', g=>{
+    TERR_PAT[TERRAIN.WATER] = pat('#6db6f8', g=>{
       g.strokeStyle = '#3a90d0';
-      g.lineWidth = 2;
-      for(let i=8;i<32;i+=8){
+      g.lineWidth = 1.5;
+      for(let y=8;y<=32;y+=8){
         g.beginPath();
-        g.arc(16,i,16,0,Math.PI,false);
+        g.arc(16,y,14,0,Math.PI,false);
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.FOREST] = pat('#287c34', g=>{
-      g.fillStyle = '#1b5e2a';
-      for(let x=0;x<32;x+=8){
+    TERR_PAT[TERRAIN.FOREST] = pat('#2e8b3d', g=>{
+      g.fillStyle = '#246b2f';
+      for(let x=-4;x<32;x+=8){
         g.beginPath();
-        g.moveTo(x+4,4);
+        g.moveTo(x+4,6);
         g.lineTo(x,16);
         g.lineTo(x+8,16);
         g.closePath();
@@ -78,13 +78,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#7a7a7a', g=>{
-      g.fillStyle = '#555';
-      for(let x=0;x<32;x+=16){
+    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#8d8d8d', g=>{
+      g.fillStyle = '#6b6b6b';
+      for(let x=0;x<=32;x+=16){
         g.beginPath();
-        g.moveTo(x+8,8);
-        g.lineTo(x,32);
-        g.lineTo(x+16,32);
+        g.moveTo(x,8);
+        g.lineTo(x-8,32);
+        g.lineTo(x+8,32);
         g.closePath();
         g.fill();
       }
