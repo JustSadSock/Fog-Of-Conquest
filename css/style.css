@@ -6,7 +6,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: linear-gradient(#f0e5d8, #e0d4b8);
+  background: #000;
   color: #2e2e2e;
   font-family: 'Lora', serif;
 }
@@ -26,7 +26,7 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: #f7f1d4;
+  background: #ece5d5;
   color: #3c2d1a;
   font: 1.1em 'Lora', serif;
   z-index: 30;
@@ -38,7 +38,7 @@ h1 {
   margin-bottom: 20px;
   padding: 10px;
   background: rgba(255,255,255,0.8);
-  border: 1px solid #bda46a;
+  border: 1px solid #c6b47a;
   overflow-y: auto;
   text-align: left;
   font-family: 'Lora', serif;
@@ -47,7 +47,7 @@ h1 {
 #startPanel button {
   margin: 6px;
   padding: 10px 20px;
-  background: #bda46a;
+  background: #c6b47a;
   border: none;
   border-radius: 4px;
   color: #2e2e2e;
@@ -64,7 +64,7 @@ h1 {
 }
 
 #startPanel button:hover:not(:disabled) {
-  background: #d8c18f;
+  background: #d1b980;
   transform: scale(1.05);
 }
 
@@ -78,7 +78,7 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,1);
   color: #fff;
   font: 1.2em 'Lora', serif;
   z-index: 40;
@@ -92,7 +92,7 @@ h1 {
 #overlay button {
   margin: 5px 10px;
   padding: 10px 20px;
-  background: #bda46a;
+  background: #c6b47a;
   border: none;
   border-radius: 4px;
   color: #2e2e2e;
@@ -104,17 +104,18 @@ h1 {
 }
 
 #overlay button:hover {
-  background: #d8c18f;
+  background: #d1b980;
   transform: scale(1.05);
 }
 
 #canvas {
   position: absolute;
   top: 0;
-  left: 0;
-  background: #fff;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
   box-shadow: 0 0 8px rgba(0,0,0,0.4);
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 
 #spawnPanel {
