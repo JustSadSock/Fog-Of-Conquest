@@ -19,7 +19,12 @@ window.addEventListener('DOMContentLoaded',()=>{
         revealBtn   = document.getElementById('revealBtn'),
         endTurnBtn  = document.getElementById('endTurnBtn'),
         leftStats   = document.getElementById('leftStats'),
-        rightLog    = document.getElementById('rightLog');
+        rightLog    = document.getElementById('rightLog'),
+        menuBgm     = document.getElementById('menuBgm'),
+        bgVideo     = document.getElementById('bgVideo');
+
+  menuBgm.volume = 0.5;
+  menuBgm.play().catch(()=>{});
 
   // === Константы ===
   const ROWS = 30, COLS = 20;
@@ -49,22 +54,34 @@ window.addEventListener('DOMContentLoaded',()=>{
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.WATER] = pat('#87c8ff', g=>{
-      g.strokeStyle = 'rgba(90,160,224,0.5)';
+    TERR_PAT[TERRAIN.WATER] = pat('#5da9e9', g=>{
+      g.strokeStyle = 'rgba(255,255,255,0.3)';
       g.lineWidth = 1;
-      for(let y=8;y<=32;y+=8){
+      for(let y=4;y<32;y+=8){
         g.beginPath();
-        g.arc(16,y,14,0,Math.PI,false);
+        g.arc(16,y,12,0,Math.PI,false);
+        g.stroke();
+      }
+      g.strokeStyle = 'rgba(0,0,60,0.3)';
+      for(let y=8;y<32;y+=8){
+        g.beginPath();
+        g.arc(16,y+2,12,0,Math.PI,false);
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.FOREST] = pat('#3c9a4c', g=>{
-      g.fillStyle = 'rgba(36,107,47,0.5)';
-      for(let x=-4;x<32;x+=8){
+    TERR_PAT[TERRAIN.FOREST] = pat('#2c7534', g=>{
+      g.fillStyle = 'rgba(20,50,20,0.6)';
+      for(let x=0;x<32;x+=8){
         g.beginPath();
-        g.moveTo(x+4,6);
+        g.moveTo(x+4,4);
         g.lineTo(x,16);
         g.lineTo(x+8,16);
+        g.closePath();
+        g.fill();
+        g.beginPath();
+        g.moveTo(x+4,12);
+        g.lineTo(x-2,24);
+        g.lineTo(x+10,24);
         g.closePath();
         g.fill();
       }
@@ -78,15 +95,23 @@ window.addEventListener('DOMContentLoaded',()=>{
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#9a9a9a', g=>{
-      g.fillStyle = 'rgba(119,119,119,0.6)';
-      for(let x=0;x<=32;x+=16){
+    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#787878', g=>{
+      g.fillStyle = 'rgba(130,130,130,0.7)';
+      for(let x=0;x<32;x+=16){
         g.beginPath();
-        g.moveTo(x,8);
-        g.lineTo(x-8,32);
-        g.lineTo(x+8,32);
+        g.moveTo(x+8,4);
+        g.lineTo(x,32);
+        g.lineTo(x+16,32);
         g.closePath();
         g.fill();
+        g.fillStyle = 'rgba(255,255,255,0.3)';
+        g.beginPath();
+        g.moveTo(x+8,4);
+        g.lineTo(x+4,16);
+        g.lineTo(x+12,16);
+        g.closePath();
+        g.fill();
+        g.fillStyle = 'rgba(130,130,130,0.7)';
       }
     });
   }
@@ -689,6 +714,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // === Стартовые кнопки ===
   twoBtn.addEventListener('click',()=>{
+    menuBgm.pause();
+    bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=false; revealBtn.style.display='none';
     startPanel.style.display='none';
@@ -696,6 +723,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     recordTurn(); updateAll();
   });
   betaBtn.addEventListener('click',()=>{
+    menuBgm.pause();
+    bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=true; revealBtn.style.display='inline-block';
     startPanel.style.display='none';
