@@ -28,6 +28,69 @@ window.addEventListener('DOMContentLoaded',()=>{
   const TERR_COST = [1,2,1,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
 
+  const TERR_PAT = [];
+
+  function makePatterns(){
+    function pat(base, draw){
+      const c = document.createElement('canvas');
+      c.width = c.height = 32;
+      const g = c.getContext('2d');
+      g.fillStyle = base;
+      g.fillRect(0,0,32,32);
+      draw(g);
+      return ctx.createPattern(c,'repeat');
+    }
+    TERR_PAT[TERRAIN.PLAIN] = pat('#a6d88c', g=>{
+      g.strokeStyle = '#9cc67d';
+      g.lineWidth = 1;
+      for(let i=-32;i<32;i+=8){
+        g.beginPath();
+        g.moveTo(i,0); g.lineTo(i+32,32);
+        g.stroke();
+      }
+    });
+    TERR_PAT[TERRAIN.WATER] = pat('#5ab0f5', g=>{
+      g.strokeStyle = '#3a90d0';
+      g.lineWidth = 2;
+      for(let i=8;i<32;i+=8){
+        g.beginPath();
+        g.arc(16,i,16,0,Math.PI,false);
+        g.stroke();
+      }
+    });
+    TERR_PAT[TERRAIN.FOREST] = pat('#287c34', g=>{
+      g.fillStyle = '#1b5e2a';
+      for(let x=0;x<32;x+=8){
+        g.beginPath();
+        g.moveTo(x+4,4);
+        g.lineTo(x,16);
+        g.lineTo(x+8,16);
+        g.closePath();
+        g.fill();
+      }
+    });
+    TERR_PAT[TERRAIN.HILL] = pat('#d4b55c', g=>{
+      g.strokeStyle = '#b89c45';
+      g.lineWidth = 1;
+      for(let i=-32;i<32;i+=8){
+        g.beginPath();
+        g.moveTo(i,32); g.lineTo(i+32,0);
+        g.stroke();
+      }
+    });
+    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#7a7a7a', g=>{
+      g.fillStyle = '#555';
+      for(let x=0;x<32;x+=16){
+        g.beginPath();
+        g.moveTo(x+8,8);
+        g.lineTo(x,32);
+        g.lineTo(x+16,32);
+        g.closePath();
+        g.fill();
+      }
+    });
+  }
+
   const UNIT_TYPES = {
     swordsman:{move:2,atk:2,def:1,range:1,hpMax:5,cost:3,color:'#e74c3c'},
     archer:   {move:2,atk:3,def:0,range:2,hpMax:4,cost:3,color:'#2ecc71'},
@@ -56,13 +119,13 @@ window.addEventListener('DOMContentLoaded',()=>{
     bog:'Бог'
   };
   const BUILD_LABELS = {
-    base:'Б',
-    barracks:'Кз',
-    stable:'Кн',
-    mageTower:'Мг',
-    mine:'Р',
-    lumber:'Л',
-    fort:'Ф'
+    base:'🏰',
+    barracks:'⚔',
+    stable:'🐴',
+    mageTower:'🔮',
+    mine:'⛏',
+    lumber:'🪓',
+    fort:'🏯'
   };
 
   // === Состояние ===
@@ -117,8 +180,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Resize & Fog init ===
   window.addEventListener('resize',()=>{
     const infoH = document.getElementById('infoPanel').offsetHeight;
-    cellW = Math.floor(window.innerWidth / COLS);
-    cellH = Math.floor((window.innerHeight - infoH) / ROWS);
+    const size = Math.floor(Math.min(
+      window.innerWidth / COLS,
+      (window.innerHeight - infoH) / ROWS
+    ));
+    cellW = cellH = size;
     canvas.width  = cellW * COLS;
     canvas.height = cellH * ROWS;
     [1,2].forEach(p=>{
@@ -266,7 +332,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(!S[r][c]&&!revealAll){
         ctx.fillStyle='#000'; ctx.fillRect(x,y,cellW,cellH);
       } else {
-        ctx.fillStyle=TERR_COL[map[r][c]]; ctx.fillRect(x,y,cellW,cellH);
+        ctx.fillStyle=TERR_PAT[map[r][c]] || TERR_COL[map[r][c]];
+        ctx.fillRect(x,y,cellW,cellH);
         if(!revealAll&&F[r][c]){
           ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(x,y,cellW,cellH);
         }
@@ -275,8 +342,11 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     // move zone
     if(sel&&sel.mp>0){
-      ctx.fillStyle='rgba(255,255,255,0.3)';
-      zoneList.forEach(z=>ctx.fillRect(z.c*cellW,z.r*cellH,cellW,cellH));
+      ctx.strokeStyle='white';
+      ctx.lineWidth=2;
+      ctx.setLineDash([4,4]);
+      zoneList.forEach(z=>ctx.strokeRect(z.c*cellW,z.r*cellH,cellW,cellH));
+      ctx.setLineDash([]);
     }
 
     // spawn zone
@@ -629,5 +699,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   // === Инициализация ===
+  makePatterns();
   window.dispatchEvent(new Event('resize'));
 });
