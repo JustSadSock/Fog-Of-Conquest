@@ -40,26 +40,26 @@ window.addEventListener('DOMContentLoaded',()=>{
       draw(g);
       return ctx.createPattern(c,'repeat');
     }
-    TERR_PAT[TERRAIN.PLAIN] = pat('#a6d88c', g=>{
-      g.strokeStyle = '#9cc67d';
-      g.lineWidth = 1;
+    TERR_PAT[TERRAIN.PLAIN] = pat('#b5e6a0', g=>{
+      g.strokeStyle = 'rgba(140,200,120,0.4)';
+      g.lineWidth = 0.5;
       for(let i=-32;i<32;i+=8){
         g.beginPath();
         g.moveTo(i,0); g.lineTo(i+32,32);
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.WATER] = pat('#6db6f8', g=>{
-      g.strokeStyle = '#3a90d0';
-      g.lineWidth = 1.5;
+    TERR_PAT[TERRAIN.WATER] = pat('#87c8ff', g=>{
+      g.strokeStyle = 'rgba(90,160,224,0.5)';
+      g.lineWidth = 1;
       for(let y=8;y<=32;y+=8){
         g.beginPath();
         g.arc(16,y,14,0,Math.PI,false);
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.FOREST] = pat('#2e8b3d', g=>{
-      g.fillStyle = '#246b2f';
+    TERR_PAT[TERRAIN.FOREST] = pat('#3c9a4c', g=>{
+      g.fillStyle = 'rgba(36,107,47,0.5)';
       for(let x=-4;x<32;x+=8){
         g.beginPath();
         g.moveTo(x+4,6);
@@ -69,17 +69,17 @@ window.addEventListener('DOMContentLoaded',()=>{
         g.fill();
       }
     });
-    TERR_PAT[TERRAIN.HILL] = pat('#d4b55c', g=>{
-      g.strokeStyle = '#b89c45';
-      g.lineWidth = 1;
+    TERR_PAT[TERRAIN.HILL] = pat('#e0c778', g=>{
+      g.strokeStyle = 'rgba(195,170,85,0.6)';
+      g.lineWidth = 0.8;
       for(let i=-32;i<32;i+=8){
         g.beginPath();
         g.moveTo(i,32); g.lineTo(i+32,0);
         g.stroke();
       }
     });
-    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#8d8d8d', g=>{
-      g.fillStyle = '#6b6b6b';
+    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#9a9a9a', g=>{
+      g.fillStyle = 'rgba(119,119,119,0.6)';
       for(let x=0;x<=32;x+=16){
         g.beginPath();
         g.moveTo(x,8);
@@ -414,6 +414,11 @@ window.addEventListener('DOMContentLoaded',()=>{
       ctx.strokeStyle='yellow'; ctx.lineWidth=2; ctx.setLineDash([]);
       ctx.strokeRect(sel.c*cellW+2,sel.r*cellH+2,cellW-4,cellH-4);
     }
+
+    // map border
+    ctx.strokeStyle = '#777';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0,0,canvas.width,canvas.height);
   }
 
   // === computeZone ===
