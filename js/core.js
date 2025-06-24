@@ -65,6 +65,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       spawnMode = false, spawnType = null, spawnZones = [],
       continueAfter = null;
 
+  Object.assign(window, { spawnZones });
+
   const state = {
     currentPlayer:1,
     turn:0,
@@ -76,6 +78,9 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   const map = Array.from({length:ROWS},()=>Array(COLS).fill(TERRAIN.PLAIN));
   const buildings = [], units = [];
+
+  // expose for tests
+  Object.assign(window, { map, buildings, units, TERRAIN, UNIT_TYPES, BUILD_TYPES });
 
   let cellW, cellH;
 
@@ -121,6 +126,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     sel = null;
     zoneMap = null; zoneList = [];
     spawnMode = false; spawnType = null; spawnZones = [];
+    window.spawnZones = spawnZones;
     continueAfter = null;
     state.currentPlayer = 1;
     state.turn = 0;
@@ -385,7 +391,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     units.push({r,c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0});
     state.gold[p]-=cost;
     recordEvent(`${UNIT_LABELS[type]} создан`);
-    spawnMode=false; spawnZones=[];
+    spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones;
     updateAll();
   }
 
@@ -450,7 +456,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(spawnMode){
       let z=spawnZones.find(z=>z.r===y&&z.c===x);
       if(z) spawn(spawnType,y,x);
-      else { spawnMode=false; spawnZones=[]; updateAll(); }
+      else { spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones; updateAll(); }
       return;
     }
     if(spawnPanel.style.display==='block'){ spawnPanel.style.display='none'; return; }
@@ -484,6 +490,7 @@ window.addEventListener('DOMContentLoaded',()=>{
                 map[z.r][z.c]!==TERRAIN.MOUNTAIN&&
                 !units.find(u=>u.r===z.r&&u.c===z.c)
               );
+              window.spawnZones = spawnZones;
               spawnMode=true; spawnPanel.style.display='none'; updateAll();
             };
             spawnPanel.appendChild(btn);
@@ -545,6 +552,7 @@ window.addEventListener('DOMContentLoaded',()=>{
               map[z.r][z.c]!==TERRAIN.MOUNTAIN&&
               !units.find(u=>u.r===z.r&&u.c===z.c)
             );
+            window.spawnZones = spawnZones;
             spawnMode=true; spawnPanel.style.display='none'; updateAll();
           };
           spawnPanel.appendChild(btn);
@@ -553,10 +561,21 @@ window.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
+  // === right-click cancels selection ===
+  canvas.addEventListener('contextmenu',e=>{
+    e.preventDefault();
+    if(spawnMode){
+      spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones; spawnPanel.style.display='none';
+    } else if(sel){
+      sel=null; zoneMap=null; zoneList=[];
+    }
+    updateAll();
+  });
+
   // === Передача хода ===
   endTurnBtn.addEventListener('click',()=>{
     if(gameOver) return;
-    spawnMode=false; spawnZones=[]; spawnPanel.style.display='none';
+    spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones; spawnPanel.style.display='none';
     overlayMsg.textContent = `Передать ход игроку ${state.currentPlayer===1?2:1}?`;
     overlay.style.display = 'flex';
     continueAfter = ()=>{
