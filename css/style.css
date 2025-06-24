@@ -6,7 +6,14 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #222;
+  background: radial-gradient(#f0e6d0, #c9b88a);
+  font-family: 'Cinzel', serif;
+}
+
+h1 {
+  font-family: 'Uncial Antiqua', cursive;
+  letter-spacing: 2px;
+  margin: 0 0 10px;
 }
 
 #startPanel {
@@ -19,10 +26,11 @@ html, body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: #000;
+  background: rgba(60, 45, 30, 0.95);
   color: #fff;
-  font: 1.1em sans-serif;
+  font-size: 1.1em;
   z-index: 30;
+  text-align: center;
 }
 
 #summary {
@@ -39,7 +47,7 @@ html, body {
 #startPanel button {
   margin: 6px;
   padding: 10px 20px;
-  background: #444;
+  background: #734d26;
   border: none;
   border-radius: 4px;
   color: #fff;
@@ -47,13 +55,13 @@ html, body {
 }
 
 #startPanel button:disabled {
-  background: #222;
-  color: #666;
+  background: #403020;
+  color: #999;
   cursor: default;
 }
 
 #startPanel button:hover:not(:disabled) {
-  background: #666;
+  background: #9a6a3f;
 }
 
 #overlay {
@@ -66,10 +74,11 @@ html, body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: #000;
+  background: rgba(60, 45, 30, 0.95);
   color: #fff;
-  font: 1.2em sans-serif;
+  font-size: 1.2em;
   z-index: 40;
+  text-align: center;
 }
 
 #overlayMessage {
@@ -79,7 +88,7 @@ html, body {
 #overlay button {
   margin: 5px 10px;
   padding: 10px 20px;
-  background: #444;
+  background: #734d26;
   border: none;
   border-radius: 4px;
   color: #fff;
@@ -87,13 +96,14 @@ html, body {
 }
 
 #overlay button:hover {
-  background: #666;
+  background: #9a6a3f;
 }
 
 #canvas {
   position: absolute;
   top: 0;
   left: 0;
+  border: 2px solid #734d26;
 }
 
 #spawnPanel {
@@ -101,7 +111,7 @@ html, body {
   bottom: 8px;
   left: 8px;
   z-index: 30;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(240, 225, 200, 0.95);
   padding: 6px;
   border-radius: 4px;
   display: none;
@@ -113,7 +123,7 @@ html, body {
   margin: 4px 0;
   padding: 6px;
   cursor: pointer;
-  font: 1em sans-serif;
+  font-size: 1em;
 }
 
 #infoPanel {
@@ -124,9 +134,9 @@ html, body {
   height: 140px;
   display: flex;
   flex-direction: column;
-  background: rgba(30, 30, 30, 0.95);
+  background: rgba(60, 45, 30, 0.9);
   color: #eee;
-  font: 0.9em sans-serif;
+  font-size: 0.9em;
   z-index: 20;
   box-sizing: border-box;
 }
@@ -141,16 +151,16 @@ html, body {
 #controls button {
   margin-left: 8px;
   padding: 6px 12px;
-  background: #444;
-  border: 1px solid #555;
+  background: #734d26;
+  border: 1px solid #a17952;
   border-radius: 4px;
-  color: #eee;
+  color: #fff;
   cursor: pointer;
-  font: 1em sans-serif;
+  font-size: 1em;
 }
 
 #controls button:hover {
-  background: #666;
+  background: #9a6a3f;
 }
 
 #statsLog {

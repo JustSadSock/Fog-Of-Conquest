@@ -24,7 +24,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Константы ===
   const ROWS = 30, COLS = 20;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
-  const TERR_COL  = ['#8a8','#58a','#292','#aa2','#666'];
+  const TERR_COL  = ['#ccb279','#3c89c9','#3b6b3b','#a28a64','#777'];
   const TERR_COST = [1,2,1,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
 
@@ -268,14 +268,14 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(sel&&sel.mp>0){
       ctx.fillStyle='rgba(255,255,255,0.3)';
       zoneList.forEach(z=>ctx.fillRect(z.c*cellW,z.r*cellH,cellW,cellH));
-      ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.strokeStyle='#bb9955'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
       zoneList.forEach(z=>ctx.strokeRect(z.c*cellW+1,z.r*cellH+1,cellW-2,cellH-2));
       ctx.setLineDash([]);
     }
 
     // spawn zone
     if(spawnMode){
-      ctx.fillStyle='rgba(0,200,200,0.3)';
+      ctx.fillStyle='rgba(160,120,60,0.3)';
       spawnZones.forEach(z=>ctx.fillRect(z.c*cellW,z.r*cellH,cellW,cellH));
     }
 
@@ -289,7 +289,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx.fillStyle=col;
         ctx.fillRect(b.c*cellW+cellW*0.1,b.r*cellH+cellH*0.1,cellW*0.8,cellH*0.8);
         ctx.fillStyle='#000';
-        ctx.font=`${cellH*0.5}px sans-serif`;
+        ctx.font=`${cellH*0.5}px Cinzel`;
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
         if(BUILD_TYPES[b.type].gen>0||BUILD_TYPES[b.type].def>0){
@@ -313,7 +313,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
             bonus=bld?BUILD_TYPES[bld.type].def:0;
         for(let k=0;k<bonus;k++){
-          ctx.font=`${cellH*0.35}px sans-serif`;
+          ctx.font=`${cellH*0.35}px Cinzel`;
           ctx.fillStyle='#ffd700'; ctx.textAlign='center';
           ctx.fillText('🛡',cx+(k-(bonus-1)/2)*(cellW*0.4),cy-rad-2);
         }
