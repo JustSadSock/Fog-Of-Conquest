@@ -6,23 +6,34 @@
  */
 
 const fs = require('fs');
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 const { JSDOM } = require('jsdom');
+HTMLCanvasElement.prototype.getContext = () => {
+  return {
+    fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
+    stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
+    moveTo:()=>{}, lineTo:()=>{}
+  };
+};
 
 describe('Fog of Conquest core', () => {
   let document, window, coreScript;
 
   beforeAll(async () => {
     const html = fs.readFileSync('index.html', 'utf8');
-    const dom = new JSDOM(html, { runScripts: "dangerously", resources: "usable" });
+    const dom = new JSDOM(html, { runScripts: "dangerously", resources: "usable", url: `file://${process.cwd()}/index.html` });
     document = dom.window.document;
     window = dom.window;
 
-    // Ждём загрузки core.js
     await new Promise(res => {
       document.addEventListener('DOMContentLoaded', () => {
         res();
       });
     });
+    // запускаем новую игру
+    document.getElementById('twoBtn').click();
   });
 
   test('canvas существует и имеет правильные размеры', () => {
