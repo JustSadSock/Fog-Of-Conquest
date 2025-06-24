@@ -24,17 +24,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Константы ===
   const ROWS = 30, COLS = 20;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
-  const TERR_COL  = ['#8a8','#58a','#292','#aa2','#666'];
+  const TERR_COL  = ['#a6d88c','#5ab0f5','#287c34','#d4b55c','#7a7a7a'];
   const TERR_COST = [1,2,1,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
 
   const UNIT_TYPES = {
-    swordsman:{move:2,atk:2,def:1,range:1,hpMax:5,cost:3,color:'#a00'},
-    archer:   {move:2,atk:3,def:0,range:2,hpMax:4,cost:3,color:'#0a0'},
-    heavy:    {move:1,atk:3,def:2,range:1,hpMax:6,cost:5,color:'#000'},
-    cavalry:  {move:3,atk:3,def:1,range:1,hpMax:5,cost:7,color:'#08a'},
-    mage:     {move:2,atk:0,def:0,range:1,hpMax:4,cost:7,color:'#88f'},
-    bog:      {move:1000,atk:2,def:1,range:1,hpMax:1000,cost:0,color:'#fff'}
+    swordsman:{move:2,atk:2,def:1,range:1,hpMax:5,cost:3,color:'#e74c3c'},
+    archer:   {move:2,atk:3,def:0,range:2,hpMax:4,cost:3,color:'#2ecc71'},
+    heavy:    {move:1,atk:3,def:2,range:1,hpMax:6,cost:5,color:'#2c3e50'},
+    cavalry:  {move:3,atk:3,def:1,range:1,hpMax:5,cost:7,color:'#3498db'},
+    mage:     {move:2,atk:0,def:0,range:1,hpMax:4,cost:7,color:'#9b59b6'},
+    bog:      {move:1000,atk:2,def:1,range:1,hpMax:1000,cost:0,color:'#f1c40f'}
   };
 
   const BUILD_TYPES = {
@@ -48,12 +48,21 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
 
   const UNIT_LABELS = {
-    swordsman:'Мечник', archer:'Лучник', heavy:'Тяжпех',
-    cavalry:'Конница', mage:'Маг', bog:'Бог'
+    swordsman:'Рубака',
+    archer:'Стрелок',
+    heavy:'Щитоносец',
+    cavalry:'Всадник',
+    mage:'Чародей',
+    bog:'Бог'
   };
   const BUILD_LABELS = {
-    base:'баз', barracks:'каз', stable:'кон',
-    mageTower:'баш', mine:'руд', lumber:'лес', fort:'фор'
+    base:'Б',
+    barracks:'Кз',
+    stable:'Кн',
+    mageTower:'Мг',
+    mine:'Р',
+    lumber:'Л',
+    fort:'Ф'
   };
 
   // === Состояние ===
@@ -303,7 +312,12 @@ window.addEventListener('DOMContentLoaded',()=>{
       if((!F[u.r][u.c]||revealAll)&&S[u.r][u.c]){
         let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2, rad=Math.min(cellW,cellH)/3;
         ctx.fillStyle=UNIT_TYPES[u.type].color;
-        ctx.beginPath(); ctx.arc(cx,cy,rad,0,2*Math.PI); ctx.fill();
+        ctx.shadowColor='rgba(0,0,0,0.4)';
+        ctx.shadowBlur=4;
+        ctx.beginPath();
+        ctx.arc(cx,cy,rad,0,2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur=0;
         ctx.strokeStyle=u.owner===p?'#fff':'#000';
         ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
 
@@ -426,7 +440,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       ? sel.type==='mage'
         ? `Выбран: ${UNIT_LABELS[sel.type]} MP:${sel.mp}/${UNIT_TYPES[sel.type].move}`
         : `Выбран: ${UNIT_LABELS[sel.type]} HP:${sel.hp}/${UNIT_TYPES[sel.type].hpMax} MP:${sel.mp}/${UNIT_TYPES[sel.type].move}`
-      : 'Ничего не выбрано';
+      : 'Объект не выбран';
     leftStats.innerHTML=
       `<div>Ход: ${state.turn} — Игрок ${p}</div>
        <div>Золото: ${state.gold[p]} (+${income}/ход)</div>
@@ -463,7 +477,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       let tgt=units.find(u=>u.r===y&&u.c===x&&u.owner===p&&u.hp<UNIT_TYPES[u.type].hpMax);
       if(tgt&&abs(tgt.r-sel.r)+abs(tgt.c-sel.c)<=1){
         sel.mp=0; tgt.hp=Math.min(UNIT_TYPES[tgt.type].hpMax,tgt.hp+2);
-        recordEvent(`Маг исцелил ${UNIT_LABELS[tgt.type]} на 2 HP`);
+        recordEvent(`Чародей восстановил ${UNIT_LABELS[tgt.type]} на 2 HP`);
         sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
       }
     }
@@ -511,8 +525,8 @@ window.addEventListener('DOMContentLoaded',()=>{
           let bb=buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
           if(bb){
             recordEvent(BUILD_TYPES[bb.type].gen===0
-              ? `Захвачена военная база`
-              : `Захвачено место добычи (${BUILD_LABELS[bb.type]})`
+              ? `Захвачена база`
+              : `Захвачена добыча (${BUILD_LABELS[bb.type]})`
             );
             bb.owner=p;
           }
@@ -573,7 +587,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   endTurnBtn.addEventListener('click',()=>{
     if(gameOver) return;
     spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones; spawnPanel.style.display='none';
-    overlayMsg.textContent = `Передать ход игроку ${state.currentPlayer===1?2:1}?`;
+    overlayMsg.textContent = `Ход переходит игроку ${state.currentPlayer===1?2:1}. Продолжить?`;
     overlay.style.display = 'flex';
     continueAfter = ()=>{
       overlay.style.display='none';
@@ -594,7 +608,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   revealBtn.addEventListener('click',()=>{
     if(!modeBeta) return;
     revealAll = !revealAll;
-    revealBtn.textContent = revealAll?'Скрыть туман':'Открыть туман';
+    revealBtn.textContent = revealAll?'Скрыть карту':'Показать карту';
     updateAll();
   });
 
