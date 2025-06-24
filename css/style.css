@@ -76,7 +76,7 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: rgba(0,0,0,0.7);
+  background: #000;
   color: #fff;
   font: 1.2em 'Lora', serif;
   z-index: 40;
@@ -192,4 +192,22 @@ h1 {
   padding: 8px;
   overflow-y: auto;
   font-family: 'Lora', serif;
+}
+
+@media (max-width: 600px) {
+  #statsLog {
+    flex-direction: column;
+  }
+  #leftStats {
+    border-right: none;
+    border-bottom: 1px solid #555;
+  }
+  #rightLog {
+    border-bottom: none;
+  }
+  #spawnPanel {
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 80%;
+  }
 }

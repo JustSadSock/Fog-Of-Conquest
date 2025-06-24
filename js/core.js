@@ -108,10 +108,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Resize & Fog init ===
   window.addEventListener('resize',()=>{
     const infoH = document.getElementById('infoPanel').offsetHeight;
-    canvas.width = window.innerWidth;
-    canvas.height= window.innerHeight - infoH;
-    cellW = canvas.width  / COLS;
-    cellH = canvas.height / ROWS;
+    cellW = Math.floor(window.innerWidth / COLS);
+    cellH = Math.floor((window.innerHeight - infoH) / ROWS);
+    canvas.width  = cellW * COLS;
+    canvas.height = cellH * ROWS;
     [1,2].forEach(p=>{
       state.fog[p]  = Array.from({length:ROWS},()=>Array(COLS).fill(true));
       state.seen[p] = Array.from({length:ROWS},()=>Array(COLS).fill(false));
@@ -268,9 +268,6 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(sel&&sel.mp>0){
       ctx.fillStyle='rgba(255,255,255,0.3)';
       zoneList.forEach(z=>ctx.fillRect(z.c*cellW,z.r*cellH,cellW,cellH));
-      ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-      zoneList.forEach(z=>ctx.strokeRect(z.c*cellW+1,z.r*cellH+1,cellW-2,cellH-2));
-      ctx.setLineDash([]);
     }
 
     // spawn zone
