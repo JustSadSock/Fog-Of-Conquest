@@ -6,7 +6,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f0e5d8;
+  background: linear-gradient(#f0e5d8, #e0d4b8);
   color: #2e2e2e;
   font-family: 'Lora', serif;
 }
@@ -54,6 +54,7 @@ h1 {
   cursor: pointer;
   font-family: 'Lora', serif;
   font-weight: bold;
+  transition: background 0.3s, transform 0.2s;
 }
 
 #startPanel button:disabled {
@@ -64,6 +65,7 @@ h1 {
 
 #startPanel button:hover:not(:disabled) {
   background: #d8c18f;
+  transform: scale(1.05);
 }
 
 #overlay {
@@ -76,10 +78,11 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: #000;
+  background: rgba(0,0,0,0.8);
   color: #fff;
   font: 1.2em 'Lora', serif;
   z-index: 40;
+  transition: opacity 0.3s;
 }
 
 #overlayMessage {
@@ -96,16 +99,22 @@ h1 {
   cursor: pointer;
   font-family: 'Lora', serif;
   font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: background 0.3s, transform 0.2s;
 }
 
 #overlay button:hover {
   background: #d8c18f;
+  transform: scale(1.05);
 }
 
 #canvas {
   position: absolute;
   top: 0;
   left: 0;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  image-rendering: pixelated;
 }
 
 #spawnPanel {
@@ -120,6 +129,8 @@ h1 {
   display: none;
   max-width: 40%;
   font-family: 'Lora', serif;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: opacity 0.2s;
 }
 
 #spawnPanel button {
@@ -133,6 +144,12 @@ h1 {
   border: none;
   border-radius: 4px;
   font-weight: bold;
+  transition: background 0.3s, transform 0.2s;
+}
+
+#spawnPanel button:hover {
+  background: #d8c18f;
+  transform: scale(1.05);
 }
 
 #infoPanel {
@@ -143,7 +160,7 @@ h1 {
   height: 140px;
   display: flex;
   flex-direction: column;
-  background: rgba(30, 30, 30, 0.95);
+  background: linear-gradient(rgba(30,30,30,0.95), rgba(20,20,20,0.95));
   color: #eee;
   font: 0.9em 'Lora', serif;
   z-index: 20;
@@ -167,10 +184,12 @@ h1 {
   cursor: pointer;
   font: 1em 'Lora', serif;
   font-weight: bold;
+  transition: background 0.3s, transform 0.2s;
 }
 
 #controls button:hover {
   background: #d8c18f;
+  transform: scale(1.05);
 }
 
 #statsLog {

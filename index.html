@@ -3,41 +3,41 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-  <title>Fog of Conquest</title>
+  <title>Эпоха Тумана</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora&family=MedievalSharp&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
   <div id="startPanel">
-    <h1>Fog of Conquest</h1>
+    <h1>Эпоха Тумана</h1>
     <div id="summary">
-      <strong>Сводка правил и концепции игры:</strong><br>
-      Цель: захватить все военные базы противника!<br><br>
+      <strong>Кратко о правилах:</strong><br>
+      Задача — захватить все базы соперника.<br><br>
       <em>Юниты:</em><br>
-      • Мечник: ближний бой, прочность и скорость средние.<br>
-      • Лучник: стреляет на расстоянии, не получает ответный урон.<br>
-      • Тяжпех: медленный но крепкий боец.<br>
-      • Конница: быстрое наступление, уязвимее в обороне.<br>
-      • Маг: исцеляет союзников в радиусе.<br>
-      • Бог (бета): тестовый юнит с особыми возможностями.<br><br>
+      • Рубака — сбалансирован в защите и атаке.<br>
+      • Стрелок бьёт издали без ответного удара.<br>
+      • Щитоносец медленнее, но стойкий.<br>
+      • Всадник быстро движется, но уязвим.<br>
+      • Чародей лечит союзников рядом.<br>
+      • Бог (бета) обладает особыми силами.<br><br>
       <em>Постройки:</em><br>
-      • Военные базы — выпускают юнитов.<br>
-      • Рудники и лесопилки — приносят ресурсы.<br>
-      • Форты — укрепляют оборону.<br><br>
+      • Базы производят войска.<br>
+      • Рудники и лесопилки дают золото.<br>
+      • Форты усиливают защиту.<br><br>
       <em>Рельеф:</em><br>
       Лес и холмы дают укрытие, вода замедляет, горы непроходимы.<br><br>
       <em>Интерфейс:</em><br>
-      • Передача хода после ваших действий.<br>
-      • Туман войны скрывает неизведанные зоны.<br>
+      • Передавайте ход после действий.<br>
+      • Туман войны скрывает неизведанные области.<br>
     </div>
-    <button id="twoBtn">2 игрока</button>
-    <button id="betaBtn">2 игрока (бета)</button>
+    <button id="twoBtn">Начать игру</button>
+    <button id="betaBtn">Расширенный режим (бета)</button>
   </div>
 
   <div id="overlay">
     <div id="overlayMessage"></div>
-    <button id="yesBtn">Да</button>
-    <button id="noBtn">Нет</button>
+    <button id="yesBtn">Ок</button>
+    <button id="noBtn">Отмена</button>
   </div>
 
   <canvas id="canvas"></canvas>
@@ -46,8 +46,8 @@
 
   <div id="infoPanel">
     <div id="controls">
-      <button id="revealBtn">Открыть туман</button>
-      <button id="endTurnBtn">Передать ход</button>
+      <button id="revealBtn">Показать карту</button>
+      <button id="endTurnBtn">Конец хода</button>
     </div>
     <div id="statsLog">
       <div id="leftStats"></div>
