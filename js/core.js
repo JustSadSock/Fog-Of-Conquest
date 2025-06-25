@@ -553,6 +553,24 @@ window.addEventListener('DOMContentLoaded',()=>{
     return {rem,list};
   }
 
+  function computeDistanceMap(targets){
+    const dist=Array.from({length:ROWS},()=>Array(COLS).fill(Infinity));
+    const q=[];
+    targets.forEach(t=>{ dist[t.r][t.c]=0; q.push({r:t.r,c:t.c}); });
+    while(q.length){
+      const o=q.shift();
+      const d=dist[o.r][o.c];
+      [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+        const rr=o.r+dr, cc=o.c+dc;
+        if(rr<0||rr>=ROWS||cc<0||cc>=COLS) return;
+        if(map[rr][cc]===TERRAIN.MOUNTAIN) return;
+        const nd=d+1;
+        if(nd<dist[rr][cc]){ dist[rr][cc]=nd; q.push({r:rr,c:cc}); }
+      });
+    }
+    return dist;
+  }
+
   // === doAttack ===
   function doAttack(att,def){
     if(att.type==='mage') return {dmg:0,rdmg:0};
@@ -640,6 +658,12 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   function aiTakeTurn(){
     const p=2;
+    const enemyUnits=units.filter(u=>u.owner===1);
+    const enemyBuildings=buildings.filter(b=>b.owner===1);
+    const enemyBases=enemyBuildings.filter(b=>BUILD_TYPES[b.type].gen===0);
+    const baseDist=enemyBases.length?computeDistanceMap(enemyBases):null;
+    const buildDist=enemyBuildings.length?computeDistanceMap(enemyBuildings):null;
+    const unitDist=enemyUnits.length?computeDistanceMap(enemyUnits):null;
     // спавн
     buildings.filter(b=>b.owner===p && BUILD_TYPES[b.type].spawn.length).forEach(b=>{
       const avail=BUILD_TYPES[b.type].spawn.filter(t=>UNIT_TYPES[t].cost<=state.gold[p]);
@@ -678,7 +702,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         let target=null;
         if(aiLevel===1){
           target=cz.list[Math.random()*cz.list.length|0];
-        }else{
+        }else if(aiLevel===2){
           const enemies=[...units.filter(e=>e.owner===1),...buildings.filter(b=>b.owner===1)];
           if(enemies.length){
             const trg=enemies.reduce((a,b)=>{
@@ -692,6 +716,27 @@ window.addEventListener('DOMContentLoaded',()=>{
               return da-db;
             })[0];
           } else target=cz.list[0];
+        }else{
+          let best=null,bestScore=-Infinity;
+          cz.list.forEach(pos=>{
+            let score=0;
+            if(baseDist) score-= (baseDist[pos.r][pos.c]||100)*3;
+            if(buildDist) score-= (buildDist[pos.r][pos.c]||100);
+            if(unitDist) score-= (unitDist[pos.r][pos.c]||100)*2;
+            const bld=buildings.find(b=>b.r===pos.r&&b.c===pos.c&&b.owner===1);
+            if(bld){
+              score+=BUILD_TYPES[bld.type].gen===0?50:20;
+            }
+            if(baseDist && baseDist[pos.r][pos.c]<=UNIT_TYPES[u.type].move*5){
+              score+=10;
+            }
+            if(score>bestScore){ bestScore=score; best=pos; }
+          });
+          if(aiLevel===3 && Math.random()<0.3){
+            target=cz.list[Math.random()*cz.list.length|0];
+          }else{
+            target=best||cz.list[0];
+          }
         }
         if(target){
           u.mp=cz.rem[target.r][target.c];
