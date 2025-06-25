@@ -213,15 +213,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     rightLog.scrollTop = rightLog.scrollHeight;
   }
 
-  function addReplay(evt,r,c){
-    if(fogSnapshot && !fogSnapshot[r][c]) aiReplay.push(evt);
+  function addReplay(evt){
+    aiReplay.push(evt);
   }
 
-  function animateMove(u,fr,fc,tr,tc,dur=400){
+  function animateMove(u,fr,fc,tr,tc,dur=200){
     u.animMove={fr,fc,tr,tc,start:Date.now(),dur};
     requestAnimationFrame(redraw);
   }
-  function animateShake(u,dur=200){
+  function animateShake(u,dur=100){
     u.animShake={start:Date.now(),dur};
     requestAnimationFrame(redraw);
   }
@@ -458,8 +458,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2;
         if(u.animMove){
           let t=Math.min(1,(Date.now()-u.animMove.start)/u.animMove.dur);
-          cx=(u.animMove.fr+(u.animMove.tr-u.animMove.fr)*t)*cellW+cellW/2;
-          cy=(u.animMove.fc+(u.animMove.tc-u.animMove.fc)*t)*cellH+cellH/2;
+          cx=(u.animMove.fc+(u.animMove.tc-u.animMove.fc)*t)*cellW+cellW/2;
+          cy=(u.animMove.fr+(u.animMove.tr-u.animMove.fr)*t)*cellH+cellH/2;
           if(t<1) animRunning=true; else delete u.animMove;
         }
         if(u.animShake){
@@ -644,7 +644,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         const z=zones[Math.random()*zones.length|0];
         units.push({id:nextUnitId++,r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:z.r,startC:z.c});
         state.gold[p]-=UNIT_TYPES[type].cost;
-        addReplay({type:'spawn',unit:units[units.length-1]}, z.r, z.c);
+        addReplay({type:'spawn',unit:units[units.length-1]});
       }
     });
 
@@ -654,9 +654,9 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(enemy){
           if(map[u.r][u.c]!==TERRAIN.WATER){
             const res=doAttack(u,enemy);
-            addReplay({type:'attack',target:enemy}, enemy.r, enemy.c);
+            addReplay({type:'attack',target:enemy});
             if(res.killed && UNIT_TYPES[u.type].range===1){
-              addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:enemy.r,c:enemy.c}}, enemy.r, enemy.c);
+              addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:enemy.r,c:enemy.c}});
               u.r=enemy.r; u.c=enemy.c;
             }
           }
@@ -686,8 +686,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(target){
           u.mp=cz.rem[target.r][target.c];
           let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
-          if(bb){ bb.owner=p; addReplay({type:'capture',building:bb}, target.r, target.c); }
-          addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:target.r,c:target.c}}, target.r, target.c);
+          if(bb){ bb.owner=p; addReplay({type:'capture',building:bb}); }
+          addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:target.r,c:target.c}});
           u.r=target.r; u.c=target.c;
         } else break;
       }
@@ -914,12 +914,12 @@ window.addEventListener('DOMContentLoaded',()=>{
       const ev=aiReplay[i++];
       if(ev.type==='move'){
         animateMove(ev.unit,ev.from.r,ev.from.c,ev.to.r,ev.to.c);
-        setTimeout(run,400);
+        setTimeout(run,200);
       }else if(ev.type==='attack'){
         animateShake(ev.target);
-        setTimeout(run,200);
+        setTimeout(run,100);
       }else{
-        setTimeout(run,300);
+        setTimeout(run,150);
       }
       redraw();
     };
