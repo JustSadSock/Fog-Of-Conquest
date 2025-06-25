@@ -2,7 +2,7 @@
 
 /**
  * Базовые юнит-тесты для core.js
- * Для запуска: установите Jest и выполните `jest tests/core.test.js`
+ * Для запуска: выполните `npm install` и затем `npm test`
  */
 
 const fs = require('fs');
