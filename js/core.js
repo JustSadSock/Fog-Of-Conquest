@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === DOM-элементы ===
   const startPanel = document.getElementById('startPanel'),
         twoBtn      = document.getElementById('twoBtn'),
+        aiBtn       = document.getElementById('aiBtn'),
         betaBtn     = document.getElementById('betaBtn'),
         overlay     = document.getElementById('overlay'),
         overlayMsg  = document.getElementById('overlayMessage'),
@@ -21,13 +22,18 @@ window.addEventListener('DOMContentLoaded',()=>{
         leftStats   = document.getElementById('leftStats'),
         rightLog    = document.getElementById('rightLog'),
         menuBgm     = document.getElementById('menuBgm'),
-        bgVideo     = document.getElementById('bgVideo');
+        bgVideo     = document.getElementById('bgVideo'),
+        mapSizeSel  = document.getElementById('mapSizeSelect'),
+        aiLevelSel  = document.getElementById('aiLevelSelect');
 
   menuBgm.volume = 0.5;
   menuBgm.play().catch(()=>{});
 
   // === Константы ===
-  const ROWS = 30, COLS = 20;
+  const BASE_ROWS = 30, BASE_COLS = 20;
+  let ROWS = BASE_ROWS, COLS = BASE_COLS;
+  let mapSize = 'medium';
+  let aiMode = false, aiLevel = 2;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
   const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
   const TERR_COST = [1,2,1,2,999];
@@ -173,7 +179,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     log:{1:[],2:[]}
   };
 
-  const map = Array.from({length:ROWS},()=>Array(COLS).fill(TERRAIN.PLAIN));
+  const map = [];
   const buildings = [], units = [];
 
   // expose for tests
@@ -241,7 +247,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   function generateMap(){
     buildings.length = 0;
     units.length     = 0;
-    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) map[r][c] = TERRAIN.PLAIN;
+    map.length = 0;
+    for(let r=0;r<ROWS;r++){
+      map[r] = Array(COLS).fill(TERRAIN.PLAIN);
+    }
+
+    const scale = ROWS / BASE_ROWS;
 
     function blob(type,count){
       for(let i=0;i<count;i++){
@@ -253,10 +264,10 @@ window.addEventListener('DOMContentLoaded',()=>{
         }
       }
     }
-    blob(TERRAIN.WATER,4);
-    blob(TERRAIN.FOREST,5);
-    blob(TERRAIN.HILL,4);
-    blob(TERRAIN.MOUNTAIN,3);
+    blob(TERRAIN.WATER,Math.max(1,Math.round(4*scale)));
+    blob(TERRAIN.FOREST,Math.max(1,Math.round(5*scale)));
+    blob(TERRAIN.HILL,Math.max(1,Math.round(4*scale)));
+    blob(TERRAIN.MOUNTAIN,Math.max(1,Math.round(3*scale)));
 
     // базы
     buildings.push({r:1,c:1,owner:1,type:'base'});
@@ -278,6 +289,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     [['mine',2],['lumber',2],['barracks',2],
      ['stable',2],['mageTower',1],['fort',4]]
       .forEach(([type,count])=>{
+        count = Math.max(1,Math.round(count*scale));
         let half=count/2|0;
         for(let i=0;i<half;i++){
           const p=freeCell(1);
@@ -556,6 +568,63 @@ window.addEventListener('DOMContentLoaded',()=>{
     updateFog(); redraw(); updateLeft(); checkVictory(); renderLog();
   }
 
+  function aiTakeTurn(){
+    const p=2;
+    // спавн
+    buildings.filter(b=>b.owner===p && BUILD_TYPES[b.type].spawn.length).forEach(b=>{
+      const avail=BUILD_TYPES[b.type].spawn.filter(t=>UNIT_TYPES[t].cost<=state.gold[p]);
+      const zones=[{r:b.r-1,c:b.c},{r:b.r+1,c:b.c},{r:b.r,c:b.c-1},{r:b.r,c:b.c+1}]
+        .filter(z=>z.r>=0&&z.r<ROWS&&z.c>=0&&z.c<COLS&&
+               map[z.r][z.c]!==TERRAIN.MOUNTAIN&&
+               !units.find(u=>u.r===z.r&&u.c===z.c));
+      if(avail.length&&zones.length){
+        const type=avail[0];
+        const z=zones[Math.random()*zones.length|0];
+        units.push({r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0});
+        state.gold[p]-=UNIT_TYPES[type].cost;
+      }
+    });
+
+    units.filter(u=>u.owner===p).forEach(u=>{
+      while(u.mp>0){
+        const enemy=units.find(t=>t.owner===1 && Math.abs(t.r-u.r)+Math.abs(t.c-u.c)<=UNIT_TYPES[u.type].range);
+        if(enemy){
+          doAttack(u,enemy);
+          u.mp=0;
+          break;
+        }
+        const cz=computeZone(u);
+        if(!cz.list.length) break;
+        let target=null;
+        if(aiLevel===1){
+          target=cz.list[Math.random()*cz.list.length|0];
+        }else{
+          const enemies=[...units.filter(e=>e.owner===1),...buildings.filter(b=>b.owner===1)];
+          if(enemies.length){
+            const trg=enemies.reduce((a,b)=>{
+              const da=Math.abs(a.r-u.r)+Math.abs(a.c-u.c);
+              const db=Math.abs(b.r-u.r)+Math.abs(b.c-u.c);
+              return da<db?a:b;
+            });
+            target=cz.list.sort((a,b)=>{
+              const da=Math.abs(a.r-trg.r)+Math.abs(a.c-trg.c);
+              const db=Math.abs(b.r-trg.r)+Math.abs(b.c-trg.c);
+              return da-db;
+            })[0];
+          } else target=cz.list[0];
+        }
+        if(target){
+          u.mp=cz.rem[target.r][target.c];
+          let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
+          if(bb) bb.owner=p;
+          u.r=target.r; u.c=target.c;
+        } else break;
+      }
+    });
+
+    nextTurn();
+  }
+
   // === click handler ===
   canvas.addEventListener('click',e=>{
     if(gameOver) return;
@@ -691,14 +760,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     overlay.style.display = 'flex';
     continueAfter = ()=>{
       overlay.style.display='none';
-      sel=null; zoneMap=null; zoneList=[];
-      state.turn++;
-      state.currentPlayer = state.currentPlayer===1?2:1;
-      state.gold[state.currentPlayer] += buildings
-        .filter(b=>b.owner===state.currentPlayer&&BUILD_TYPES[b.type].gen>0)
-        .reduce((s,b)=>s+BUILD_TYPES[b.type].gen,0);
-      units.filter(u=>u.owner===state.currentPlayer).forEach(u=>u.mp=UNIT_TYPES[u.type].move);
-      recordTurn(); updateAll();
+      nextTurn();
     };
   });
   yesBtn.addEventListener('click',()=>{ overlay.style.display='none'; continueAfter&&continueAfter(); });
@@ -713,20 +775,58 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   // === Стартовые кнопки ===
+  function setMapSize(size){
+    mapSize=size;
+    const factor = size==='small'?0.5:size==='large'?2:1;
+    ROWS = Math.round(BASE_ROWS*factor);
+    COLS = Math.round(BASE_COLS*factor);
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  function nextTurn(){
+    sel=null; zoneMap=null; zoneList=[];
+    state.turn++;
+    state.currentPlayer = state.currentPlayer===1?2:1;
+    state.gold[state.currentPlayer] += buildings
+      .filter(b=>b.owner===state.currentPlayer&&BUILD_TYPES[b.type].gen>0)
+      .reduce((s,b)=>s+BUILD_TYPES[b.type].gen,0);
+    units.filter(u=>u.owner===state.currentPlayer).forEach(u=>u.mp=UNIT_TYPES[u.type].move);
+    recordTurn(); updateAll();
+    if(aiMode && state.currentPlayer===2) setTimeout(aiTakeTurn, 300);
+  }
+
   twoBtn.addEventListener('click',()=>{
     menuBgm.pause();
     bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=false; revealBtn.style.display='none';
+    aiMode=false;
+    setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
     generateMap();
     recordTurn(); updateAll();
   });
+
+  aiBtn.addEventListener('click',()=>{
+    menuBgm.pause();
+    bgVideo.classList.add('fade-out');
+    resetState();
+    modeBeta=false; revealBtn.style.display='none';
+    aiMode=true;
+    aiLevel=parseInt(aiLevelSel.value,10);
+    setMapSize(mapSizeSel.value);
+    startPanel.style.display='none';
+    generateMap();
+    recordTurn(); updateAll();
+  });
+
   betaBtn.addEventListener('click',()=>{
     menuBgm.pause();
     bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=true; revealBtn.style.display='inline-block';
+    aiMode=false;
+    setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
     generateMap();
     recordTurn(); updateAll();
