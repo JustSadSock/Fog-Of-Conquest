@@ -22,9 +22,11 @@ window.addEventListener('DOMContentLoaded',()=>{
         leftStats   = document.getElementById('leftStats'),
         rightLog    = document.getElementById('rightLog'),
         menuBgm     = document.getElementById('menuBgm'),
-        bgVideo     = document.getElementById('bgVideo'),
         mapSizeSel  = document.getElementById('mapSizeSelect'),
-        aiLevelSel  = document.getElementById('aiLevelSelect');
+        aiLevelSel  = document.getElementById('aiLevelSelect'),
+        aiPanel     = document.getElementById('aiPanel'),
+        aiStartBtn  = document.getElementById('aiStartBtn'),
+        waitOverlay = document.getElementById('waitOverlay');
 
   menuBgm.volume = 0.5;
   menuBgm.play().catch(()=>{});
@@ -166,7 +168,9 @@ window.addEventListener('DOMContentLoaded',()=>{
       sel = null,
       zoneMap = null, zoneList = [],
       spawnMode = false, spawnType = null, spawnZones = [],
-      continueAfter = null;
+      continueAfter = null,
+      fogSnapshot = null,
+      aiReplay = [];
 
   Object.assign(window, { spawnZones });
 
@@ -206,6 +210,10 @@ window.addEventListener('DOMContentLoaded',()=>{
       rightLog.appendChild(d);
     });
     rightLog.scrollTop = rightLog.scrollHeight;
+  }
+
+  function addReplay(txt,r,c){
+    if(fogSnapshot && !fogSnapshot[r][c]) aiReplay.push(txt);
   }
 
   // === Resize & Fog init ===
@@ -469,6 +477,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(d=>{
         let rr=o.r+d[0], cc=o.c+d[1];
         if(rr<0||rr>=ROWS||cc<0||cc>=COLS) return;
+        if(units.some(us=>us.r===rr&&us.c===cc&&us!==u)) return;
         let cost=TERR_COST[map[rr][cc]];
         if(cost>o.mp) return;
         let left=o.mp-cost;
@@ -479,7 +488,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     }
     const list=[];
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(rem[r][c]>=0&&(r!==u.r||c!==u.c)) list.push({r,c});
+      if(rem[r][c]>=0&&(r!==u.r||c!==u.c) && !units.find(us=>us.r===r&&us.c===c)) list.push({r,c});
     }
     return {rem,list};
   }
@@ -582,6 +591,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         const z=zones[Math.random()*zones.length|0];
         units.push({r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0});
         state.gold[p]-=UNIT_TYPES[type].cost;
+        addReplay(`Враг создал ${UNIT_LABELS[type]}`, z.r, z.c);
       }
     });
 
@@ -589,7 +599,10 @@ window.addEventListener('DOMContentLoaded',()=>{
       while(u.mp>0){
         const enemy=units.find(t=>t.owner===1 && Math.abs(t.r-u.r)+Math.abs(t.c-u.c)<=UNIT_TYPES[u.type].range);
         if(enemy){
-          doAttack(u,enemy);
+          if(map[u.r][u.c]!==TERRAIN.WATER){
+            const res=doAttack(u,enemy);
+            addReplay(`Враг атаковал ${UNIT_LABELS[enemy.type]} на ${res.dmg}`, enemy.r, enemy.c);
+          }
           u.mp=0;
           break;
         }
@@ -616,7 +629,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(target){
           u.mp=cz.rem[target.r][target.c];
           let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
-          if(bb) bb.owner=p;
+          if(bb){ bb.owner=p; addReplay('Враг захватил строение', target.r, target.c); }
+          addReplay('Враг переместил юнита', target.r, target.c);
           u.r=target.r; u.c=target.c;
         } else break;
       }
@@ -683,24 +697,28 @@ window.addEventListener('DOMContentLoaded',()=>{
         const dist=abs(y-sel.r)+abs(x-sel.c);
         const tgt=units.find(u=>u.r===y&&u.c===x&&u.owner!==p);
         if(tgt&&dist<=info.range){
+          if(map[sel.r][sel.c]===TERRAIN.WATER){
+            recordEvent('Нельзя атаковать из воды');
+            sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
+          }
           sel.mp=0;
           const {dmg,rdmg}=doAttack(sel,tgt);
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));
           sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
         }
-        if(zoneMap.rem[y][x]>=0){
+        if(zoneMap.rem[y][x]>=0 && !units.find(u=>u.r===y&&u.c===x)){
           sel.mp=zoneMap.rem[y][x];
+          let moved = (y!==sel.r || x!==sel.c);
           let bb=buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
           if(bb){
             recordEvent(BUILD_TYPES[bb.type].gen===0
               ? `Захвачена база`
-              : `Захвачена добыча (${BUILD_LABELS[bb.type]})`
-            );
+              : `Захвачена добыча (${BUILD_LABELS[bb.type]})`);
             bb.owner=p;
           }
           sel.r=y; sel.c=x;
-          recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
+          if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
           sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
         }
       }
@@ -722,6 +740,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         .forEach(t=>{
           let btn=document.createElement('button');
           btn.textContent=`${UNIT_LABELS[t]} (${UNIT_TYPES[t].cost} зол.)`;
+          if(state.gold[p] < UNIT_TYPES[t].cost) btn.style.color='red';
+          if(state.gold[p] < UNIT_TYPES[t].cost) btn.style.color='red';
           btn.onclick=()=>{
             spawnType=t;
             spawnZones=[
@@ -760,7 +780,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     overlay.style.display = 'flex';
     continueAfter = ()=>{
       overlay.style.display='none';
-      nextTurn();
+      if(aiMode){
+        fogSnapshot = state.fog[1].map(r=>r.slice());
+        waitOverlay.style.display='flex';
+        nextTurn();
+        aiTakeTurn();
+        replayAI();
+      } else {
+        nextTurn();
+      }
     };
   });
   yesBtn.addEventListener('click',()=>{ overlay.style.display='none'; continueAfter&&continueAfter(); });
@@ -777,9 +805,15 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Стартовые кнопки ===
   function setMapSize(size){
     mapSize=size;
-    const factor = size==='small'?0.5:size==='large'?2:1;
-    ROWS = Math.round(BASE_ROWS*factor);
-    COLS = Math.round(BASE_COLS*factor);
+    if(size==='small'){
+      ROWS=Math.round(BASE_ROWS*0.5);
+      COLS=Math.round(BASE_COLS*0.5);
+    }else if(size==='large'){
+      ROWS=BASE_ROWS;
+      COLS=BASE_COLS*2;
+    }else{
+      ROWS=BASE_ROWS; COLS=BASE_COLS;
+    }
     window.dispatchEvent(new Event('resize'));
   }
 
@@ -792,12 +826,26 @@ window.addEventListener('DOMContentLoaded',()=>{
       .reduce((s,b)=>s+BUILD_TYPES[b.type].gen,0);
     units.filter(u=>u.owner===state.currentPlayer).forEach(u=>u.mp=UNIT_TYPES[u.type].move);
     recordTurn(); updateAll();
-    if(aiMode && state.currentPlayer===2) setTimeout(aiTakeTurn, 300);
+  }
+
+  function replayAI(){
+    let i=0;
+    const show=()=>{
+      if(i<aiReplay.length){
+        waitOverlay.textContent=aiReplay[i++];
+        setTimeout(show, 700);
+      } else {
+        aiReplay=[];
+        waitOverlay.style.display='none';
+        waitOverlay.textContent='Подождите...';
+        updateAll();
+      }
+    };
+    show();
   }
 
   twoBtn.addEventListener('click',()=>{
     menuBgm.pause();
-    bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=false; revealBtn.style.display='none';
     aiMode=false;
@@ -808,21 +856,24 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   aiBtn.addEventListener('click',()=>{
+    startPanel.style.display='none';
+    aiPanel.style.display='flex';
+  });
+
+  aiStartBtn.addEventListener('click',()=>{
     menuBgm.pause();
-    bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=false; revealBtn.style.display='none';
     aiMode=true;
     aiLevel=parseInt(aiLevelSel.value,10);
     setMapSize(mapSizeSel.value);
-    startPanel.style.display='none';
+    aiPanel.style.display='none';
     generateMap();
     recordTurn(); updateAll();
   });
 
   betaBtn.addEventListener('click',()=>{
     menuBgm.pause();
-    bgVideo.classList.add('fade-out');
     resetState();
     modeBeta=true; revealBtn.style.display='inline-block';
     aiMode=false;

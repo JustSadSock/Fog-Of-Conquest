@@ -3,17 +3,14 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-  <title>Эпоха Тумана</title>
+  <title>Fog of Conquest</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora&family=MedievalSharp&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-  <video id="bgVideo" autoplay muted loop>
-    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"/>
-  </video>
   <audio id="menuBgm" src="https://www.w3schools.com/html/horse.mp3" loop></audio>
   <div id="startPanel">
-    <h1>Эпоха Тумана</h1>
+    <h1>Fog of Conquest</h1>
     <div id="summary">
       <strong>Кратко о правилах:</strong><br>
       Задача — захватить все базы соперника.<br><br>
@@ -41,16 +38,20 @@
         <option value="medium" selected>Средняя</option>
         <option value="large">Большая</option>
       </select>
-      <label for="aiLevelSelect">Сложность ИИ:</label>
-      <select id="aiLevelSelect">
-        <option value="1">Лёгкая</option>
-        <option value="2" selected>Средняя</option>
-        <option value="3">Сложная</option>
-      </select>
     </div>
     <button id="twoBtn">Начать игру</button>
     <button id="aiBtn">Одиночная игра</button>
     <button id="betaBtn">Расширенный режим (бета)</button>
+  </div>
+
+  <div id="aiPanel" style="display:none;">
+    <h1>Выбор сложности</h1>
+    <select id="aiLevelSelect">
+      <option value="1">Лёгкая</option>
+      <option value="2" selected>Средняя</option>
+      <option value="3">Сложная</option>
+    </select>
+    <button id="aiStartBtn">Начать</button>
   </div>
 
   <div id="overlay">
@@ -58,6 +59,8 @@
     <button id="yesBtn">Ок</button>
     <button id="noBtn">Отмена</button>
   </div>
+
+  <div id="waitOverlay">Подождите...</div>
 
   <canvas id="canvas"></canvas>
 
