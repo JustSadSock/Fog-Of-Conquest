@@ -26,6 +26,11 @@ describe('Fog of Conquest core', () => {
     const dom = new JSDOM(html, { runScripts: "dangerously", resources: "usable", url: `file://${process.cwd()}/index.html` });
     document = dom.window.document;
     window = dom.window;
+    window.HTMLCanvasElement.prototype.getContext = () => ({
+      fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
+      stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
+      moveTo:()=>{}, lineTo:()=>{}
+    });
 
     await new Promise(res => {
       document.addEventListener('DOMContentLoaded', () => {
@@ -73,5 +78,29 @@ describe('Fog of Conquest core', () => {
       }
     }
     expect(freeCell(1)).toBeNull();
+  });
+
+  test('AI ignores units hidden by fog', () => {
+    const { state, units, aiTakeTurn, UNIT_TYPES } = window;
+    const aiUnit = units.find(u => u.owner === 2);
+    const enemy = units.find(u => u.owner === 1);
+    enemy.r = aiUnit.r;
+    enemy.c = aiUnit.c + 1;
+
+    if(!state.fog[2]){
+      const rows = window.map.length;
+      const cols = window.map[0].length;
+      state.fog[2]  = Array.from({length:rows},()=>Array(cols).fill(true));
+      state.seen[2] = Array.from({length:rows},()=>Array(cols).fill(false));
+    }
+    state.fog[2].forEach((row, r) => row.forEach((_, c) => {
+      state.fog[2][r][c] = true;
+      state.seen[2][r][c] = false;
+    }));
+    state.fog[2][aiUnit.r][aiUnit.c] = false;
+
+    const hpBefore = enemy.hp;
+    aiTakeTurn();
+    expect(enemy.hp).toBe(hpBefore);
   });
 });

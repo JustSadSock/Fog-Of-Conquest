@@ -206,7 +206,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   let nextUnitId = 1;
 
   // expose for tests
-  Object.assign(window, { map, buildings, units, TERRAIN, UNIT_TYPES, BUILD_TYPES });
+  Object.assign(window, { map, buildings, units, state, TERRAIN, UNIT_TYPES, BUILD_TYPES });
 
   let cellW, cellH;
 
@@ -379,7 +379,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   // expose for tests
-  Object.assign(window, { freeCell });
+  Object.assign(window, { freeCell, aiTakeTurn });
 
   // === LOS ===
   function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
@@ -688,9 +688,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   function aiTakeTurn(){
-    const p=2;
-    const enemyUnits=units.filter(u=>u.owner===1);
-    const enemyBuildings=buildings.filter(b=>b.owner===1);
+    const p=2,
+          F=state.fog[p];
+    const enemyUnits=units.filter(u=>u.owner===1 && !F[u.r][u.c]);
+    const enemyBuildings=buildings.filter(b=>b.owner===1 && !F[b.r][b.c]);
     const enemyBases=enemyBuildings.filter(b=>BUILD_TYPES[b.type].gen===0);
     const baseDist=enemyBases.length?computeDistanceMap(enemyBases):null;
     const buildDist=enemyBuildings.length?computeDistanceMap(enemyBuildings):null;
@@ -714,7 +715,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     units.filter(u=>u.owner===p).forEach(u=>{
       while(u.mp>0){
-        const enemy=units.find(t=>t.owner===1 &&
+        const enemy=units.find(t=>t.owner===1 && !F[t.r][t.c] &&
           Math.abs(t.r-u.r)+Math.abs(t.c-u.c)<=UNIT_TYPES[u.type].range &&
           hasLOS(u.r,u.c,t.r,t.c,{forestBlock:false}));
         if(enemy){
@@ -786,6 +787,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       }
     });
 
+    updateFog();
     nextTurn();
   }
 
