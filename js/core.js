@@ -38,7 +38,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   let aiMode = false, aiLevel = 2;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
   const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
-  const TERR_COST = [1,2,1,2,999];
+  // Plain 1, Water 2, Forest 2 (extra cost), Hill 2, Mountain impassable
+  const TERR_COST = [1,2,2,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
 
   const TERR_PAT = [];
@@ -351,11 +352,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   // === LOS ===
-  function hasLOS(r0,c0,r1,c1){
+  function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
     let dx=abs(c1-c0), dy=abs(r1-r0),
-        sx=c0<c1?1:-1, sy=r0<r1?1:-1, err=dx-dy;
+        sx=c0<c1?1:-1, sy=r0<r1?1:-1, err=dx-dy,
+        afterForest = forestBlock ? -1 : null;
     while(true){
-      if(map[r0][c0]===TERRAIN.MOUNTAIN&&(r0!==r1||c0!==c1)) return false;
+      if(map[r0][c0]===TERRAIN.MOUNTAIN && (r0!==r1||c0!==c1)) return false;
+      if(afterForest!==null){
+        if(afterForest>=0) afterForest++;
+        if(afterForest>1) return false;
+        if(map[r0][c0]===TERRAIN.FOREST && (r0!==r1||c0!==c1)) afterForest=0;
+      }
       if(r0===r1&&c0===c1) break;
       let e2=err*2;
       if(e2>-dy){ err-=dy; c0+=sx }
@@ -411,9 +418,10 @@ window.addEventListener('DOMContentLoaded',()=>{
       zoneList.forEach(z=>ctx.strokeRect(z.c*cellW,z.r*cellH,cellW,cellH));
       ctx.setLineDash([]);
 
-      // attackable enemies
+      // attackable enemies considering mountains
       units.filter(u=>u.owner!==sel.owner &&
-          Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=UNIT_TYPES[sel.type].range)
+          Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=UNIT_TYPES[sel.type].range &&
+          hasLOS(sel.r,sel.c,u.r,u.c,{forestBlock:false}))
         .forEach(u=>{
           ctx.strokeStyle='red';
           ctx.setLineDash([4,4]);
@@ -650,7 +658,9 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     units.filter(u=>u.owner===p).forEach(u=>{
       while(u.mp>0){
-        const enemy=units.find(t=>t.owner===1 && Math.abs(t.r-u.r)+Math.abs(t.c-u.c)<=UNIT_TYPES[u.type].range);
+        const enemy=units.find(t=>t.owner===1 &&
+          Math.abs(t.r-u.r)+Math.abs(t.c-u.c)<=UNIT_TYPES[u.type].range &&
+          hasLOS(u.r,u.c,t.r,t.c,{forestBlock:false}));
         if(enemy){
           if(map[u.r][u.c]!==TERRAIN.WATER){
             const res=doAttack(u,enemy);
@@ -753,7 +763,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         const info=UNIT_TYPES[sel.type];
         const dist=abs(y-sel.r)+abs(x-sel.c);
         const tgt=units.find(u=>u.r===y&&u.c===x&&u.owner!==p);
-        if(tgt&&dist<=info.range){
+        if(tgt&&dist<=info.range && hasLOS(sel.r,sel.c,tgt.r,tgt.c,{forestBlock:false})){
           if(map[sel.r][sel.c]===TERRAIN.WATER){
             recordEvent('Нельзя атаковать из воды');
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
@@ -883,9 +893,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   function nextTurn(){
     const prev=state.currentPlayer;
     sel=null; zoneMap=null; zoneList=[];
-    // heal units that didn't move
+    // heal units that didn't spend movement
     units.filter(u=>u.owner===prev).forEach(u=>{
-      if(u.r===u.startR && u.c===u.startC){
+      if(u.mp===UNIT_TYPES[u.type].move){
         u.hp=Math.min(UNIT_TYPES[u.type].hpMax,u.hp+1);
       }
     });
