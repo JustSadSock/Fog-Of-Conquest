@@ -103,4 +103,42 @@ describe('Fog of Conquest core', () => {
     aiTakeTurn();
     expect(enemy.hp).toBe(hpBefore);
   });
+
+  test('AI spawns counter unit based on enemy composition', () => {
+    const { state, units, aiTakeTurn } = window;
+    document.getElementById('twoBtn').click();
+    state.currentPlayer = 2;
+    state.gold[2] = 3;
+    const rows = window.map.length, cols = window.map[0].length;
+    state.fog[2] = Array.from({length:rows},()=>Array(cols).fill(false));
+    state.seen[2] = Array.from({length:rows},()=>Array(cols).fill(true));
+    units.filter(u=>u.owner===2).forEach(u=>units.splice(units.indexOf(u),1));
+    units.filter(u=>u.owner===1 && u.type==='swordsman').forEach(u=>units.splice(units.indexOf(u),1));
+    const countBefore = units.length;
+    aiTakeTurn();
+    const spawned = units.find((u,i)=>i>=countBefore && u.owner===2);
+    expect(spawned.type).toBe('archer');
+  });
+
+  test('AI prefers expensive unit when affordable', () => {
+    const { state, units, BUILD_TYPES, aiTakeTurn, UNIT_TYPES } = window;
+    document.getElementById('twoBtn').click();
+    const original = [...BUILD_TYPES.base.spawn];
+    BUILD_TYPES.base.spawn = ['swordsman','heavy'];
+    const enemy = units.find(u=>u.owner===1);
+    enemy.type = 'heavy';
+    enemy.hp = UNIT_TYPES.heavy.hpMax;
+    enemy.mp = UNIT_TYPES.heavy.move;
+    units.filter(u=>u.owner===2).forEach(u=>units.splice(units.indexOf(u),1));
+    state.currentPlayer = 2;
+    state.gold[2] = 5;
+    const rows = window.map.length, cols = window.map[0].length;
+    state.fog[2] = Array.from({length:rows},()=>Array(cols).fill(false));
+    state.seen[2] = Array.from({length:rows},()=>Array(cols).fill(true));
+    const countBefore = units.length;
+    aiTakeTurn();
+    const spawned = units.find((u,i)=>i>=countBefore && u.owner===2);
+    expect(spawned.type).toBe('heavy');
+    BUILD_TYPES.base.spawn = original;
+  });
 });
