@@ -64,4 +64,14 @@ describe('Fog of Conquest core', () => {
       expect(window.map[z.r][z.c]).not.toBe(window.TERRAIN.MOUNTAIN);
     });
   });
+
+  test('freeCell returns null on a nearly full map', () => {
+    const { map, TERRAIN, freeCell } = window;
+    for(let r=0; r<map.length; r++){
+      for(let c=0; c<map[r].length; c++){
+        map[r][c] = TERRAIN.MOUNTAIN;
+      }
+    }
+    expect(freeCell(1)).toBeNull();
+  });
 });
