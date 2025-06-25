@@ -27,9 +27,10 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: radial-gradient(#222, #000);
+  background: url('https://dummyimage.com/800x600/444/111') center/cover no-repeat, radial-gradient(#222, #000);
   color: #eee;
-  font: 1.1em 'MedievalSharp', cursive;
+  font: 1.2em 'MedievalSharp', cursive;
+  animation: fadeIn 0.5s;
   z-index: 30;
   text-shadow: 0 0 6px #000;
 }
@@ -349,4 +350,9 @@ h1 {
   cursor: pointer;
   font: 1em 'Lora', serif;
   font-weight: bold;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
