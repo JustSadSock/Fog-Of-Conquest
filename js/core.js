@@ -696,6 +696,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     const baseDist=enemyBases.length?computeDistanceMap(enemyBases):null;
     const buildDist=enemyBuildings.length?computeDistanceMap(enemyBuildings):null;
     const unitDist=enemyUnits.length?computeDistanceMap(enemyUnits):null;
+    const enemyCounts={};
+    enemyUnits.forEach(u=>enemyCounts[u.type]=(enemyCounts[u.type]||0)+1);
     // спавн
     buildings.filter(b=>b.owner===p && BUILD_TYPES[b.type].spawn.length).forEach(b=>{
       const avail=BUILD_TYPES[b.type].spawn.filter(t=>UNIT_TYPES[t].cost<=state.gold[p]);
@@ -704,7 +706,16 @@ window.addEventListener('DOMContentLoaded',()=>{
                map[z.r][z.c]!==TERRAIN.MOUNTAIN&&
                !units.find(u=>u.r===z.r&&u.c===z.c));
       if(avail.length&&zones.length){
-        const type=avail[0];
+        let best=null,bestScore=-Infinity;
+        avail.forEach(t=>{
+          const info=UNIT_TYPES[t];
+          const base=info.atk+info.def+info.range;
+          const goldFactor=state.gold[p]/info.cost;
+          const compFactor=(enemyCounts[t]||0)*2;
+          const score=base+goldFactor+compFactor;
+          if(score>bestScore){ bestScore=score; best=t; }
+        });
+        const type=best;
         const z=zones[Math.random()*zones.length|0];
         units.push({id:nextUnitId++,r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:z.r,startC:z.c});
         state.gold[p]-=UNIT_TYPES[type].cost;
