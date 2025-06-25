@@ -322,11 +322,19 @@ window.addEventListener('DOMContentLoaded',()=>{
         count = Math.max(1,Math.round(count*scale));
         let half=count/2|0;
         for(let i=0;i<half;i++){
-          const p=freeCell(1);
+          let p=freeCell(1);
+          if(!p){
+            p = freeCell();
+            if(!p) console.warn(`Unable to place ${type} on side 1`);
+          }
           if(p) buildings.push({r:p.r,c:p.c,owner:0,type});
         }
         for(let i=0;i<count-half;i++){
-          const p=freeCell(2);
+          let p=freeCell(2);
+          if(!p){
+            p = freeCell();
+            if(!p) console.warn(`Unable to place ${type} on side 2`);
+          }
           if(p) buildings.push({r:p.r,c:p.c,owner:0,type});
         }
       });
@@ -352,7 +360,11 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(buildings.some(b=>abs(b.r-r)+abs(b.c-c)<7)) continue;
       return {r,c};
     }
+    return null;
   }
+
+  // expose for tests
+  Object.assign(window, { freeCell });
 
   // === LOS ===
   function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
