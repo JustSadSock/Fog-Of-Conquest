@@ -185,6 +185,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   const map = [];
   const buildings = [], units = [];
+  let nextUnitId = 1;
 
   // expose for tests
   Object.assign(window, { map, buildings, units, TERRAIN, UNIT_TYPES, BUILD_TYPES });
@@ -212,8 +213,17 @@ window.addEventListener('DOMContentLoaded',()=>{
     rightLog.scrollTop = rightLog.scrollHeight;
   }
 
-  function addReplay(txt,r,c){
-    if(fogSnapshot && !fogSnapshot[r][c]) aiReplay.push(txt);
+  function addReplay(evt,r,c){
+    if(fogSnapshot && !fogSnapshot[r][c]) aiReplay.push(evt);
+  }
+
+  function animateMove(u,fr,fc,tr,tc,dur=400){
+    u.animMove={fr,fc,tr,tc,start:Date.now(),dur};
+    requestAnimationFrame(redraw);
+  }
+  function animateShake(u,dur=200){
+    u.animShake={start:Date.now(),dur};
+    requestAnimationFrame(redraw);
   }
 
   // === Resize & Fog init ===
@@ -276,6 +286,14 @@ window.addEventListener('DOMContentLoaded',()=>{
     blob(TERRAIN.FOREST,Math.max(1,Math.round(5*scale)));
     blob(TERRAIN.HILL,Math.max(1,Math.round(4*scale)));
     blob(TERRAIN.MOUNTAIN,Math.max(1,Math.round(3*scale)));
+    // keep mountains away from bases
+    [[1,1],[ROWS-2,COLS-2]].forEach(([br,bc])=>{
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+        let rr=br+dr, cc=bc+dc;
+        if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS && map[rr][cc]===TERRAIN.MOUNTAIN)
+          map[rr][cc]=TERRAIN.PLAIN;
+      }
+    });
 
     // базы
     buildings.push({r:1,c:1,owner:1,type:'base'});
@@ -309,13 +327,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         }
       });
 
-    units.push({r:1,c:2,owner:1,type:'swordsman',hp:5,mp:2});
-    units.push({r:2,c:1,owner:1,type:'archer',   hp:4,mp:2});
-    units.push({r:ROWS-2,c:COLS-3,owner:2,type:'swordsman',hp:5,mp:2});
-    units.push({r:ROWS-3,c:COLS-2,owner:2,type:'archer',   hp:4,mp:2});
+    units.push({id:nextUnitId++,r:1,c:2,owner:1,type:'swordsman',hp:5,mp:2,startR:1,startC:2});
+    units.push({id:nextUnitId++,r:2,c:1,owner:1,type:'archer',   hp:4,mp:2,startR:2,startC:1});
+    units.push({id:nextUnitId++,r:ROWS-2,c:COLS-3,owner:2,type:'swordsman',hp:5,mp:2,startR:ROWS-2,startC:COLS-3});
+    units.push({id:nextUnitId++,r:ROWS-3,c:COLS-2,owner:2,type:'archer',   hp:4,mp:2,startR:ROWS-3,startC:COLS-2});
     if(modeBeta){
-      units.push({r:5,c:5,owner:1,type:'bog',hp:1000,mp:1000});
-      units.push({r:ROWS-6,c:COLS-6,owner:2,type:'bog',hp:1000,mp:1000});
+      units.push({id:nextUnitId++,r:5,c:5,owner:1,type:'bog',hp:1000,mp:1000,startR:5,startC:5});
+      units.push({id:nextUnitId++,r:ROWS-6,c:COLS-6,owner:2,type:'bog',hp:1000,mp:1000,startR:ROWS-6,startC:COLS-6});
     }
   }
 
@@ -392,6 +410,16 @@ window.addEventListener('DOMContentLoaded',()=>{
       ctx.setLineDash([4,4]);
       zoneList.forEach(z=>ctx.strokeRect(z.c*cellW,z.r*cellH,cellW,cellH));
       ctx.setLineDash([]);
+
+      // attackable enemies
+      units.filter(u=>u.owner!==sel.owner &&
+          Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=UNIT_TYPES[sel.type].range)
+        .forEach(u=>{
+          ctx.strokeStyle='red';
+          ctx.setLineDash([4,4]);
+          ctx.strokeRect(u.c*cellW,u.r*cellH,cellW,cellH);
+          ctx.setLineDash([]);
+        });
     }
 
     // spawn zone
@@ -423,9 +451,26 @@ window.addEventListener('DOMContentLoaded',()=>{
     });
 
     // units + HP + shields
+    let animRunning=false;
     units.forEach(u=>{
       if((!F[u.r][u.c]||revealAll)&&S[u.r][u.c]){
-        let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2, rad=Math.min(cellW,cellH)/3;
+        let rad=Math.min(cellW,cellH)/3;
+        let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2;
+        if(u.animMove){
+          let t=Math.min(1,(Date.now()-u.animMove.start)/u.animMove.dur);
+          cx=(u.animMove.fr+(u.animMove.tr-u.animMove.fr)*t)*cellW+cellW/2;
+          cy=(u.animMove.fc+(u.animMove.tc-u.animMove.fc)*t)*cellH+cellH/2;
+          if(t<1) animRunning=true; else delete u.animMove;
+        }
+        if(u.animShake){
+          let t=(Date.now()-u.animShake.start)/u.animShake.dur;
+          if(t<1){
+            let amp=2;
+            cx+=(Math.random()*2-1)*amp;
+            cy+=(Math.random()*2-1)*amp;
+            animRunning=true;
+          } else delete u.animShake;
+        }
         ctx.fillStyle=UNIT_TYPES[u.type].color;
         ctx.shadowColor='rgba(0,0,0,0.4)';
         ctx.shadowBlur=4;
@@ -451,6 +496,12 @@ window.addEventListener('DOMContentLoaded',()=>{
         let frac=u.hp/UNIT_TYPES[u.type].hpMax;
         ctx.fillStyle=u.owner===p?'#0f0':'#f00';
         ctx.fillRect(bx,by,w*frac,h);
+        if(u.mp>0){
+          ctx.fillStyle='rgba(0,0,255,0.7)';
+          ctx.beginPath();
+          ctx.arc(cx,cy,rad*0.3,0,2*Math.PI);
+          ctx.fill();
+        }
       }
     });
 
@@ -464,6 +515,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     ctx.strokeStyle = '#777';
     ctx.lineWidth = 1;
     ctx.strokeRect(0,0,canvas.width,canvas.height);
+    if(animRunning) requestAnimationFrame(redraw);
   }
 
   // === computeZone ===
@@ -511,16 +563,17 @@ window.addEventListener('DOMContentLoaded',()=>{
       rdmg=Math.max(1,UNIT_TYPES[def.type].atk-attD);
       if(att.type!=='bog') att.hp-=rdmg;
     }
-    if(def.hp<=0&&def.type!=='bog') units.splice(units.indexOf(def),1);
+    let killed=false;
+    if(def.hp<=0&&def.type!=='bog'){ units.splice(units.indexOf(def),1); killed=true; }
     if(att.hp<=0&&att.type!=='bog') units.splice(units.indexOf(att),1);
-    return {dmg,rdmg};
+    return {dmg,rdmg,killed};
   }
 
   // === spawn ===
   function spawn(type,r,c){
     const p=state.currentPlayer, cost=UNIT_TYPES[type].cost;
     if(state.gold[p]<cost) return;
-    units.push({r,c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0});
+    units.push({id:nextUnitId++,r,c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:r,startC:c});
     state.gold[p]-=cost;
     recordEvent(`${UNIT_LABELS[type]} создан`);
     spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones;
@@ -589,9 +642,9 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(avail.length&&zones.length){
         const type=avail[0];
         const z=zones[Math.random()*zones.length|0];
-        units.push({r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0});
+        units.push({id:nextUnitId++,r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:z.r,startC:z.c});
         state.gold[p]-=UNIT_TYPES[type].cost;
-        addReplay(`Враг создал ${UNIT_LABELS[type]}`, z.r, z.c);
+        addReplay({type:'spawn',unit:units[units.length-1]}, z.r, z.c);
       }
     });
 
@@ -601,7 +654,11 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(enemy){
           if(map[u.r][u.c]!==TERRAIN.WATER){
             const res=doAttack(u,enemy);
-            addReplay(`Враг атаковал ${UNIT_LABELS[enemy.type]} на ${res.dmg}`, enemy.r, enemy.c);
+            addReplay({type:'attack',target:enemy}, enemy.r, enemy.c);
+            if(res.killed && UNIT_TYPES[u.type].range===1){
+              addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:enemy.r,c:enemy.c}}, enemy.r, enemy.c);
+              u.r=enemy.r; u.c=enemy.c;
+            }
           }
           u.mp=0;
           break;
@@ -629,8 +686,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(target){
           u.mp=cz.rem[target.r][target.c];
           let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
-          if(bb){ bb.owner=p; addReplay('Враг захватил строение', target.r, target.c); }
-          addReplay('Враг переместил юнита', target.r, target.c);
+          if(bb){ bb.owner=p; addReplay({type:'capture',building:bb}, target.r, target.c); }
+          addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:target.r,c:target.c}}, target.r, target.c);
           u.r=target.r; u.c=target.c;
         } else break;
       }
@@ -702,7 +759,12 @@ window.addEventListener('DOMContentLoaded',()=>{
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
           }
           sel.mp=0;
-          const {dmg,rdmg}=doAttack(sel,tgt);
+          const {dmg,rdmg,killed}=doAttack(sel,tgt);
+          animateShake(tgt);
+          if(killed && UNIT_TYPES[sel.type].range===1){
+            animateMove(sel,sel.r,sel.c,tgt.r,tgt.c);
+            sel.r=tgt.r; sel.c=tgt.c;
+          }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));
           sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
@@ -717,6 +779,7 @@ window.addEventListener('DOMContentLoaded',()=>{
               : `Захвачена добыча (${BUILD_LABELS[bb.type]})`);
             bb.owner=p;
           }
+          animateMove(sel,sel.r,sel.c,y,x);
           sel.r=y; sel.c=x;
           if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
           sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
@@ -818,30 +881,49 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   function nextTurn(){
+    const prev=state.currentPlayer;
     sel=null; zoneMap=null; zoneList=[];
+    // heal units that didn't move
+    units.filter(u=>u.owner===prev).forEach(u=>{
+      if(u.r===u.startR && u.c===u.startC){
+        u.hp=Math.min(UNIT_TYPES[u.type].hpMax,u.hp+1);
+      }
+    });
+
     state.turn++;
-    state.currentPlayer = state.currentPlayer===1?2:1;
+    state.currentPlayer = prev===1?2:1;
     state.gold[state.currentPlayer] += buildings
       .filter(b=>b.owner===state.currentPlayer&&BUILD_TYPES[b.type].gen>0)
       .reduce((s,b)=>s+BUILD_TYPES[b.type].gen,0);
-    units.filter(u=>u.owner===state.currentPlayer).forEach(u=>u.mp=UNIT_TYPES[u.type].move);
+    units.filter(u=>u.owner===state.currentPlayer).forEach(u=>{
+      u.mp=UNIT_TYPES[u.type].move; u.startR=u.r; u.startC=u.c;
+    });
     recordTurn(); updateAll();
   }
 
   function replayAI(){
     let i=0;
-    const show=()=>{
-      if(i<aiReplay.length){
-        waitOverlay.textContent=aiReplay[i++];
-        setTimeout(show, 700);
-      } else {
+    const run=()=>{
+      if(i>=aiReplay.length){
         aiReplay=[];
         waitOverlay.style.display='none';
         waitOverlay.textContent='Подождите...';
         updateAll();
+        return;
       }
+      const ev=aiReplay[i++];
+      if(ev.type==='move'){
+        animateMove(ev.unit,ev.from.r,ev.from.c,ev.to.r,ev.to.c);
+        setTimeout(run,400);
+      }else if(ev.type==='attack'){
+        animateShake(ev.target);
+        setTimeout(run,200);
+      }else{
+        setTimeout(run,300);
+      }
+      redraw();
     };
-    show();
+    run();
   }
 
   twoBtn.addEventListener('click',()=>{
