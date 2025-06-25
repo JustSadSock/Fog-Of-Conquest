@@ -172,6 +172,36 @@ window.addEventListener('DOMContentLoaded',()=>{
     fort:'🏯'
   };
 
+  const UNIT_SPRITES = {}, BUILDING_SPRITES = {};
+
+  const UNIT_SPRITE_DATA = {
+    swordsman:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM3NYcadGEAAAAQY2FOdgAAASwAAAEsAAAAAAAAAABs+i5dAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    archer:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM3N2kUFU0AAAAQY2FOdgAAASwAAAEsAAAAIAAAAACtOwFZAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    heavy:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM3OPmrCNwAAAAQY2FOdgAAASwAAAEsAAAAQAAAAAA0CXYUAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    cavalry:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM3OY6sOEoAAAAQY2FOdgAAASwAAAEsAAAAYAAAAAD1yFkQAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    mage:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM3OhelafAAAAAQY2FOdgAAASwAAAEsAAAAgAAAAADdHJ7PAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    bog:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4AFYxrI0AAAAQY2FOdgAAASwAAAEsAAAAoAAAAAAc3bHLAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII='
+  };
+
+  const BUILDING_SPRITE_DATA = {
+    base:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4ASE2nBsAAAAQY2FOdgAAASwAAAEsAAAAAAAAACBXlA6VAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    barracks:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4Arg/zaEAAAAQY2FOdgAAASwAAAEsAAAAIAAAACCWVSGRAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    stable:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4A884/TcAAAAQY2FOdgAAASwAAAEsAAAAQAAAACAPZ1bcAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    mageTower:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4BFFcaJQAAAAQY2FOdgAAASwAAAEsAAAAYAAAACDOpnnYAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII=',
+    mine:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAADbUExURf///2Wex3vA4HCp1X7B4X/G52uoznGv1G6p0HSt2Xu64Xq+43Kt03m73GGXxWOayHy84V+Uwmicz2mmzH7D5HCt1Wmf0HWx2W6l0XS02VqQvnzB43Gn1G+qz3Ch0nax3nW32Xat13Wx12Sfx4K75Hm232WaxH7A4Xa014bK6WaXyWCaxXm94Hm22m6nzobL6Xu93mecxojN7XO11mSeyn/E52WfyGmkynSz2HGo0GidyITL6WqlzHm22Xa01WihynKv1Wiex2ehxnOz1mynzozS73W53mqgzv///2lTbiAAAAABdFJOUwBA5thmAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4Br9SCbgAAAAQY2FOdgAAASwAAAEsAAAAgAAAACDmcr4HAAAAcklEQVQ4y2NgGAWjYBSgAUb80kzMLPikWdnYOThxS3Nx8/CycPLikubjFxAU4uEVFsEuLSomLiEpJS3DwyuLTVpOXkFRSVlFVU1dQ1MLU1pbR1hXT9/A0MjYxNTM3AJd2tLKwNrGltPO3sHRydnF1c0dACL5CpW9700NAAAAAElFTkSuQmCC',
+    lumber:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAI6UExURf///3Ct1Wmf0HCh0nax3nW32Xat13Wx12Sfx2CaxXm94GmmzHm22m6nzobL6Xu93mecxojN7XO11nGo0GidyITL6WqlzHm22XSt2Xa01WihynKv1Wiex2ehxnOz1mynznmy2YDE5WKYw2ulzm2i0He22Xu33Gqe0GmiyG6lzoPF5mWexIrP7nGs0ne53GWfyHKy13Cs0XSz2W6h0YLG52qczX6+4Xm02Xm73H7D5IXL6GmjynSw126m0nGr02qgyX3C42+k0XW22WecyX6+3X7A4XGp0nCh1ITK6XGj1Hi12ojL63Kt03Ky02umznu72mSaxXe52mmhynSv2WmfzHGn1G6r0IHC5HGr1nOq03a02Wue0XGp0XSu02+l0onO7obK6Xu53GScxXGv1Giiymuh0Xm73oPJ5nKy1YTK53Or2H/E5Xy83YXJ6H/B4nq632yf0oDD5WWex43X8m+h0XOv1GmkzHCn0X7B4X/C43zA4Wqg0Hmz2obL63m53Hu53m+j0Xy633m023Gk04DC5WWhzHKy1nu73oTI53Ov2IXK6mady2OZx2yiz3Ox2HSs2IDD5HCq03Kr0onN7H2/4nGo0nClz22k13e33JLW9WWazn2/4Gyez3Ks2GqlyHvA4IjN63W52m6n0G+q0Xq83W6l0Hi32m+jznzA4GWXyn/C4m2mzGygzXSv2nay2XKv12uc0Hiv2Xm03Y/U8GOUyIfO7HKr022k0HOq1Xu52ne02Xq23ILB5f///2w1m6MAAAABdFJOUwBA5thmAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4B8hVOS4AAAAQY2FOdgAAASwAAAEsAAAAoAAAACAns5EDAAABTElEQVQ4y2NgGAWjgDaAkQmvNDMLKxs7B05pTi5uHl4+fgFBIazSwiL8omLiEpJS0jKycvIY0gqKSsoqqiry/Pz8auoamlraOqjyuvx6+gaGKqpGxhImpmai5haWVtY2yAps7ewdHJ1UnF1cjdzcPQSkJXU9Xb28fRAK+CV8/fwDAoMk+IJDQoMtw8IjIqOiY2Lj4mEKfBISk/iTU1R9U9PS0pMzIjKzsnNy8/ILCouKIQpSQkpKy8rKK/yDK6uqa2ot6iTk6xsam5pdlFta20AK2jv8Oru6e8IsevsS+6smtIfyiU5snDR5ytRp02fMBIVuZtis2XPmWswL5J+/wGJh5iLVxUsUlkYt81petAIcugyLVgZKsKsarFq9ppZ/7br1GzYmLk6MtNokvxkaugxbwuRrBbZu69zeKbGjVnenytZdbm5Fu/fAQxcAk65dWIMr3TEAAAAASUVORK5CYII=',
+    fort:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+kGGRM4Arg/zaEAAAAQY2FOdgAAASwAAAEsAAAAIAAAACCWVSGRAAAAI0lEQVRIx2P8z0AZYKJQ/6gBowaMGjBqwKgBowaMGjDoDAAAI4gBP8UTt4oAAAAASUVORK5CYII='
+  };
+
+  function loadSprites(){
+    for(const [t,src] of Object.entries(UNIT_SPRITE_DATA)){
+      const img=new Image(); img.src=src; UNIT_SPRITES[t]=img;
+    }
+    for(const [t,src] of Object.entries(BUILDING_SPRITE_DATA)){
+      const img=new Image(); img.src=src; BUILDING_SPRITES[t]=img;
+    }
+  }
+
   function setupLegend(){
     legendPanel.innerHTML = Object.entries(UNIT_TYPES)
       .filter(([t])=>t!=='bog')
@@ -469,21 +499,26 @@ window.addEventListener('DOMContentLoaded',()=>{
     // buildings
     buildings.forEach(b=>{
       if((!F[b.r][b.c]||S[b.r][b.c]||revealAll)){
-        let col = BUILD_TYPES[b.type].gen? '#fc0'
-                : b.type==='fort'? '#666'
-                : b.owner===1? '#f80'
-                : b.owner===2? '#08f':'#888';
-        ctx.fillStyle=col;
-        ctx.fillRect(b.c*cellW+cellW*0.1,b.r*cellH+cellH*0.1,cellW*0.8,cellH*0.8);
-        ctx.fillStyle='#000';
-        ctx.font=`${cellH*0.5}px sans-serif`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
-        if(BUILD_TYPES[b.type].gen>0||BUILD_TYPES[b.type].def>0){
-          ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
-          ctx.lineWidth=2; ctx.setLineDash([4,4]);
-          ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
-          ctx.setLineDash([]);
+        const img=BUILDING_SPRITES[b.type];
+        if(img&&img.complete&&img.naturalWidth){
+          ctx.drawImage(img,b.c*cellW,b.r*cellH,cellW,cellH);
+        }else{
+          let col = BUILD_TYPES[b.type].gen? '#fc0'
+                  : b.type==='fort'? '#666'
+                  : b.owner===1? '#f80'
+                  : b.owner===2? '#08f':'#888';
+          ctx.fillStyle=col;
+          ctx.fillRect(b.c*cellW+cellW*0.1,b.r*cellH+cellH*0.1,cellW*0.8,cellH*0.8);
+          ctx.fillStyle='#000';
+          ctx.font=`${cellH*0.5}px sans-serif`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
+          if(BUILD_TYPES[b.type].gen>0||BUILD_TYPES[b.type].def>0){
+            ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
+            ctx.lineWidth=2; ctx.setLineDash([4,4]);
+            ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
+            ctx.setLineDash([]);
+          }
         }
       }
     });
@@ -509,15 +544,20 @@ window.addEventListener('DOMContentLoaded',()=>{
             animRunning=true;
           } else delete u.animShake;
         }
-        ctx.fillStyle=UNIT_TYPES[u.type].color;
-        ctx.shadowColor='rgba(0,0,0,0.4)';
-        ctx.shadowBlur=4;
-        ctx.beginPath();
-        ctx.arc(cx,cy,rad,0,2*Math.PI);
-        ctx.fill();
-        ctx.shadowBlur=0;
-        ctx.strokeStyle=u.owner===p?'#fff':'#000';
-        ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+        const us=UNIT_SPRITES[u.type];
+        if(us&&us.complete&&us.naturalWidth){
+          ctx.drawImage(us,cx-rad,cy-rad,rad*2,rad*2);
+        }else{
+          ctx.fillStyle=UNIT_TYPES[u.type].color;
+          ctx.shadowColor='rgba(0,0,0,0.4)';
+          ctx.shadowBlur=4;
+          ctx.beginPath();
+          ctx.arc(cx,cy,rad,0,2*Math.PI);
+          ctx.fill();
+          ctx.shadowBlur=0;
+          ctx.strokeStyle=u.owner===p?'#fff':'#000';
+          ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+        }
 
         let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
             bonus=bld?BUILD_TYPES[bld.type].def:0;
@@ -1070,6 +1110,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // === Инициализация ===
   makePatterns();
+  loadSprites();
   setupLegend();
   window.dispatchEvent(new Event('resize'));
 });
