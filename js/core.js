@@ -29,7 +29,10 @@ window.addEventListener('DOMContentLoaded',()=>{
         waitOverlay = document.getElementById('waitOverlay');
 
   menuBgm.volume = 0.5;
-  menuBgm.play().catch(()=>{});
+  try{
+    const p = menuBgm.play?.();
+    if(p && p.catch) p.catch(()=>{});
+  }catch(e){}
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
