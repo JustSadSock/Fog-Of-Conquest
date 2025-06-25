@@ -34,7 +34,22 @@
       • Передавайте ход после действий.<br>
       • Туман войны скрывает неизведанные области.<br>
     </div>
+    <div id="setupOpts">
+      <label for="mapSizeSelect">Размер карты:</label>
+      <select id="mapSizeSelect">
+        <option value="small">Маленькая</option>
+        <option value="medium" selected>Средняя</option>
+        <option value="large">Большая</option>
+      </select>
+      <label for="aiLevelSelect">Сложность ИИ:</label>
+      <select id="aiLevelSelect">
+        <option value="1">Лёгкая</option>
+        <option value="2" selected>Средняя</option>
+        <option value="3">Сложная</option>
+      </select>
+    </div>
     <button id="twoBtn">Начать игру</button>
+    <button id="aiBtn">Одиночная игра</button>
     <button id="betaBtn">Расширенный режим (бета)</button>
   </div>
 
