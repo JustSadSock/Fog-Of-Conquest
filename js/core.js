@@ -18,6 +18,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx         = canvas.getContext('2d'),
         spawnPanel  = document.getElementById('spawnPanel'),
         revealBtn   = document.getElementById('revealBtn'),
+        legendBtn   = document.getElementById('legendBtn'),
+        legendOverlay = document.getElementById('legendOverlay'),
+        legendPanel = document.getElementById('legendPanel'),
+        legendCloseBtn = document.getElementById('legendCloseBtn'),
+        victoryOverlay = document.getElementById('victoryOverlay'),
+        victoryText = document.getElementById('victoryText'),
+        victoryOkBtn = document.getElementById('victoryOkBtn'),
         endTurnBtn  = document.getElementById('endTurnBtn'),
         leftStats   = document.getElementById('leftStats'),
         rightLog    = document.getElementById('rightLog'),
@@ -165,6 +172,13 @@ window.addEventListener('DOMContentLoaded',()=>{
     fort:'🏯'
   };
 
+  function setupLegend(){
+    legendPanel.innerHTML = Object.entries(UNIT_TYPES)
+      .filter(([t])=>t!=='bog')
+      .map(([t])=>`<div class="legendItem"><span class="legendColor" style="background:${UNIT_TYPES[t].color}"></span>${UNIT_LABELS[t]}</div>`)
+      .join('');
+  }
+
   // === Состояние ===
   let modeBeta = false,
       revealAll = false,
@@ -200,6 +214,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   function recordEvent(txt){
     const p = state.currentPlayer;
     state.log[p].push(txt);
+    if(aiMode && p===2) state.log[1].push('Враг: '+txt);
     renderLog();
   }
   function recordTurn(){
@@ -639,7 +654,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   function endGame(w){
     gameOver=true;
-    setTimeout(()=>alert(`Игрок ${w} победил!`),100);
+    victoryText.textContent = `Игрок ${w} победил!`;
+    victoryOverlay.style.display = 'flex';
   }
 
   // === updateLeft ===
@@ -692,6 +708,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         units.push({id:nextUnitId++,r:z.r,c:z.c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:z.r,startC:z.c});
         state.gold[p]-=UNIT_TYPES[type].cost;
         addReplay({type:'spawn',unit:units[units.length-1]});
+        recordEvent(`Создан ${UNIT_LABELS[type]}`);
       }
     });
 
@@ -704,6 +721,7 @@ window.addEventListener('DOMContentLoaded',()=>{
           if(map[u.r][u.c]!==TERRAIN.WATER){
             const res=doAttack(u,enemy);
             addReplay({type:'attack',target:enemy});
+            recordEvent(`${UNIT_LABELS[u.type]} атаковал ${UNIT_LABELS[enemy.type]}`);
             if(res.killed && UNIT_TYPES[u.type].range===1){
               addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:enemy.r,c:enemy.c}});
               u.r=enemy.r; u.c=enemy.c;
@@ -756,8 +774,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(target){
           u.mp=cz.rem[target.r][target.c];
           let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
-          if(bb){ bb.owner=p; addReplay({type:'capture',building:bb}); }
+          if(bb){
+            bb.owner=p;
+            addReplay({type:'capture',building:bb});
+            recordEvent(`Захвачено ${BUILD_LABELS[bb.type]}`);
+          }
           addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:target.r,c:target.c}});
+          recordEvent(`${UNIT_LABELS[u.type]} переместился`);
           u.r=target.r; u.c=target.c;
         } else break;
       }
@@ -915,6 +938,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       overlay.style.display='none';
       if(aiMode){
         fogSnapshot = state.fog[1].map(r=>r.slice());
+        waitOverlay.textContent = 'Ход противника...';
         waitOverlay.style.display='flex';
         nextTurn();
         aiTakeTurn();
@@ -926,6 +950,15 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
   yesBtn.addEventListener('click',()=>{ overlay.style.display='none'; continueAfter&&continueAfter(); });
   noBtn.addEventListener('click',()=>{ overlay.style.display='none'; });
+
+  legendBtn.addEventListener('click',()=>{ legendOverlay.style.display='flex'; });
+  legendCloseBtn.addEventListener('click',()=>{ legendOverlay.style.display='none'; });
+  victoryOkBtn.addEventListener('click',()=>{
+    victoryOverlay.style.display='none';
+    startPanel.style.display='flex';
+    menuBgm.currentTime = 0;
+    menuBgm.play();
+  });
 
   // === Туман войны (бета) ===
   revealBtn.addEventListener('click',()=>{
@@ -1037,5 +1070,6 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // === Инициализация ===
   makePatterns();
+  setupLegend();
   window.dispatchEvent(new Event('resize'));
 });

@@ -66,12 +66,25 @@
 
   <div id="waitOverlay">Подождите...</div>
 
+  <div id="victoryOverlay">
+    <div class="panel">
+      <div id="victoryText"></div>
+      <button id="victoryOkBtn">Ок</button>
+    </div>
+  </div>
+
+  <div id="legendOverlay">
+    <div class="panel" id="legendPanel"></div>
+    <button id="legendCloseBtn">Закрыть</button>
+  </div>
+
   <canvas id="canvas"></canvas>
 
   <div id="spawnPanel"></div>
 
   <div id="infoPanel">
     <div id="controls">
+      <button id="legendBtn" title="Легенда">ℹ️</button>
       <button id="revealBtn">Показать карту</button>
       <button id="endTurnBtn">Конец хода</button>
     </div>
