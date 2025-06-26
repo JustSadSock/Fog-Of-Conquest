@@ -778,6 +778,14 @@ window.addEventListener('DOMContentLoaded',()=>{
           if(killed && UNIT_TYPES[sel.type].range===1){
             animateMove(sel,sel.r,sel.c,tgt.r,tgt.c);
             sel.r=tgt.r; sel.c=tgt.c;
+            let bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c&&b.owner!==p);
+            if(bb){
+              const baseTaken = (bb.gen ?? BUILD_TYPES[bb.type].gen)===0;
+              recordEvent(baseTaken
+                ? `Захвачена база`
+                : `Захвачена добыча (${BUILD_LABELS[bb.type]})`);
+              bb.owner=p;
+            }
           }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));

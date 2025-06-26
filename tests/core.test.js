@@ -26,6 +26,10 @@ describe('Fog of Conquest core', () => {
     const dom = new JSDOM(html, { runScripts: "dangerously", resources: "usable", url: `file://${process.cwd()}/index.html` });
     document = dom.window.document;
     window = dom.window;
+    global.requestAnimationFrame = cb => setTimeout(cb,0);
+    global.cancelAnimationFrame = id => clearTimeout(id);
+    window.requestAnimationFrame = global.requestAnimationFrame;
+    window.cancelAnimationFrame = global.cancelAnimationFrame;
     window.HTMLCanvasElement.prototype.getContext = () => ({
       fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
       stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
@@ -183,5 +187,27 @@ describe('Fog of Conquest core', () => {
     state.currentPlayer = 1;
     nextTurn();
     expect(state.gold[2]).toBe(7);
+  });
+
+  test('building is captured when defender dies on it', () => {
+    const { map, TERRAIN, buildings, units, state, BUILD_TYPES, UNIT_TYPES } = window;
+    document.getElementById('twoBtn').click();
+    units.length = 0;
+    buildings.length = 0;
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++) map[r][c]=TERRAIN.PLAIN;
+    buildings.push({r:0,c:1,owner:1,type:'base',gen:BUILD_TYPES.base.gen});
+    units.push({id:1,r:0,c:0,owner:2,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:0,startC:0});
+    units.push({id:2,r:0,c:1,owner:1,type:'swordsman',hp:1,mp:UNIT_TYPES.swordsman.move,startR:0,startC:1});
+    state.currentPlayer = 2;
+    const canvas = document.getElementById('canvas');
+    canvas.getBoundingClientRect = () => ({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW = canvas.width / map[0].length;
+    const cellH = canvas.height / map.length;
+    function clickCell(r,c){
+      canvas.dispatchEvent(new window.MouseEvent('click',{clientX:(c+0.5)*cellW,clientY:(r+0.5)*cellH}));
+    }
+    clickCell(0,0);
+    clickCell(0,1);
+    expect(buildings[0].owner).toBe(2);
   });
 });
