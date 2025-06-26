@@ -933,12 +933,12 @@ window.addEventListener('DOMContentLoaded',()=>{
       const ev=aiReplay[i++];
       if(ev.type==='move'){
         animateMove(ev.unit,ev.from.r,ev.from.c,ev.to.r,ev.to.c);
-        setTimeout(run,200);
+        setTimeout(run,300);
       }else if(ev.type==='attack'){
         animateShake(ev.target);
-        setTimeout(run,100);
-      }else{
         setTimeout(run,150);
+      }else{
+        setTimeout(run,250);
       }
       redraw();
     };
