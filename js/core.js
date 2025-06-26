@@ -208,7 +208,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // expose for tests
   Object.assign(window, {
     map, buildings, units, state,
-    TERRAIN, TERR_COST,
+    TERRAIN, TERR_COST, TERR_DEF,
     UNIT_TYPES, BUILD_TYPES,
     UNIT_LABELS, BUILD_LABELS,
     aiLevel

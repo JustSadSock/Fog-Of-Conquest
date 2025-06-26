@@ -1,5 +1,22 @@
 // js/ai.js
 (function(global){
+  const UNIT_VALUE = {
+    swordsman:10,
+    archer:12,
+    heavy:16,
+    cavalry:14,
+    mage:20,
+    bog:0
+  };
+  const BUILD_VALUE = {
+    base:50,
+    barracks:20,
+    stable:20,
+    mageTower:20,
+    mine:10,
+    lumber:10,
+    fort:30
+  };
   function computeDistanceMap(targets){
     const map = global.map;
     const TERRAIN = global.TERRAIN;
@@ -25,7 +42,7 @@
   }
 
   function aiTakeTurn(){
-    const {state, units, buildings, BUILD_TYPES, UNIT_TYPES, map, TERRAIN, aiLevel} = global;
+    const {state, units, buildings, BUILD_TYPES, UNIT_TYPES, map, TERRAIN, TERR_DEF, aiLevel} = global;
     if(!map) return;
     const ROWS = map.length, COLS = map[0].length;
     const p=2,
@@ -53,7 +70,8 @@
           const base=info.atk+info.def+info.range;
           const goldFactor=state.gold[p]/info.cost;
           const compFactor=(enemyCounts[t]||0)*2;
-          const score=base+goldFactor+compFactor;
+          const levelFactor = 1 + Math.max(0,aiLevel-2)*0.5;
+          const score=base+goldFactor+compFactor+ (UNIT_VALUE[t]||0)*0.1*levelFactor;
           if(score>bestScore){ bestScore=score; best=t; }
         });
         const type=best;
@@ -96,14 +114,53 @@
           let best=null,bestScore=-Infinity;
           cz.list.forEach(pos=>{
             let score=0;
-            if(baseDist) score-= (baseDist[pos.r][pos.c]||100)*3;
-            if(buildDist) score-= (buildDist[pos.r][pos.c]||100);
-            if(unitDist) score-= (unitDist[pos.r][pos.c]||100)*2;
-            const bld=buildings.find(b=>b.r===pos.r&&b.c===pos.c&&b.owner===1);
+            const br=baseDist?baseDist[pos.r][pos.c]:null,
+                  bd=buildDist?buildDist[pos.r][pos.c]:null,
+                  ud=unitDist?unitDist[pos.r][pos.c]:null;
+            const bw = aiLevel>=4?5:(aiLevel===3?4:3);
+            const blw=aiLevel>=4?3:1;
+            const uw=aiLevel>=4?4:2;
+            if(baseDist) score-= (br||100)*bw;
+            if(buildDist) score-= (bd||100)*blw;
+            if(unitDist) score-= (ud||100)*uw;
+
+            const terrainBonus=(TERR_DEF?TERR_DEF[map[pos.r][pos.c]]:0);
+            score+=terrainBonus;
+
+            const bld=buildings.find(b=>b.r===pos.r&&b.c===pos.c);
             if(bld){
-              score+=BUILD_TYPES[bld.type].gen===0?50:20;
+              if(bld.owner!==p){
+                let val=BUILD_VALUE[bld.type]||20;
+                if(bld.owner===1 && BUILD_TYPES[bld.type].gen===0) val*=2;
+                if(aiLevel>=3) val*=1.2;
+                score+=val;
+              }else{
+                score+= (BUILD_TYPES[bld.type].def||0)*2;
+              }
             }
-            if(baseDist && baseDist[pos.r][pos.c]<=UNIT_TYPES[u.type].move*5){
+
+            enemyUnits.forEach(e=>{
+              const dist=Math.abs(e.r-pos.r)+Math.abs(e.c-pos.c);
+              if(dist<=UNIT_TYPES[u.type].range &&
+                 global.hasLOS(pos.r,pos.c,e.r,e.c,{forestBlock:false})){
+                   let atk=UNIT_TYPES[u.type].atk;
+                   if(u.type==='cavalry'){
+                     let cellDef=(BUILD_TYPES[(buildings.find(b=>b.r===e.r&&b.c===e.c&&b.owner===e.owner)||{}).type]?.def)||0;
+                     if(cellDef>0) atk--;
+                   }
+                   const defV=UNIT_TYPES[e.type].def+(TERR_DEF?TERR_DEF[map[e.r][e.c]]:0);
+                   let dmg=Math.max(1,atk-defV);
+                   score+=dmg;
+                   if(dmg>=e.hp) score+= (UNIT_VALUE[e.type]||0)*(aiLevel>=4?2:1);
+              }
+            });
+
+            if(aiLevel>=4 && u.hp<=UNIT_TYPES[u.type].hpMax/2){
+              let distAway=allDist?allDist[pos.r][pos.c]:0;
+              score+=distAway*2;
+            }
+
+            if(baseDist && br!==null && br<=UNIT_TYPES[u.type].move*5){
               score+=10;
             }
             if(score>bestScore){ bestScore=score; best=pos; }
