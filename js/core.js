@@ -192,7 +192,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       spawnMode = false, spawnType = null, spawnZones = [],
       continueAfter = null,
       fogSnapshot = null,
-      aiReplay = [];
+      aiReplay = [],
+      aiReplayTimeouts = [];
 
   Object.assign(window, { spawnZones });
 
@@ -276,6 +277,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   function resetState(){
     gameOver = false;
     revealAll = false;
+    aiReplayTimeouts.forEach(id=>clearTimeout(id));
+    aiReplayTimeouts.length=0;
+    aiReplay = [];
     sel = null;
     zoneMap = null; zoneList = [];
     spawnMode = false; spawnType = null; spawnZones = [];
@@ -426,6 +430,11 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // === Fog ===
   function updateFog(){
+    if(state.turn===0){
+      const p=state.currentPlayer, F=state.fog[p];
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)F[r][c]=true;
+      return;
+    }
     if(!modeBeta && !revealAll){
       const p=state.currentPlayer, F=state.fog[p], S=state.seen[p];
       for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)F[r][c]=true;
@@ -939,6 +948,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   function replayAI(){
+    aiReplayTimeouts.length = 0;
     let i=0;
     const run=()=>{
       if(i>=aiReplay.length){
@@ -951,12 +961,12 @@ window.addEventListener('DOMContentLoaded',()=>{
       const ev=aiReplay[i++];
       if(ev.type==='move'){
         animateMove(ev.unit,ev.from.r,ev.from.c,ev.to.r,ev.to.c);
-        setTimeout(run,300);
+        aiReplayTimeouts.push(setTimeout(run,300));
       }else if(ev.type==='attack'){
         animateShake(ev.target);
-        setTimeout(run,150);
+        aiReplayTimeouts.push(setTimeout(run,150));
       }else{
-        setTimeout(run,250);
+        aiReplayTimeouts.push(setTimeout(run,250));
       }
       redraw();
     };
