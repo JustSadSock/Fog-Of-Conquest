@@ -164,10 +164,27 @@ h1 {
   display: none;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
   font: 2em 'MedievalSharp', cursive;
   z-index: 45;
+}
+
+#skipReplayBtn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: #c6b47a;
+  border: none;
+  border-radius: 4px;
+  color: #2e2e2e;
+  cursor: pointer;
+  font-family: 'Lora', serif;
+  font-size: 0.6em;
+}
+
+#skipReplayBtn:hover {
+  background: #d1b980;
 }
 
 #canvas {
