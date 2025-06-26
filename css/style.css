@@ -355,3 +355,9 @@ h1 {
   font: 1em 'Lora', serif;
   font-weight: bold;
 }
+
+/* Styling for shield icons drawn on canvas */
+.shield-icon {
+  color: #ffd700;
+  text-shadow: 0 0 2px #000;
+}
