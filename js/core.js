@@ -144,8 +144,9 @@ window.addEventListener('DOMContentLoaded',()=>{
     barracks:  {spawn:['heavy'],gen:0,def:0},
     stable:    {spawn:['cavalry'],gen:0,def:0},
     mageTower: {spawn:['mage'],gen:0,def:0},
-    mine:      {spawn:[],gen:1,def:0},
-    lumber:    {spawn:[],gen:1,def:0},
+    // genUp указывает доход после улучшения
+    mine:      {spawn:[],gen:1,genUp:2,def:0},
+    lumber:    {spawn:[],gen:1,genUp:2,def:0},
     fort:      {spawn:[],gen:0,def:2}
   };
 
@@ -328,15 +329,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     });
 
     // базы
-    buildings.push({r:1,c:1,owner:1,type:'base'});
-    buildings.push({r:ROWS-2,c:COLS-2,owner:2,type:'base'});
+    buildings.push({r:1,c:1,owner:1,type:'base',gen:BUILD_TYPES.base.gen});
+    buildings.push({r:ROWS-2,c:COLS-2,owner:2,type:'base',gen:BUILD_TYPES.base.gen});
 
     function addRes(owner,type){
       const b=buildings.find(x=>x.owner===owner&&x.type==='base');
       [[1,0],[-1,0],[0,1],[0,-1]].some(([dr,dc])=>{
         let rr=b.r+dr, cc=b.c+dc;
         if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&map[rr][cc]===TERRAIN.PLAIN){
-          buildings.push({r:rr,c:cc,owner,type});
+          buildings.push({r:rr,c:cc,owner,type,gen:BUILD_TYPES[type].gen});
           return true;
         }
       });
@@ -355,7 +356,7 @@ window.addEventListener('DOMContentLoaded',()=>{
             p = freeCell();
             if(!p) console.warn(`Unable to place ${type} on side 1`);
           }
-          if(p) buildings.push({r:p.r,c:p.c,owner:0,type});
+          if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen});
         }
         for(let i=0;i<count-half;i++){
           let p=freeCell(2);
@@ -363,7 +364,7 @@ window.addEventListener('DOMContentLoaded',()=>{
             p = freeCell();
             if(!p) console.warn(`Unable to place ${type} on side 2`);
           }
-          if(p) buildings.push({r:p.r,c:p.c,owner:0,type});
+          if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen});
         }
       });
 
@@ -491,7 +492,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     // buildings
     buildings.forEach(b=>{
       if((!F[b.r][b.c]||S[b.r][b.c]||revealAll)){
-        let col = BUILD_TYPES[b.type].gen? '#fc0'
+        const bGen = b.gen ?? BUILD_TYPES[b.type].gen;
+        let col = bGen? '#fc0'
                 : b.type==='fort'? '#666'
                 : b.owner===1? '#f80'
                 : b.owner===2? '#08f':'#888';
@@ -501,7 +503,12 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx.font=`${cellH*0.5}px sans-serif`;
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
-        if(BUILD_TYPES[b.type].gen>0||BUILD_TYPES[b.type].def>0){
+        if(bGen>BUILD_TYPES[b.type].gen){
+          ctx.font=`${cellH*0.3}px sans-serif`;
+          ctx.fillText('+'+(bGen-BUILD_TYPES[b.type].gen),
+                      b.c*cellW+cellW*0.8,b.r*cellH+cellH*0.3);
+        }
+        if(bGen>0||BUILD_TYPES[b.type].def>0){
           ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
           ctx.lineWidth=2; ctx.setLineDash([4,4]);
           ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
@@ -655,7 +662,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(state.turn===0) return;      // не проверяем до первого хода
     if(gameOver) return;
     [1,2].forEach(p=>{
-      let bases=buildings.filter(b=>b.owner===p&&BUILD_TYPES[b.type].gen===0).length,
+      let bases=buildings.filter(b=>b.owner===p&& (b.gen ?? BUILD_TYPES[b.type].gen)===0).length,
           unts=units.filter(u=>u.owner===p).length,
           other=p===1?2:1;
       if(bases===0&&unts===0) endGame(other);
@@ -675,10 +682,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === updateLeft ===
   function updateLeft(){
     const p=state.currentPlayer;
-    let income=buildings.filter(b=>b.owner===p&&BUILD_TYPES[b.type].gen>0)
-                        .reduce((s,b)=>s+BUILD_TYPES[b.type].gen,0),
-        mbases=buildings.filter(b=>b.owner===p&&BUILD_TYPES[b.type].gen===0).length,
-        mres=buildings.filter(b=>b.owner===p&&BUILD_TYPES[b.type].gen>0).length;
+    let income=buildings.filter(b=>b.owner===p)
+                        .reduce((s,b)=>s+(b.gen ?? BUILD_TYPES[b.type].gen),0),
+        mbases=buildings.filter(b=>b.owner===p&& (b.gen ?? BUILD_TYPES[b.type].gen)===0).length,
+        mres=buildings.filter(b=>b.owner===p&& (b.gen ?? BUILD_TYPES[b.type].gen)>0).length;
     let counts={};
     units.filter(u=>u.owner===p).forEach(u=>counts[u.type]=(counts[u.type]||0)+1);
     let selInfo=sel
@@ -785,7 +792,8 @@ window.addEventListener('DOMContentLoaded',()=>{
           let moved = (y!==sel.r || x!==sel.c);
           let bb=buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
           if(bb){
-            recordEvent(BUILD_TYPES[bb.type].gen===0
+            const baseTaken = (bb.gen ?? BUILD_TYPES[bb.type].gen)===0;
+            recordEvent(baseTaken
               ? `Захвачена база`
               : `Захвачена добыча (${BUILD_LABELS[bb.type]})`);
             bb.owner=p;
@@ -921,8 +929,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     state.turn++;
     state.currentPlayer = prev===1?2:1;
     state.gold[state.currentPlayer] += buildings
-      .filter(b=>b.owner===state.currentPlayer&&BUILD_TYPES[b.type].gen>0)
-      .reduce((s,b)=>s+BUILD_TYPES[b.type].gen,0);
+      .filter(b=>b.owner===state.currentPlayer)
+      .reduce((s,b)=>s+(b.gen ?? BUILD_TYPES[b.type].gen),0);
     units.filter(u=>u.owner===state.currentPlayer).forEach(u=>{
       u.mp=UNIT_TYPES[u.type].move; u.startR=u.r; u.startC=u.c;
     });
