@@ -379,7 +379,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   // expose for tests
-  Object.assign(window, { freeCell, aiTakeTurn });
+  Object.assign(window, { freeCell, aiTakeTurn, computeDistanceMap });
 
   // === LOS ===
   function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
@@ -586,16 +586,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   function computeDistanceMap(targets){
     const dist=Array.from({length:ROWS},()=>Array(COLS).fill(Infinity));
     const q=[];
-    targets.forEach(t=>{ dist[t.r][t.c]=0; q.push({r:t.r,c:t.c}); });
+    targets.forEach(t=>{ dist[t.r][t.c]=0; q.push({r:t.r,c:t.c,d:0}); });
     while(q.length){
+      q.sort((a,b)=>a.d-b.d);
       const o=q.shift();
       const d=dist[o.r][o.c];
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
         const rr=o.r+dr, cc=o.c+dc;
         if(rr<0||rr>=ROWS||cc<0||cc>=COLS) return;
         if(map[rr][cc]===TERRAIN.MOUNTAIN) return;
-        const nd=d+1;
-        if(nd<dist[rr][cc]){ dist[rr][cc]=nd; q.push({r:rr,c:cc}); }
+        const nd=d+TERR_COST[map[rr][cc]];
+        if(nd<dist[rr][cc]){ dist[rr][cc]=nd; q.push({r:rr,c:cc,d:nd}); }
       });
     }
     return dist;
@@ -696,6 +697,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     const baseDist=enemyBases.length?computeDistanceMap(enemyBases):null;
     const buildDist=enemyBuildings.length?computeDistanceMap(enemyBuildings):null;
     const unitDist=enemyUnits.length?computeDistanceMap(enemyUnits):null;
+    const allEnemies=[...enemyUnits,...enemyBuildings];
+    const allDist=allEnemies.length?computeDistanceMap(allEnemies):null;
     const enemyCounts={};
     enemyUnits.forEach(u=>enemyCounts[u.type]=(enemyCounts[u.type]||0)+1);
     // спавн
@@ -748,18 +751,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(aiLevel===1){
           target=cz.list[Math.random()*cz.list.length|0];
         }else if(aiLevel===2){
-          const enemies=[...units.filter(e=>e.owner===1),...buildings.filter(b=>b.owner===1)];
-          if(enemies.length){
-            const trg=enemies.reduce((a,b)=>{
-              const da=Math.abs(a.r-u.r)+Math.abs(a.c-u.c);
-              const db=Math.abs(b.r-u.r)+Math.abs(b.c-u.c);
-              return da<db?a:b;
-            });
-            target=cz.list.sort((a,b)=>{
-              const da=Math.abs(a.r-trg.r)+Math.abs(a.c-trg.c);
-              const db=Math.abs(b.r-trg.r)+Math.abs(b.c-trg.c);
-              return da-db;
-            })[0];
+          if(allDist){
+            target=cz.list.sort((a,b)=>allDist[a.r][a.c]-allDist[b.r][b.c])[0];
           } else target=cz.list[0];
         }else{
           let best=null,bestScore=-Infinity;
