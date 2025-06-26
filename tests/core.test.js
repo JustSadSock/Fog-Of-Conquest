@@ -141,4 +141,36 @@ describe('Fog of Conquest core', () => {
     expect(spawned.type).toBe('heavy');
     BUILD_TYPES.base.spawn = original;
   });
+
+  test('computeDistanceMap accounts for terrain cost', () => {
+    const { map, TERRAIN, computeDistanceMap } = window;
+    document.getElementById('twoBtn').click();
+    for(let r=0;r<2;r++)for(let c=0;c<5;c++) map[r][c]=TERRAIN.PLAIN;
+    map[0][1]=TERRAIN.WATER;
+    map[0][2]=TERRAIN.WATER;
+    map[0][3]=TERRAIN.WATER;
+    const dist = computeDistanceMap([{r:0,c:4}]);
+    expect(dist[0][0]).toBe(6);
+  });
+
+  test('AI avoids high-cost terrain when possible', () => {
+    const { map, TERRAIN, units, buildings, state, aiTakeTurn, UNIT_TYPES } = window;
+    document.getElementById('twoBtn').click();
+    units.length = 0;
+    buildings.length = 0;
+    for(let r=0;r<2;r++)for(let c=0;c<5;c++) map[r][c]=TERRAIN.PLAIN;
+    map[0][1]=TERRAIN.WATER;
+    map[0][2]=TERRAIN.WATER;
+    map[0][3]=TERRAIN.WATER;
+    buildings.push({r:0,c:4,owner:1,type:'base'});
+    units.push({id:1,r:0,c:0,owner:2,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:0,startC:0});
+    state.currentPlayer = 2;
+    const rows = map.length, cols = map[0].length;
+    state.fog[2] = Array.from({length:rows},()=>Array(cols).fill(false));
+    state.seen[2] = Array.from({length:rows},()=>Array(cols).fill(true));
+    const u = units[0];
+    aiTakeTurn();
+    expect(u.r).toBe(1);
+    expect(u.c).toBe(1);
+  });
 });
