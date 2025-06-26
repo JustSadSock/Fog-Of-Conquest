@@ -5,6 +5,38 @@ window.addEventListener('DOMContentLoaded',()=>{
   const abs = Math.abs,
         randChoice = arr => arr[Math.random()*arr.length|0];
 
+  const IMG = {};
+
+  function loadImages(){
+    const files = {
+      tiles:[
+        'grass1','grass2','hill','hill2','mountains1','mountains2','mountains3',
+        'trees1','trees2','trees3','water'
+      ],
+      buildings:[
+        'barracks','base_ally','base_enemy','fort_ally','fort_enemy','fort_neutral',
+        'healers_tents_ally','healers_tents_enemy','healers_tents_neutral','stable','windmill'
+      ],
+      units:[
+        'archer_ally','archer_enemy','healer_ally','healer_enemy','heavy_ally','heavy_enemy',
+        'horseman_ally','horseman_enemy','militia_ally','militia_enemy'
+      ],
+      symbols:[
+        'green_selection','red_selection','white_shield','yellow_selection','yellow_shield'
+      ]
+    };
+    const promises = [];
+    Object.entries(files).forEach(([dir,names])=>{
+      names.forEach(n=>{
+        const img=new Image();
+        img.src=`assets/${dir}/${n}.png`;
+        IMG[`${dir}/${n}`]=img;
+        promises.push(new Promise(res=>{img.onload=res; img.onerror=res;}));
+      });
+    });
+    return Promise.all(promises);
+  }
+
   // === DOM-элементы ===
   const startPanel = document.getElementById('startPanel'),
         twoBtn      = document.getElementById('twoBtn'),
@@ -48,87 +80,41 @@ window.addEventListener('DOMContentLoaded',()=>{
   const TERR_DEF  = [0,-1,1,2,0];
   const TERR_LABELS = ['Равнина','Вода','Лес','Холм','Горы'];
 
-  const TERR_PAT = [];
+  // tiles for drawing terrain
+  const TILE_IMAGES = {
+    grass:['tiles/grass1','tiles/grass2'],
+    water:['tiles/water'],
+    hill:['tiles/hill','tiles/hill2'],
+    mountain:['tiles/mountains1','tiles/mountains2','tiles/mountains3'],
+    forest:['tiles/trees1','tiles/trees2','tiles/trees3']
+  };
 
-  function makePatterns(){
-    function pat(base, draw){
-      const c = document.createElement('canvas');
-      c.width = c.height = 32;
-      const g = c.getContext('2d');
-      g.fillStyle = base;
-      g.fillRect(0,0,32,32);
-      draw(g);
-      return ctx.createPattern(c,'repeat');
-    }
-    TERR_PAT[TERRAIN.PLAIN] = pat('#b5e6a0', g=>{
-      g.strokeStyle = 'rgba(140,200,120,0.4)';
-      g.lineWidth = 0.5;
-      for(let i=-32;i<32;i+=8){
-        g.beginPath();
-        g.moveTo(i,0); g.lineTo(i+32,32);
-        g.stroke();
-      }
-    });
-    TERR_PAT[TERRAIN.WATER] = pat('#5da9e9', g=>{
-      g.strokeStyle = 'rgba(255,255,255,0.3)';
-      g.lineWidth = 1;
-      for(let y=4;y<32;y+=8){
-        g.beginPath();
-        g.arc(16,y,12,0,Math.PI,false);
-        g.stroke();
-      }
-      g.strokeStyle = 'rgba(0,0,60,0.3)';
-      for(let y=8;y<32;y+=8){
-        g.beginPath();
-        g.arc(16,y+2,12,0,Math.PI,false);
-        g.stroke();
-      }
-    });
-    TERR_PAT[TERRAIN.FOREST] = pat('#2c7534', g=>{
-      g.fillStyle = 'rgba(20,50,20,0.6)';
-      for(let x=0;x<32;x+=8){
-        g.beginPath();
-        g.moveTo(x+4,4);
-        g.lineTo(x,16);
-        g.lineTo(x+8,16);
-        g.closePath();
-        g.fill();
-        g.beginPath();
-        g.moveTo(x+4,12);
-        g.lineTo(x-2,24);
-        g.lineTo(x+10,24);
-        g.closePath();
-        g.fill();
-      }
-    });
-    TERR_PAT[TERRAIN.HILL] = pat('#e0c778', g=>{
-      g.strokeStyle = 'rgba(195,170,85,0.6)';
-      g.lineWidth = 0.8;
-      for(let i=-32;i<32;i+=8){
-        g.beginPath();
-        g.moveTo(i,32); g.lineTo(i+32,0);
-        g.stroke();
-      }
-    });
-    TERR_PAT[TERRAIN.MOUNTAIN] = pat('#787878', g=>{
-      g.fillStyle = 'rgba(130,130,130,0.7)';
-      for(let x=0;x<32;x+=16){
-        g.beginPath();
-        g.moveTo(x+8,4);
-        g.lineTo(x,32);
-        g.lineTo(x+16,32);
-        g.closePath();
-        g.fill();
-        g.fillStyle = 'rgba(255,255,255,0.3)';
-        g.beginPath();
-        g.moveTo(x+8,4);
-        g.lineTo(x+4,16);
-        g.lineTo(x+12,16);
-        g.closePath();
-        g.fill();
-        g.fillStyle = 'rgba(130,130,130,0.7)';
-      }
-    });
+  const UNIT_IMG_MAP = {
+    swordsman:'militia',
+    archer:'archer',
+    heavy:'heavy',
+    cavalry:'horseman',
+    mage:'healer',
+    bog:'militia'
+  };
+
+  function getUnitSprite(u){
+    const side = u.owner===1?'ally':'enemy';
+    return IMG[`units/${UNIT_IMG_MAP[u.type]}_${side}`];
+  }
+
+  function getBuildingSprite(b){
+    const owner = b.owner===1?'ally':b.owner===2?'enemy':'neutral';
+    const map = {
+      base:`buildings/base_${owner}`,
+      barracks:'buildings/barracks',
+      stable:'buildings/stable',
+      mageTower:`buildings/healers_tents_${owner}`,
+      mine:'buildings/windmill',
+      lumber:'buildings/windmill',
+      fort:`buildings/fort_${owner}`
+    };
+    return IMG[map[b.type]];
   }
 
   const UNIT_TYPES = {
@@ -461,8 +447,17 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(!S[r][c]&&!revealAll){
         ctx.fillStyle='#000'; ctx.fillRect(x,y,cellW,cellH);
       } else {
-        ctx.fillStyle=TERR_PAT[map[r][c]] || TERR_COL[map[r][c]];
-        ctx.fillRect(x,y,cellW,cellH);
+        const baseImg = map[r][c]===TERRAIN.WATER
+          ? IMG[randChoice(TILE_IMAGES.water)]
+          : IMG[randChoice(TILE_IMAGES.grass)];
+        ctx.drawImage(baseImg,x,y,cellW,cellH);
+        if(map[r][c]===TERRAIN.HILL){
+          ctx.drawImage(IMG[randChoice(TILE_IMAGES.hill)],x,y,cellW,cellH);
+        }else if(map[r][c]===TERRAIN.MOUNTAIN){
+          ctx.drawImage(IMG[randChoice(TILE_IMAGES.mountain)],x,y,cellW,cellH);
+        }else if(map[r][c]===TERRAIN.FOREST){
+          ctx.drawImage(IMG[randChoice(TILE_IMAGES.forest)],x,y,cellW,cellH);
+        }
         if(!revealAll&&F[r][c]){
           ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(x,y,cellW,cellH);
         }
@@ -512,22 +507,9 @@ window.addEventListener('DOMContentLoaded',()=>{
     // buildings
     buildings.forEach(b=>{
       if((!F[b.r][b.c]||S[b.r][b.c]||revealAll)){
+        const img = getBuildingSprite(b);
+        if(img) ctx.drawImage(img,b.c*cellW,b.r*cellH,cellW,cellH);
         const bGen = b.gen ?? BUILD_TYPES[b.type].gen;
-        let col = bGen? '#fc0'
-                : b.type==='fort'? '#666'
-                : b.owner===1? '#f80'
-                : b.owner===2? '#08f':'#888';
-        ctx.fillStyle=col;
-        ctx.fillRect(b.c*cellW+cellW*0.1,b.r*cellH+cellH*0.1,cellW*0.8,cellH*0.8);
-        ctx.fillStyle='#000';
-        ctx.font=`${cellH*0.5}px sans-serif`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
-        if(bGen>BUILD_TYPES[b.type].gen){
-          ctx.font=`${cellH*0.3}px sans-serif`;
-          ctx.fillText('+'+(bGen-BUILD_TYPES[b.type].gen),
-                      b.c*cellW+cellW*0.8,b.r*cellH+cellH*0.3);
-        }
         if(bGen>0||BUILD_TYPES[b.type].def>0){
           ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
           ctx.lineWidth=2; ctx.setLineDash([4,4]);
@@ -565,16 +547,9 @@ window.addEventListener('DOMContentLoaded',()=>{
             animRunning=true;
           } else delete u.animShake;
         }
-        ctx.fillStyle=UNIT_TYPES[u.type].color;
-        ctx.shadowColor='rgba(0,0,0,0.4)';
-        ctx.shadowBlur=4;
-        const iconRad = rad * 1.1;
-        ctx.beginPath();
-        ctx.arc(cx,cy,iconRad,0,2*Math.PI);
-        ctx.fill();
-        ctx.shadowBlur=0;
-        ctx.lineWidth=4; ctx.strokeStyle='#000'; ctx.stroke();
-        ctx.lineWidth=2; ctx.strokeStyle=u.owner===p?'#fff':'#000'; ctx.stroke();
+        const sprite = getUnitSprite(u);
+        if(sprite) ctx.drawImage(sprite,cx-rad,cy-rad,rad*2,rad*2);
+        ctx.lineWidth=2; ctx.strokeStyle=u.owner===p?'#fff':'#000'; ctx.strokeRect(cx-rad,cy-rad,rad*2,rad*2);
 
         let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
             bonus=bld?BUILD_TYPES[bld.type].def:0;
@@ -1059,7 +1034,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   // === Инициализация ===
-  makePatterns();
-  setupLegend();
-  window.dispatchEvent(new Event('resize'));
+  loadImages().then(()=>{
+    setupLegend();
+    window.dispatchEvent(new Event('resize'));
+  });
 });

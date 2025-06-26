@@ -14,7 +14,7 @@ HTMLCanvasElement.prototype.getContext = () => {
   return {
     fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
     stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
-    moveTo:()=>{}, lineTo:()=>{}, createPattern:()=>{}
+    moveTo:()=>{}, lineTo:()=>{}, createPattern:()=>{}, drawImage:()=>{}
   };
 };
 
@@ -33,7 +33,7 @@ describe('Fog of Conquest core', () => {
     window.HTMLCanvasElement.prototype.getContext = () => ({
       fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
       stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
-      moveTo:()=>{}, lineTo:()=>{}, createPattern:()=>{}
+      moveTo:()=>{}, lineTo:()=>{}, createPattern:()=>{}, drawImage:()=>{}
     });
 
     await new Promise(res => {
@@ -234,7 +234,7 @@ describe('Fog of Conquest core', () => {
         setLineDash:()=>{},
         strokeRect:function(x,y,w,h){strokes.push({style:this.strokeStyle,x,y,w,h});},
         fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
-        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
+        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}, drawImage:()=>{}
       };
     };
     const html = fs.readFileSync('index.html','utf8');
@@ -269,7 +269,7 @@ describe('Fog of Conquest core', () => {
       return {
         fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
         stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
-        moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
+        moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}, drawImage:()=>{}
       };
     };
     const html = fs.readFileSync('index.html','utf8');
