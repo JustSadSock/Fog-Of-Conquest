@@ -766,7 +766,12 @@ window.addEventListener('DOMContentLoaded',()=>{
           }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));
-          sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
+          if(sel.mp>0){
+            let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
+          } else {
+            sel=null; zoneMap=null; zoneList=[];
+          }
+          updateAll(); return;
         }
         if(zoneMap.rem[y][x]>=0 && !units.find(u=>u.r===y&&u.c===x)){
           sel.mp=zoneMap.rem[y][x];
@@ -781,7 +786,12 @@ window.addEventListener('DOMContentLoaded',()=>{
           animateMove(sel,sel.r,sel.c,y,x);
           sel.r=y; sel.c=x;
           if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
-          sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
+          if(sel.mp>0){
+            let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
+          } else {
+            sel=null; zoneMap=null; zoneList=[];
+          }
+          updateAll(); return;
         }
       }
       sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
