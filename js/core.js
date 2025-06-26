@@ -32,7 +32,9 @@ window.addEventListener('DOMContentLoaded',()=>{
         aiLevelSel  = document.getElementById('aiLevelSelect'),
         aiPanel     = document.getElementById('aiPanel'),
         aiStartBtn  = document.getElementById('aiStartBtn'),
-        waitOverlay = document.getElementById('waitOverlay');
+        waitOverlay = document.getElementById('waitOverlay'),
+        waitText    = document.getElementById('waitText'),
+        skipReplayBtn = document.getElementById('skipReplayBtn');
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
@@ -194,7 +196,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       spawnMode = false, spawnType = null, spawnZones = [],
       continueAfter = null,
       fogSnapshot = null,
-      aiReplay = [];
+      aiReplay = [],
+      replayTimer = null;
 
   Object.assign(window, { spawnZones });
 
@@ -681,6 +684,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         : `Захвачена добыча (${BUILD_LABELS[b.type]})`);
       b.owner=newOwner;
       b.hp=BUILD_TYPES[b.type].hpMax;
+      if(!aiMode) addReplay({type:'capture',building:b});
     }
   }
 
@@ -688,7 +692,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   function spawn(type,r,c){
     const p=state.currentPlayer, cost=UNIT_TYPES[type].cost;
     if(state.gold[p]<cost) return;
-    units.push({id:nextUnitId++,r,c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:r,startC:c});
+    const unit={id:nextUnitId++,r,c,owner:p,type,hp:UNIT_TYPES[type].hpMax,mp:0,startR:r,startC:c};
+    units.push(unit);
+    if(!aiMode) addReplay({type:'spawn',unit});
     state.gold[p]-=cost;
     recordEvent(`${UNIT_LABELS[type]} создан`);
     spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones;
@@ -811,8 +817,10 @@ window.addEventListener('DOMContentLoaded',()=>{
           }
           sel.mp=0;
           const {dmg,rdmg,killed}=doAttack(sel,tgt);
+          if(!aiMode) addReplay({type:'attack',target:tgt});
           animateShake(tgt);
           if(killed && UNIT_TYPES[sel.type].range===1){
+            if(!aiMode) addReplay({type:'move',unit:sel,from:{r:sel.r,c:sel.c},to:{r:tgt.r,c:tgt.c}});
             animateMove(sel,sel.r,sel.c,tgt.r,tgt.c);
             sel.r=tgt.r; sel.c=tgt.c;
             let bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c&&b.owner!==p);
@@ -828,10 +836,12 @@ window.addEventListener('DOMContentLoaded',()=>{
           updateAll(); return;
         }
         if(zoneMap.rem[y][x]>=0 && !units.find(u=>u.r===y&&u.c===x)){
+          const from={r:sel.r,c:sel.c};
           sel.mp=zoneMap.rem[y][x];
           let moved = (y!==sel.r || x!==sel.c);
           let bb=buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
           if(bb) damageBuilding(bb,p);
+          if(moved && !aiMode) addReplay({type:'move',unit:sel,from,to:{r:y,c:x}});
           animateMove(sel,sel.r,sel.c,y,x);
           sel.r=y; sel.c=x;
           if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
@@ -903,13 +913,20 @@ window.addEventListener('DOMContentLoaded',()=>{
       overlay.style.display='none';
       if(aiMode){
         fogSnapshot = state.fog[1].map(r=>r.slice());
-        waitOverlay.textContent = 'Ход противника...';
+        waitText.textContent = 'Ход противника...';
+        skipReplayBtn.style.display='none';
         waitOverlay.style.display='flex';
         nextTurn();
         aiTakeTurn();
         replayAI();
       } else {
         nextTurn();
+        if(aiReplay.length){
+          waitText.textContent = 'Повтор хода соперника...';
+          skipReplayBtn.style.display='block';
+          waitOverlay.style.display='flex';
+          replayAI();
+        }
       }
     };
   });
@@ -923,6 +940,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     resetState();
     startPanel.style.display='flex';
   });
+
+  skipReplayBtn.addEventListener('click', stopReplay);
 
   // === Туман войны (бета) ===
   revealBtn.addEventListener('click',()=>{
@@ -971,25 +990,28 @@ window.addEventListener('DOMContentLoaded',()=>{
     recordTurn(); updateAll();
   }
 
+  function stopReplay(){
+    if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
+    aiReplay=[];
+    waitOverlay.style.display='none';
+    waitText.textContent='Подождите...';
+    skipReplayBtn.style.display='none';
+    updateAll();
+  }
+
   function replayAI(){
     let i=0;
     const run=()=>{
-      if(i>=aiReplay.length){
-        aiReplay=[];
-        waitOverlay.style.display='none';
-        waitOverlay.textContent='Подождите...';
-        updateAll();
-        return;
-      }
+      if(i>=aiReplay.length){ stopReplay(); return; }
       const ev=aiReplay[i++];
       if(ev.type==='move'){
         animateMove(ev.unit,ev.from.r,ev.from.c,ev.to.r,ev.to.c);
-        setTimeout(run,300);
+        replayTimer=setTimeout(run,300);
       }else if(ev.type==='attack'){
         animateShake(ev.target);
-        setTimeout(run,150);
+        replayTimer=setTimeout(run,150);
       }else{
-        setTimeout(run,250);
+        replayTimer=setTimeout(run,250);
       }
       redraw();
     };
