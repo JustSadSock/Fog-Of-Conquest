@@ -44,6 +44,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Plain 1, Water 2, Forest 2 (extra cost), Hill 2, Mountain impassable
   const TERR_COST = [1,2,2,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
+  const TERR_LABELS = ['Равнина','Вода','Лес','Холм','Горы'];
 
   const TERR_PAT = [];
 
@@ -166,10 +167,18 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
 
   function setupLegend(){
-    legendPanel.innerHTML = Object.entries(UNIT_TYPES)
-      .filter(([t])=>t!=='bog')
-      .map(([t])=>`<div class="legendItem"><span class="legendColor" style="background:${UNIT_TYPES[t].color}"></span>${UNIT_LABELS[t]}</div>`)
-      .join('');
+    const unitRows = Object.entries(UNIT_TYPES)
+      .filter(([t]) => t !== 'bog')
+      .map(([t]) =>
+        `<div class="legendItem"><span class="legendColor" style="background:${UNIT_TYPES[t].color}"></span>${UNIT_LABELS[t]}</div>`
+      ).join('');
+    const terrRows = TERR_LABELS.map((label,i) => {
+      const bonus = TERR_DEF[i];
+      const txt = i===TERRAIN.MOUNTAIN ? 'непроходимо' :
+        (bonus ? (bonus>0?`+${bonus}`:bonus)+' защ.' : '');
+      return `<div class="legendItem"><span class="legendColor" style="background:${TERR_COL[i]}"></span>${label} ${txt}</div>`;
+    }).join('');
+    legendPanel.innerHTML = `<h3>Юниты</h3>${unitRows}<h3 style="margin-top:8px;">Рельеф</h3>${terrRows}`;
   }
 
   // === Состояние ===
