@@ -17,6 +17,45 @@
     lumber:10,
     fort:30
   };
+
+  function aStar(unit, target){
+    const {map, TERRAIN, TERR_COST, units} = global;
+    if(!map) return null;
+    const ROWS = map.length, COLS = map[0].length;
+    const open = [];
+    const closed = new Set();
+    const key = (r,c) => r+","+c;
+    open.push({r:unit.r, c:unit.c, g:0, f:0, prev:null});
+    while(open.length){
+      open.sort((a,b)=>a.f-b.f);
+      const cur = open.shift();
+      const k = key(cur.r,cur.c);
+      if(closed.has(k)) continue;
+      if(cur.r===target.r && cur.c===target.c){
+        const path=[];
+        let n=cur;
+        while(n){ path.push({r:n.r,c:n.c}); n=n.prev; }
+        path.reverse();
+        return {path,cost:cur.g};
+      }
+      closed.add(k);
+      [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+        const rr=cur.r+dr, cc=cur.c+dc;
+        if(rr<0||rr>=ROWS||cc<0||cc>=COLS) return;
+        if(map[rr][cc]===TERRAIN.MOUNTAIN) return;
+        if(units.some(us=>us!==unit && us.r===rr && us.c===cc)) return;
+        const g=cur.g+TERR_COST[map[rr][cc]];
+        const h=Math.abs(target.r-rr)+Math.abs(target.c-cc);
+        const existing=open.find(o=>o.r===rr&&o.c===cc);
+        if(existing){
+          if(g<existing.g){ existing.g=g; existing.f=g+h; existing.prev=cur; }
+        }else{
+          open.push({r:rr,c:cc,g, f:g+h, prev:cur});
+        }
+      });
+    }
+    return null;
+  }
   function computeDistanceMap(targets){
     const map = global.map;
     const TERRAIN = global.TERRAIN;
@@ -155,6 +194,24 @@
               }
             });
 
+            let risk=0;
+            enemyUnits.forEach(e=>{
+              const dist=Math.abs(e.r-pos.r)+Math.abs(e.c-pos.c);
+              if(dist<=UNIT_TYPES[e.type].range &&
+                 global.hasLOS(e.r,e.c,pos.r,pos.c,{forestBlock:false})){
+                   let atk=UNIT_TYPES[e.type].atk;
+                   if(e.type==='cavalry'){
+                     let cellDef=(BUILD_TYPES[(buildings.find(b=>b.r===pos.r&&b.c===pos.c&&b.owner===p)||{}).type]?.def)||0;
+                     if(cellDef>0) atk--;
+                   }
+                   const defV=UNIT_TYPES[u.type].def+(TERR_DEF?TERR_DEF[map[pos.r][pos.c]]:0);
+                   let dmg=Math.max(1,atk-defV);
+                   risk+=dmg;
+              }
+            });
+            if(risk>=u.hp) risk+= (UNIT_VALUE[u.type]||UNIT_TYPES[u.type].cost||0);
+            score-=risk;
+
             if(aiLevel>=4 && u.hp<=UNIT_TYPES[u.type].hpMax/2){
               let distAway=allDist?allDist[pos.r][pos.c]:0;
               score+=distAway*2;
@@ -172,7 +229,14 @@
           }
         }
         if(target){
-          u.mp=cz.rem[target.r][target.c];
+          const pathInfo=aStar(u,target);
+          let moveCost=0;
+          if(pathInfo){
+            moveCost=pathInfo.cost;
+            const last=pathInfo.path[pathInfo.path.length-1];
+            target={r:last.r,c:last.c};
+          }else moveCost=u.mp;
+          u.mp-=moveCost;
           let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
           if(bb){
             bb.owner=p;
