@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-  <!-- <audio id="menuBgm" src="https://www.w3schools.com/html/horse.mp3" loop></audio> -->
+  <audio id="bgm" src="https://www.w3schools.com/html/horse.mp3" loop data-type="music"></audio>
+  <audio id="attackSfx" src="https://www.w3schools.com/html/horse.mp3" data-type="sfx"></audio>
+  <audio id="healSfx" src="https://www.w3schools.com/html/horse.mp3" data-type="sfx"></audio>
+  <audio id="captureSfx" src="https://www.w3schools.com/html/horse.mp3" data-type="sfx"></audio>
   <div id="startPanel">
     <h1>Fog of Conquest</h1>
     <div id="summary">
@@ -90,7 +93,9 @@
   <div id="settingsOverlay">
     <div class="panel">
       <label><input type="checkbox" id="simplifyChk"/> Упрощённый вид</label>
+      <label><input type="checkbox" id="musicEnable"/> Музыка</label>
       <label>Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01"/></label>
+      <label><input type="checkbox" id="sfxEnable"/> Звуковые эффекты</label>
       <label>Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01"/></label>
       <button id="settingsCloseBtn">Закрыть</button>
     </div>
