@@ -131,7 +131,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   const UNIT_TYPES = {
     swordsman:{move:2,atk:2,def:1,range:1,hpMax:5,cost:3,color:'#e74c3c'},
-    archer:   {move:2,atk:3,def:0,range:2,hpMax:4,cost:3,color:'#2ecc71'},
+    // подорожавший стрелок, чтобы сбалансировать стоимость юнитов
+    archer:   {move:2,atk:3,def:0,range:2,hpMax:4,cost:4,color:'#2ecc71'},
     heavy:    {move:1,atk:3,def:2,range:1,hpMax:6,cost:5,color:'#2c3e50'},
     cavalry:  {move:3,atk:3,def:1,range:1,hpMax:5,cost:7,color:'#3498db'},
     mage:     {move:2,atk:0,def:0,range:1,hpMax:4,cost:7,color:'#9b59b6'},

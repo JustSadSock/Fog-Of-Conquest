@@ -108,7 +108,7 @@ describe('Fog of Conquest core', () => {
     const { state, units, aiTakeTurn } = window;
     document.getElementById('twoBtn').click();
     state.currentPlayer = 2;
-    state.gold[2] = 3;
+    state.gold[2] = 4;
     const rows = window.map.length, cols = window.map[0].length;
     state.fog[2] = Array.from({length:rows},()=>Array(cols).fill(false));
     state.seen[2] = Array.from({length:rows},()=>Array(cols).fill(true));
