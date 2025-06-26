@@ -66,7 +66,16 @@ window.addEventListener('DOMContentLoaded',()=>{
         aiStartBtn  = document.getElementById('aiStartBtn'),
         waitOverlay = document.getElementById('waitOverlay'),
         waitText    = document.getElementById('waitText'),
-        skipReplayBtn = document.getElementById('skipReplayBtn');
+        skipReplayBtn = document.getElementById('skipReplayBtn'),
+        settingsBtn   = document.getElementById('settingsBtn'),
+        settingsOverlay = document.getElementById('settingsOverlay'),
+        simplifyChk   = document.getElementById('simplifyChk'),
+        musicVolumeEl = document.getElementById('musicVolume'),
+        sfxVolumeEl   = document.getElementById('sfxVolume'),
+        settingsCloseBtn = document.getElementById('settingsCloseBtn');
+
+  loadSettings();
+  applyVolumes();
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
@@ -98,6 +107,38 @@ window.addEventListener('DOMContentLoaded',()=>{
     mage:'healer',
     bog:'militia'
   };
+
+  const SETTINGS_KEY = 'focSettings';
+  let simpleView = false,
+      musicVolume = 1,
+      sfxVolume = 1;
+
+  function loadSettings(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      if(saved){
+        if(typeof saved.simplified==='boolean') simpleView = saved.simplified;
+        if(typeof saved.musicVolume==='number') musicVolume = saved.musicVolume;
+        if(typeof saved.sfxVolume==='number') sfxVolume = saved.sfxVolume;
+      }
+    }catch(e){}
+  }
+
+  function saveSettings(){
+    const obj = {
+      simplified: simpleView,
+      musicVolume,
+      sfxVolume
+    };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
+  }
+
+  function applyVolumes(){
+    document.querySelectorAll('audio').forEach(a=>{
+      if(a.dataset.type==='sfx') a.volume = sfxVolume;
+      else a.volume = musicVolume;
+    });
+  }
 
   function getUnitSprite(u){
     const side = u.owner===1?'ally':'enemy';
@@ -452,7 +493,91 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   // === Draw ===
+
+  function redrawSimple(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const p=state.currentPlayer, F=state.fog[p], S=state.seen[p];
+
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      let x=c*cellW, y=r*cellH;
+      if(!S[r][c]&&!revealAll){
+        ctx.fillStyle='#000'; ctx.fillRect(x,y,cellW,cellH);
+      } else {
+        ctx.fillStyle=TERR_COL[map[r][c]]; ctx.fillRect(x,y,cellW,cellH);
+        if(!revealAll&&F[r][c]){
+          ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(x,y,cellW,cellH);
+        }
+      }
+    }
+
+    if(sel&&sel.mp>0){
+      ctx.fillStyle='rgba(255,255,255,0.3)';
+      zoneList.forEach(z=>ctx.fillRect(z.c*cellW,z.r*cellH,cellW,cellH));
+      ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      zoneList.forEach(z=>ctx.strokeRect(z.c*cellW+1,z.r*cellH+1,cellW-2,cellH-2));
+      ctx.setLineDash([]);
+    }
+
+    if(spawnMode){
+      ctx.fillStyle='rgba(0,200,200,0.3)';
+      spawnZones.forEach(z=>ctx.fillRect(z.c*cellW,z.r*cellH,cellW,cellH));
+    }
+
+    buildings.forEach(b=>{
+      if((!F[b.r][b.c]||S[b.r][b.c]||revealAll)){
+        let col = BUILD_TYPES[b.type].gen? '#fc0'
+                : b.type==='fort'? '#666'
+                : b.owner===1? '#f80'
+                : b.owner===2? '#08f':'#888';
+        ctx.fillStyle=col;
+        ctx.fillRect(b.c*cellW+cellW*0.1,b.r*cellH+cellH*0.1,cellW*0.8,cellH*0.8);
+        ctx.fillStyle='#000';
+        ctx.font=`${cellH*0.5}px sans-serif`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
+        if(BUILD_TYPES[b.type].gen>0||BUILD_TYPES[b.type].def>0){
+          ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
+          ctx.lineWidth=2; ctx.setLineDash([4,4]);
+          ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
+          ctx.setLineDash([]);
+        }
+      }
+    });
+
+    units.forEach(u=>{
+      if((!F[u.r][u.c]||revealAll)&&S[u.r][u.c]){
+        let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2, rad=Math.min(cellW,cellH)/3;
+        ctx.fillStyle=UNIT_TYPES[u.type].color;
+        ctx.beginPath(); ctx.arc(cx,cy,rad,0,2*Math.PI); ctx.fill();
+        ctx.strokeStyle=u.owner===p?'#fff':'#000';
+        ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+
+        let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
+            bonus=bld?BUILD_TYPES[bld.type].def:0;
+        for(let k=0;k<bonus;k++){
+          ctx.font=`${cellH*0.35}px sans-serif`;
+          ctx.fillStyle='#ffd700'; ctx.textAlign='center';
+          ctx.fillText('🛡',cx+(k-(bonus-1)/2)*(cellW*0.4),cy-rad-2);
+        }
+
+        let w=cellW*0.6,h=cellH*0.1,
+            bx=u.c*cellW+(cellW-w)/2,
+            by=u.r*cellH+cellH*0.1;
+        ctx.fillStyle='#600'; ctx.fillRect(bx,by,w,h);
+        let frac=u.hp/UNIT_TYPES[u.type].hpMax;
+        ctx.fillStyle=u.owner===p?'#0f0':'#f00';
+        ctx.fillRect(bx,by,w*frac,h);
+      }
+    });
+
+    if(sel){
+      ctx.strokeStyle='yellow'; ctx.lineWidth=2; ctx.setLineDash([]);
+      ctx.strokeRect(sel.c*cellW+2,sel.r*cellH+2,cellW-4,cellH-4);
+    }
+  }
+
   function redraw(){
+    if(simpleView){ redrawSimple(); return; }
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const p=state.currentPlayer, F=state.fog[p], S=state.seen[p];
 
@@ -928,6 +1053,22 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   skipReplayBtn.addEventListener('click', stopReplay);
+
+  settingsBtn.addEventListener('click',()=>{
+    simplifyChk.checked = simpleView;
+    musicVolumeEl.value = musicVolume;
+    sfxVolumeEl.value = sfxVolume;
+    settingsOverlay.style.display='flex';
+  });
+  settingsCloseBtn.addEventListener('click',()=>{
+    settingsOverlay.style.display='none';
+    simpleView = simplifyChk.checked;
+    musicVolume = parseFloat(musicVolumeEl.value);
+    sfxVolume = parseFloat(sfxVolumeEl.value);
+    applyVolumes();
+    saveSettings();
+    updateAll();
+  });
 
   // === Туман войны (бета) ===
   revealBtn.addEventListener('click',()=>{

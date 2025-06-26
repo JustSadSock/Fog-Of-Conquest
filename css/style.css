@@ -334,6 +334,49 @@ h1 {
   text-align: center;
 }
 
+#settingsOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font: 1.1em 'Lora', serif;
+  z-index: 50;
+  text-align: center;
+}
+
+#settingsOverlay .panel {
+  background: #222;
+  padding: 20px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#settingsOverlay label {
+  margin: 6px 0;
+}
+
+#settingsOverlay button {
+  align-self: center;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: #bda46a;
+  border: none;
+  border-radius: 4px;
+  color: #2e2e2e;
+  cursor: pointer;
+  font: 1em 'Lora', serif;
+  font-weight: bold;
+}
+
 #legendOverlay .panel,
 #victoryOverlay .panel {
   background: #222;

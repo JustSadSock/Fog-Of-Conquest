@@ -87,6 +87,15 @@
     <button id="legendCloseBtn">Закрыть</button>
   </div>
 
+  <div id="settingsOverlay">
+    <div class="panel">
+      <label><input type="checkbox" id="simplifyChk"/> Упрощённый вид</label>
+      <label>Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01"/></label>
+      <label>Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01"/></label>
+      <button id="settingsCloseBtn">Закрыть</button>
+    </div>
+  </div>
+
   <canvas id="canvas"></canvas>
 
   <div id="spawnPanel"></div>
@@ -94,6 +103,7 @@
   <div id="infoPanel">
     <div id="controls">
       <button id="legendBtn" title="Легенда">ℹ️</button>
+      <button id="settingsBtn">Настройки</button>
       <button id="revealBtn">Показать карту</button>
       <button id="endTurnBtn">Конец хода</button>
     </div>
