@@ -542,6 +542,15 @@ window.addEventListener('DOMContentLoaded',()=>{
           ctx.fillText('🛡',cx+(k-(bonus-1)/2)*(cellW*0.4),cy-rad-2);
         }
 
+        let terrainBonus = TERR_DEF[map[u.r][u.c]];
+        if(terrainBonus>0){
+          for(let k=0;k<terrainBonus;k++){
+            ctx.font=`${cellH*0.25}px sans-serif`;
+            ctx.fillStyle='#8cf'; ctx.textAlign='center';
+            ctx.fillText('🛡',cx+(k-(terrainBonus-1)/2)*(cellW*0.3),cy-rad-cellH*0.35-2);
+          }
+        }
+
         let w=cellW*0.6,h=cellH*0.1,
             bx=u.c*cellW+(cellW-w)/2,
             by=u.r*cellH+cellH*0.1;
