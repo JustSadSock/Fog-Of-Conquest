@@ -28,18 +28,11 @@ window.addEventListener('DOMContentLoaded',()=>{
         endTurnBtn  = document.getElementById('endTurnBtn'),
         leftStats   = document.getElementById('leftStats'),
         rightLog    = document.getElementById('rightLog'),
-        menuBgm     = document.getElementById('menuBgm'),
         mapSizeSel  = document.getElementById('mapSizeSelect'),
         aiLevelSel  = document.getElementById('aiLevelSelect'),
         aiPanel     = document.getElementById('aiPanel'),
         aiStartBtn  = document.getElementById('aiStartBtn'),
         waitOverlay = document.getElementById('waitOverlay');
-
-  menuBgm.volume = 0.5;
-  try{
-    const p = menuBgm.play?.();
-    if(p && p.catch) p.catch(()=>{});
-  }catch(e){}
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
@@ -872,8 +865,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   victoryOkBtn.addEventListener('click',()=>{
     victoryOverlay.style.display='none';
     startPanel.style.display='flex';
-    menuBgm.currentTime = 0;
-    menuBgm.play();
   });
 
   // === Туман войны (бета) ===
@@ -946,7 +937,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   twoBtn.addEventListener('click',()=>{
-    menuBgm.pause();
     resetState();
     modeBeta=false; revealBtn.style.display='none';
     aiMode=false;
@@ -962,7 +952,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   aiStartBtn.addEventListener('click',()=>{
-    menuBgm.pause();
     resetState();
     modeBeta=false; revealBtn.style.display='none';
     aiMode=true;
@@ -975,7 +964,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   betaBtn.addEventListener('click',()=>{
-    menuBgm.pause();
     resetState();
     modeBeta=true; revealBtn.style.display='inline-block';
     aiMode=false;
