@@ -140,14 +140,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
 
   const BUILD_TYPES = {
-    base:      {spawn:['swordsman','archer'],gen:0,def:1},
-    barracks:  {spawn:['heavy'],gen:0,def:0},
-    stable:    {spawn:['cavalry'],gen:0,def:0},
-    mageTower: {spawn:['mage'],gen:0,def:0},
+    base:      {spawn:['swordsman','archer'],gen:0,def:1,hpMax:2},
+    barracks:  {spawn:['heavy'],gen:0,def:0,hpMax:2},
+    stable:    {spawn:['cavalry'],gen:0,def:0,hpMax:2},
+    mageTower: {spawn:['mage'],gen:0,def:0,hpMax:2},
     // genUp указывает доход после улучшения
-    mine:      {spawn:[],gen:1,genUp:2,def:0},
-    lumber:    {spawn:[],gen:1,genUp:2,def:0},
-    fort:      {spawn:[],gen:0,def:2}
+    mine:      {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
+    lumber:    {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
+    fort:      {spawn:[],gen:0,def:2,hpMax:2}
   };
 
   const UNIT_LABELS = {
@@ -329,15 +329,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     });
 
     // базы
-    buildings.push({r:1,c:1,owner:1,type:'base',gen:BUILD_TYPES.base.gen});
-    buildings.push({r:ROWS-2,c:COLS-2,owner:2,type:'base',gen:BUILD_TYPES.base.gen});
+    buildings.push({r:1,c:1,owner:1,type:'base',gen:BUILD_TYPES.base.gen,hp:BUILD_TYPES.base.hpMax});
+    buildings.push({r:ROWS-2,c:COLS-2,owner:2,type:'base',gen:BUILD_TYPES.base.gen,hp:BUILD_TYPES.base.hpMax});
 
     function addRes(owner,type){
       const b=buildings.find(x=>x.owner===owner&&x.type==='base');
       [[1,0],[-1,0],[0,1],[0,-1]].some(([dr,dc])=>{
         let rr=b.r+dr, cc=b.c+dc;
         if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&map[rr][cc]===TERRAIN.PLAIN){
-          buildings.push({r:rr,c:cc,owner,type,gen:BUILD_TYPES[type].gen});
+          buildings.push({r:rr,c:cc,owner,type,gen:BUILD_TYPES[type].gen,hp:BUILD_TYPES[type].hpMax});
           return true;
         }
       });
@@ -356,7 +356,7 @@ window.addEventListener('DOMContentLoaded',()=>{
             p = freeCell();
             if(!p) console.warn(`Unable to place ${type} on side 1`);
           }
-          if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen});
+          if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen,hp:BUILD_TYPES[type].hpMax});
         }
         for(let i=0;i<count-half;i++){
           let p=freeCell(2);
@@ -364,7 +364,7 @@ window.addEventListener('DOMContentLoaded',()=>{
             p = freeCell();
             if(!p) console.warn(`Unable to place ${type} on side 2`);
           }
-          if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen});
+          if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen,hp:BUILD_TYPES[type].hpMax});
         }
       });
 
@@ -401,7 +401,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     addReplay,
     updateFog,
     nextTurn,
-    recordEvent
+    recordEvent,
+    damageBuilding
   });
 
   // === LOS ===
@@ -528,6 +529,13 @@ window.addEventListener('DOMContentLoaded',()=>{
           ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
           ctx.setLineDash([]);
         }
+        let bw=cellW*0.6, bh=cellH*0.08,
+            bx=b.c*cellW+(cellW-bw)/2,
+            by=b.r*cellH+cellH*0.05;
+        ctx.fillStyle='#600'; ctx.fillRect(bx,by,bw,bh);
+        let frac=b.hp/BUILD_TYPES[b.type].hpMax;
+        ctx.fillStyle=b.owner===p?'#0f0':'#f00';
+        ctx.fillRect(bx,by,bw*frac,bh);
       }
     });
 
@@ -659,6 +667,19 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(def.hp<=0&&def.type!=='bog'){ units.splice(units.indexOf(def),1); killed=true; }
     if(att.hp<=0&&att.type!=='bog') units.splice(units.indexOf(att),1);
     return {dmg,rdmg,killed};
+  }
+
+  function damageBuilding(b, newOwner){
+    if(!b) return;
+    b.hp--;
+    if(b.hp<=0){
+      const baseTaken=(b.gen ?? BUILD_TYPES[b.type].gen)===0;
+      recordEvent(baseTaken
+        ? `Захвачена база`
+        : `Захвачена добыча (${BUILD_LABELS[b.type]})`);
+      b.owner=newOwner;
+      b.hp=BUILD_TYPES[b.type].hpMax;
+    }
   }
 
   // === spawn ===
@@ -793,13 +814,7 @@ window.addEventListener('DOMContentLoaded',()=>{
             animateMove(sel,sel.r,sel.c,tgt.r,tgt.c);
             sel.r=tgt.r; sel.c=tgt.c;
             let bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c&&b.owner!==p);
-            if(bb){
-              const baseTaken = (bb.gen ?? BUILD_TYPES[bb.type].gen)===0;
-              recordEvent(baseTaken
-                ? `Захвачена база`
-                : `Захвачена добыча (${BUILD_LABELS[bb.type]})`);
-              bb.owner=p;
-            }
+            if(bb) damageBuilding(bb,p);
           }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));
@@ -814,13 +829,7 @@ window.addEventListener('DOMContentLoaded',()=>{
           sel.mp=zoneMap.rem[y][x];
           let moved = (y!==sel.r || x!==sel.c);
           let bb=buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
-          if(bb){
-            const baseTaken = (bb.gen ?? BUILD_TYPES[bb.type].gen)===0;
-            recordEvent(baseTaken
-              ? `Захвачена база`
-              : `Захвачена добыча (${BUILD_LABELS[bb.type]})`);
-            bb.owner=p;
-          }
+          if(bb) damageBuilding(bb,p);
           animateMove(sel,sel.r,sel.c,y,x);
           sel.r=y; sel.c=x;
           if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
