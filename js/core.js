@@ -541,12 +541,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx.fillStyle=UNIT_TYPES[u.type].color;
         ctx.shadowColor='rgba(0,0,0,0.4)';
         ctx.shadowBlur=4;
+        const iconRad = rad * 1.1;
         ctx.beginPath();
-        ctx.arc(cx,cy,rad,0,2*Math.PI);
+        ctx.arc(cx,cy,iconRad,0,2*Math.PI);
         ctx.fill();
         ctx.shadowBlur=0;
-        ctx.strokeStyle=u.owner===p?'#fff':'#000';
-        ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.lineWidth=4; ctx.strokeStyle='#000'; ctx.stroke();
+        ctx.lineWidth=2; ctx.strokeStyle=u.owner===p?'#fff':'#000'; ctx.stroke();
 
         let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
             bonus=bld?BUILD_TYPES[bld.type].def:0;
@@ -573,7 +574,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx.fillStyle=u.owner===p?'#0f0':'#f00';
         ctx.fillRect(bx,by,w*frac,h);
         if(u.mp>0){
-          ctx.fillStyle='rgba(0,0,255,0.7)';
+          ctx.fillStyle='#00f';
           ctx.beginPath();
           ctx.arc(cx,cy,rad*0.3,0,2*Math.PI);
           ctx.fill();
