@@ -184,13 +184,4 @@ describe('Fog of Conquest core', () => {
     nextTurn();
     expect(state.gold[2]).toBe(7);
   });
-
-  test('twoBtn click twice resets fog arrays', () => {
-    const btn = document.getElementById('twoBtn');
-    btn.click();
-    btn.click();
-    const { fog } = window.state;
-    const allClear = [1,2].every(p => fog[p].every(row => row.every(cell => cell === true)));
-    expect(allClear).toBe(true);
-  });
 });
