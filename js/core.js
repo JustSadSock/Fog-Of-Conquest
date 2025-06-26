@@ -887,7 +887,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   // === Стартовые кнопки ===
   function setMapSize(size){
     mapSize=size;
-    if(size==='small'){
+    if(size==='tiny'){
+      ROWS=Math.round(BASE_ROWS*0.25);
+      COLS=Math.round(BASE_COLS*0.25);
+    }else if(size==='small'){
       ROWS=Math.round(BASE_ROWS*0.5);
       COLS=Math.round(BASE_COLS*0.5);
     }else if(size==='large'){
