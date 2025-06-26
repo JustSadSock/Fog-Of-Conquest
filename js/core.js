@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     const files = {
       tiles:[
         'grass1','grass2','hill','hill2','mountains1','mountains2','mountains3',
-        'trees1','trees2','trees3','water'
+        'trees1','trees2','trees3','water','pound','pound2','pound3'
       ],
       buildings:[
         'barracks','base_ally','base_enemy','fort_ally','fort_enemy','fort_neutral',
@@ -84,6 +84,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const TILE_IMAGES = {
     grass:['tiles/grass1','tiles/grass2'],
     water:['tiles/water'],
+    pond:['tiles/pound','tiles/pound2','tiles/pound3'],
     hill:['tiles/hill','tiles/hill2'],
     mountain:['tiles/mountains1','tiles/mountains2','tiles/mountains3'],
     forest:['tiles/trees1','tiles/trees2','tiles/trees3']
@@ -115,6 +116,20 @@ window.addEventListener('DOMContentLoaded',()=>{
       fort:`buildings/fort_${owner}`
     };
     return IMG[map[b.type]];
+  }
+
+  function getGrassSprite(){
+    return IMG[randChoice(TILE_IMAGES.grass)];
+  }
+
+  function getWaterSprite(r,c){
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    const isolated = dirs.every(([dr,dc])=>{
+      let rr=r+dr, cc=c+dc;
+      return rr<0||rr>=ROWS||cc<0||cc>=COLS||map[rr][cc]!==TERRAIN.WATER;
+    });
+    const set = isolated?TILE_IMAGES.pond:TILE_IMAGES.water;
+    return IMG[randChoice(set)];
   }
 
   const UNIT_TYPES = {
@@ -447,10 +462,10 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(!S[r][c]&&!revealAll){
         ctx.fillStyle='#000'; ctx.fillRect(x,y,cellW,cellH);
       } else {
-        const baseImg = map[r][c]===TERRAIN.WATER
-          ? IMG[randChoice(TILE_IMAGES.water)]
-          : IMG[randChoice(TILE_IMAGES.grass)];
-        ctx.drawImage(baseImg,x,y,cellW,cellH);
+        ctx.drawImage(getGrassSprite(),x,y,cellW,cellH);
+        if(map[r][c]===TERRAIN.WATER){
+          ctx.drawImage(getWaterSprite(r,c),x,y,cellW,cellH);
+        }
         if(map[r][c]===TERRAIN.HILL){
           ctx.drawImage(IMG[randChoice(TILE_IMAGES.hill)],x,y,cellW,cellH);
         }else if(map[r][c]===TERRAIN.MOUNTAIN){
