@@ -104,12 +104,12 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // tiles for drawing terrain
   const TILE_IMAGES = {
-    grass:['tiles/grass1','tiles/grass2'],
+    grass:['tiles/grass1'],
     water:['tiles/water'],
     pond:['tiles/pound','tiles/pound2','tiles/pound3'],
-    hill:['tiles/hill','tiles/hill2'],
-    mountain:['tiles/mountains1','tiles/mountains2','tiles/mountains3'],
-    forest:['tiles/trees1','tiles/trees2','tiles/trees3']
+    hill:['tiles/hill'],
+    mountain:['tiles/mountains3'],
+    forest:['tiles/trees1']
   };
 
   const UNIT_IMG_MAP = {
@@ -126,7 +126,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   let simpleView = false,
       musicVolume = 1,
       sfxVolume = 1,
-      musicEnabled = true,
+      musicEnabled = false,
       sfxEnabled = true;
 
   function loadSettings(){
@@ -163,10 +163,12 @@ window.addEventListener('DOMContentLoaded',()=>{
         a.muted = !musicEnabled;
       }
     });
-    if(musicEnabled){
-      playAudio(bgm);
-    } else {
-      bgm.pause();
+    if(bgm){
+      if(musicEnabled){
+        playAudio(bgm);
+      } else {
+        bgm.pause();
+      }
     }
   }
 
@@ -193,7 +195,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 
   function getGrassSprite(){
-    return IMG[randChoice(TILE_IMAGES.grass)];
+    return IMG[TILE_IMAGES.grass[0]];
   }
 
   function getWaterSprite(r,c){
@@ -203,7 +205,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       return rr<0||rr>=ROWS||cc<0||cc>=COLS||map[rr][cc]!==TERRAIN.WATER;
     });
     const set = isolated?TILE_IMAGES.pond:TILE_IMAGES.water;
-    return IMG[randChoice(set)];
+    return IMG[set[0]];
   }
 
   const UNIT_TYPES = {
@@ -217,14 +219,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
 
   const BUILD_TYPES = {
-    base:      {spawn:['swordsman','archer'],gen:0,def:1,hpMax:2},
-    barracks:  {spawn:['heavy'],gen:0,def:0,hpMax:2},
-    stable:    {spawn:['cavalry'],gen:0,def:0,hpMax:2},
-    mageTower: {spawn:['mage'],gen:0,def:0,hpMax:2},
+    base:      {spawn:['swordsman','archer'],gen:0,def:1,hpMax:4},
+    barracks:  {spawn:['heavy'],gen:0,def:0,hpMax:3},
+    stable:    {spawn:['cavalry'],gen:0,def:0,hpMax:3},
+    mageTower: {spawn:['mage'],gen:0,def:0,hpMax:3},
     // genUp указывает доход после улучшения
     mine:      {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
     lumber:    {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
-    fort:      {spawn:[],gen:0,def:2,hpMax:2}
+    fort:      {spawn:[],gen:0,def:2,hpMax:4}
   };
 
   const BASE_SPAWN_DEFAULT = [...BUILD_TYPES.base.spawn];
@@ -560,8 +562,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       if((!F[b.r][b.c]||S[b.r][b.c]||revealAll)){
         let col = BUILD_TYPES[b.type].gen? '#fc0'
                 : b.type==='fort'? '#666'
-                : b.owner===1? '#f80'
-                : b.owner===2? '#08f':'#888';
+                : b.owner===p? '#00f'
+                : b.owner? '#f00':'#888';
         ctx.fillStyle=col;
         ctx.fillRect(b.c*cellW+cellW*0.1,b.r*cellH+cellH*0.1,cellW*0.8,cellH*0.8);
         ctx.fillStyle='#000';
@@ -569,7 +571,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText(BUILD_LABELS[b.type],b.c*cellW+cellW/2,b.r*cellH+cellH/2);
         if(BUILD_TYPES[b.type].gen>0||BUILD_TYPES[b.type].def>0){
-          ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
+          ctx.strokeStyle=b.owner===p?'#00f':b.owner? '#f00':'#888';
           ctx.lineWidth=2; ctx.setLineDash([4,4]);
           ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
           ctx.setLineDash([]);
@@ -582,8 +584,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2, rad=Math.min(cellW,cellH)/3;
         ctx.fillStyle=UNIT_TYPES[u.type].color;
         ctx.beginPath(); ctx.arc(cx,cy,rad,0,2*Math.PI); ctx.fill();
-        ctx.strokeStyle=u.owner===p?'#fff':'#000';
-        ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.lineWidth=0;
 
         let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
             bonus=bld?BUILD_TYPES[bld.type].def:0;
@@ -625,11 +626,11 @@ window.addEventListener('DOMContentLoaded',()=>{
           ctx.drawImage(getWaterSprite(r,c),x,y,cellW,cellH);
         }
         if(map[r][c]===TERRAIN.HILL){
-          ctx.drawImage(IMG[randChoice(TILE_IMAGES.hill)],x,y,cellW,cellH);
+          ctx.drawImage(IMG[TILE_IMAGES.hill[0]],x,y,cellW,cellH);
         }else if(map[r][c]===TERRAIN.MOUNTAIN){
-          ctx.drawImage(IMG[randChoice(TILE_IMAGES.mountain)],x,y,cellW,cellH);
+          ctx.drawImage(IMG[TILE_IMAGES.mountain[0]],x,y,cellW,cellH);
         }else if(map[r][c]===TERRAIN.FOREST){
-          ctx.drawImage(IMG[randChoice(TILE_IMAGES.forest)],x,y,cellW,cellH);
+          ctx.drawImage(IMG[TILE_IMAGES.forest[0]],x,y,cellW,cellH);
         }
         if(!revealAll&&F[r][c]){
           ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(x,y,cellW,cellH);
@@ -680,7 +681,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(img) ctx.drawImage(img,b.c*cellW,b.r*cellH,cellW,cellH);
         const bGen = b.gen ?? BUILD_TYPES[b.type].gen;
         if(bGen>0||BUILD_TYPES[b.type].def>0){
-          ctx.strokeStyle=b.owner===1?'#f80':b.owner===2?'#08f':'#888';
+          ctx.strokeStyle=b.owner===p?'#00f':b.owner? '#f00':'#888';
           ctx.lineWidth=2; ctx.setLineDash([4,4]);
           ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
           ctx.setLineDash([]);
@@ -718,7 +719,6 @@ window.addEventListener('DOMContentLoaded',()=>{
         }
         const sprite = getUnitSprite(u);
         if(sprite) ctx.drawImage(sprite,cx-rad,cy-rad,rad*2,rad*2);
-        ctx.lineWidth=2; ctx.strokeStyle=u.owner===p?'#fff':'#000'; ctx.strokeRect(cx-rad,cy-rad,rad*2,rad*2);
 
         let bld=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner===u.owner),
             bonus=bld?BUILD_TYPES[bld.type].def:0;
@@ -747,7 +747,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(u.mp>0){
           ctx.fillStyle='#fff';
           ctx.beginPath();
-          ctx.arc(cx,cy,rad*0.3,0,2*Math.PI);
+          ctx.arc(cx+rad*0.6,cy-rad*0.6,rad*0.2,0,2*Math.PI);
           ctx.fill();
         }
       }
@@ -1098,8 +1098,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     sfxVolumeEl.value = sfxVolume;
     settingsOverlay.style.display='flex';
   });
-  settingsCloseBtn.addEventListener('click',()=>{
-    settingsOverlay.style.display='none';
+  function applySettings(){
     simpleView = simplifyChk.checked;
     musicEnabled = musicEnableEl.checked;
     musicVolume = parseFloat(musicVolumeEl.value);
@@ -1108,6 +1107,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     applyVolumes();
     saveSettings();
     updateAll();
+  }
+
+  [simplifyChk,musicEnableEl,musicVolumeEl,sfxEnableEl,sfxVolumeEl].forEach(el=>{
+    el.addEventListener('input', applySettings);
+    el.addEventListener('change', applySettings);
+  });
+
+  settingsCloseBtn.addEventListener('click',()=>{
+    settingsOverlay.style.display='none';
   });
 
   // === Туман войны (бета) ===

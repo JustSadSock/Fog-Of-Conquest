@@ -218,12 +218,11 @@ describe('Fog of Conquest core', () => {
     clickCell(0,1);
     expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax-1);
-    window.nextTurn();
-    window.nextTurn();
-    clickCell(0,1); // select unit
-    clickCell(0,0);
-    clickCell(0,1);
+    for(let i=1;i<BUILD_TYPES.base.hpMax;i++){
+      window.damageBuilding(buildings[0],2);
+    }
     expect(buildings[0].owner).toBe(2);
+    expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax);
   });
 
   test('mage highlights adjacent injured allies', async () => {
