@@ -262,4 +262,35 @@ describe('Fog of Conquest core', () => {
     expect(highlight.x).toBeCloseTo(6*cellW);
     expect(highlight.y).toBeCloseTo(5*cellH);
   });
+
+  test('beta mode initialization enables bog spawn and reveal toggling', async () => {
+    const strokes = [];
+    HTMLCanvasElement.prototype.getContext = () => {
+      return {
+        fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
+        stroke:()=>{}, strokeRect:()=>{}, setLineDash:()=>{}, fillText:()=>{},
+        moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
+      };
+    };
+    const html = fs.readFileSync('index.html','utf8');
+    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const win = dom.window;
+    const { document } = win;
+    win.requestAnimationFrame = cb => cb();
+    win.cancelAnimationFrame = () => {};
+    win.HTMLCanvasElement.prototype.getContext = HTMLCanvasElement.prototype.getContext;
+    await new Promise(res=>document.addEventListener('DOMContentLoaded',res));
+    document.getElementById('betaBtn').click();
+
+    expect(win.BUILD_TYPES.base.spawn).toContain('bog');
+    expect(win.units.some(u => u.type === 'bog')).toBe(true);
+    const reveal=document.getElementById('revealBtn');
+    expect(reveal.style.display).not.toBe('none');
+
+    const beforeText=reveal.textContent;
+    reveal.click();
+    const afterText=reveal.textContent;
+    expect(beforeText).toBe('Показать карту');
+    expect(afterText).toBe('Скрыть карту');
+  });
 });

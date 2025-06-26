@@ -150,6 +150,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     fort:      {spawn:[],gen:0,def:2,hpMax:2}
   };
 
+  const BASE_SPAWN_DEFAULT = [...BUILD_TYPES.base.spawn];
+
   const UNIT_LABELS = {
     swordsman:'Рубака',
     archer:'Стрелок',
@@ -997,6 +999,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   twoBtn.addEventListener('click',()=>{
     resetState();
     modeBeta=false; revealBtn.style.display='none';
+    BUILD_TYPES.base.spawn = [...BASE_SPAWN_DEFAULT];
     aiMode=false;
     setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
@@ -1012,6 +1015,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   aiStartBtn.addEventListener('click',()=>{
     resetState();
     modeBeta=false; revealBtn.style.display='none';
+    BUILD_TYPES.base.spawn = [...BASE_SPAWN_DEFAULT];
     aiMode=true;
     aiLevel=parseInt(aiLevelSel.value,10);
     window.aiLevel = aiLevel;
@@ -1024,6 +1028,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   betaBtn.addEventListener('click',()=>{
     resetState();
     modeBeta=true; revealBtn.style.display='inline-block';
+    BUILD_TYPES.base.spawn = [...BASE_SPAWN_DEFAULT, 'bog'];
     aiMode=false;
     setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
