@@ -493,10 +493,8 @@ window.addEventListener('DOMContentLoaded',()=>{
           Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=UNIT_TYPES[sel.type].range &&
           hasLOS(sel.r,sel.c,u.r,u.c,{forestBlock:false}))
         .forEach(u=>{
-          ctx.strokeStyle='red';
-          ctx.setLineDash([4,4]);
-          ctx.strokeRect(u.c*cellW,u.r*cellH,cellW,cellH);
-          ctx.setLineDash([]);
+          const img=IMG['symbols/red_selection'];
+          if(img) ctx.drawImage(img,u.c*cellW,u.r*cellH,cellW,cellH);
         });
 
       // healable allies for mage
@@ -505,10 +503,8 @@ window.addEventListener('DOMContentLoaded',()=>{
             u.hp<UNIT_TYPES[u.type].hpMax &&
             Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=1)
           .forEach(u=>{
-            ctx.strokeStyle='green';
-            ctx.setLineDash([4,4]);
-            ctx.strokeRect(u.c*cellW,u.r*cellH,cellW,cellH);
-            ctx.setLineDash([]);
+            const img=IMG['symbols/green_selection'];
+            if(img) ctx.drawImage(img,u.c*cellW,u.r*cellH,cellW,cellH);
           });
       }
     }
@@ -601,8 +597,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     // selection
     if(sel){
-      ctx.strokeStyle='yellow'; ctx.lineWidth=2; ctx.setLineDash([]);
-      ctx.strokeRect(sel.c*cellW+2,sel.r*cellH+2,cellW-4,cellH-4);
+      const img=IMG['symbols/yellow_selection'];
+      if(img) ctx.drawImage(img,sel.c*cellW,sel.r*cellH,cellW,cellH);
     }
 
     // map border

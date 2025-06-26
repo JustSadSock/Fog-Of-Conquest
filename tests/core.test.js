@@ -227,14 +227,15 @@ describe('Fog of Conquest core', () => {
   });
 
   test('mage highlights adjacent injured allies', async () => {
-    const strokes = [];
+    const draws = [];
     HTMLCanvasElement.prototype.getContext = () => {
       return {
         strokeStyle:'', lineWidth:0,
         setLineDash:()=>{},
-        strokeRect:function(x,y,w,h){strokes.push({style:this.strokeStyle,x,y,w,h});},
+        strokeRect:()=>{},
+        drawImage:function(img,x,y,w,h){draws.push({img,x,y,w,h});},
         fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
-        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}, drawImage:()=>{}
+        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
       };
     };
     const html = fs.readFileSync('index.html','utf8');
@@ -252,12 +253,12 @@ describe('Fog of Conquest core', () => {
     units.push({id:1,r:5,c:5,owner:1,type:'mage',hp:UNIT_TYPES.mage.hpMax,mp:UNIT_TYPES.mage.move,startR:5,startC:5});
     units.push({id:2,r:5,c:6,owner:1,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax-1,mp:UNIT_TYPES.swordsman.move,startR:5,startC:6});
     document.getElementById('revealBtn').click();
-    strokes.length=0;
+    draws.length=0;
     const canvas=document.getElementById('canvas');
     canvas.getBoundingClientRect=()=>({left:0,top:0,width:canvas.width,height:canvas.height});
     const cellW=canvas.width/map[0].length, cellH=canvas.height/map.length;
     canvas.dispatchEvent(new win.MouseEvent('click',{clientX:(5.5)*cellW,clientY:(5.5)*cellH}));
-    const highlight=strokes.find(s=>s.style==='green');
+    const highlight=draws.find(d=>d.img && /green_selection/.test(d.img.src));
     expect(highlight).toBeDefined();
     expect(highlight.x).toBeCloseTo(6*cellW);
     expect(highlight.y).toBeCloseTo(5*cellH);
