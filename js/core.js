@@ -7,6 +7,14 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   const IMG = {};
 
+  const orientationQuery = (typeof window.matchMedia==='function')
+    ? window.matchMedia('(orientation: portrait)')
+    : { matches:false, addEventListener:()=>{}, removeEventListener:()=>{} };
+  function handleOrientation(){
+    window.dispatchEvent(new Event('resize'));
+  }
+  orientationQuery.addEventListener('change', handleOrientation);
+
   function playAudio(a){
     if(!a || isTestEnv) return;
     if(a.dataset.type==='sfx' && !sfxEnabled) return;
@@ -1267,5 +1275,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadImages().then(()=>{
     setupLegend();
     window.dispatchEvent(new Event('resize'));
+    handleOrientation();
   });
 });
