@@ -85,6 +85,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         sfxEnableEl   = document.getElementById('sfxEnable'),
         sfxVolumeEl   = document.getElementById('sfxVolume'),
         settingsCloseBtn = document.getElementById('settingsCloseBtn'),
+        tooltipToggle = document.getElementById('tooltipToggle'),
+        tooltipDiv   = document.getElementById('tooltip'),
         bgm          = document.getElementById('bgm'),
         attackSfx    = document.getElementById('attackSfx'),
         healSfx      = document.getElementById('healSfx'),
@@ -274,7 +276,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       continueAfter = null,
       fogSnapshot = null,
       aiReplay = [],
-      replayTimer = null;
+      replayTimer = null,
+      tooltipEnabled = false;
 
   Object.assign(window, { spawnZones });
 
@@ -1050,6 +1053,27 @@ window.addEventListener('DOMContentLoaded',()=>{
     updateAll();
   });
 
+  canvas.addEventListener('mousemove',e=>{
+    if(!tooltipEnabled) return;
+    const rect=canvas.getBoundingClientRect();
+    const x=Math.floor((e.clientX-rect.left)/cellW);
+    const y=Math.floor((e.clientY-rect.top)/cellH);
+    if(x<0||y<0||x>=COLS||y>=ROWS){ tooltipDiv.style.display='none'; return; }
+    const p=state.currentPlayer, F=state.fog[p], S=state.seen[p];
+    if(!revealAll && !S[y][x]){ tooltipDiv.style.display='none'; return; }
+    let txt=TERR_LABELS[map[y][x]];
+    let u=units.find(u=>u.r===y&&u.c===x && (revealAll || !F[y][x]) && S[y][x]);
+    if(u) txt += ' — '+UNIT_LABELS[u.type];
+    let b=buildings.find(b=>b.r===y&&b.c===x && (revealAll || !F[y][x]) && S[y][x]);
+    if(b) txt += ' '+BUILD_LABELS[b.type];
+    tooltipDiv.textContent=txt;
+    tooltipDiv.style.left=(e.clientX+10)+'px';
+    tooltipDiv.style.top=(e.clientY+10)+'px';
+    tooltipDiv.style.display='block';
+  });
+
+  canvas.addEventListener('mouseleave',()=>{ tooltipDiv.style.display='none'; });
+
   // === Передача хода ===
   endTurnBtn.addEventListener('click',()=>{
     if(gameOver) return;
@@ -1089,6 +1113,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 
   skipReplayBtn.addEventListener('click', stopReplay);
+
+  tooltipToggle.addEventListener('click',()=>{
+    tooltipEnabled = !tooltipEnabled;
+    tooltipToggle.textContent = tooltipEnabled ? 'Подсказки ✓' : 'Подсказки';
+    if(!tooltipEnabled) tooltipDiv.style.display = 'none';
+  });
 
   settingsBtn.addEventListener('click',()=>{
     simplifyChk.checked = simpleView;
