@@ -284,6 +284,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     state.gold = {1:5,2:5};
     state.grace = {1:null,2:null};
     state.log   = {1:[],2:[]};
+    [1,2].forEach(p=>{
+      state.fog[p]  = Array.from({length:ROWS},()=>Array(COLS).fill(true));
+      state.seen[p] = Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    });
     overlay.style.display = 'none';
     spawnPanel.style.display = 'none';
   }
@@ -873,6 +877,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   legendCloseBtn.addEventListener('click',()=>{ legendOverlay.style.display='none'; });
   victoryOkBtn.addEventListener('click',()=>{
     victoryOverlay.style.display='none';
+    resetState();
     startPanel.style.display='flex';
   });
 
