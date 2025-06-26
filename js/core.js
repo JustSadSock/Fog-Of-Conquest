@@ -574,7 +574,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         ctx.fillStyle=u.owner===p?'#0f0':'#f00';
         ctx.fillRect(bx,by,w*frac,h);
         if(u.mp>0){
-          ctx.fillStyle='#00f';
+          ctx.fillStyle='#fff';
           ctx.beginPath();
           ctx.arc(cx,cy,rad*0.3,0,2*Math.PI);
           ctx.fill();
