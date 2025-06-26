@@ -210,4 +210,41 @@ describe('Fog of Conquest core', () => {
     clickCell(0,1);
     expect(buildings[0].owner).toBe(2);
   });
+
+  test('mage highlights adjacent injured allies', async () => {
+    const strokes = [];
+    HTMLCanvasElement.prototype.getContext = () => {
+      return {
+        strokeStyle:'', lineWidth:0,
+        setLineDash:()=>{},
+        strokeRect:function(x,y,w,h){strokes.push({style:this.strokeStyle,x,y,w,h});},
+        fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
+        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
+      };
+    };
+    const html = fs.readFileSync('index.html','utf8');
+    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const win = dom.window;
+    const { document } = win;
+    win.requestAnimationFrame = cb => cb();
+    win.cancelAnimationFrame = () => {};
+    win.HTMLCanvasElement.prototype.getContext = HTMLCanvasElement.prototype.getContext;
+    await new Promise(res=>document.addEventListener('DOMContentLoaded',res));
+    document.getElementById('betaBtn').click();
+    const { units, map, TERRAIN, UNIT_TYPES } = win;
+    units.length = 0;
+    map[5][5]=TERRAIN.PLAIN; map[5][6]=TERRAIN.PLAIN;
+    units.push({id:1,r:5,c:5,owner:1,type:'mage',hp:UNIT_TYPES.mage.hpMax,mp:UNIT_TYPES.mage.move,startR:5,startC:5});
+    units.push({id:2,r:5,c:6,owner:1,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax-1,mp:UNIT_TYPES.swordsman.move,startR:5,startC:6});
+    document.getElementById('revealBtn').click();
+    strokes.length=0;
+    const canvas=document.getElementById('canvas');
+    canvas.getBoundingClientRect=()=>({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW=canvas.width/map[0].length, cellH=canvas.height/map.length;
+    canvas.dispatchEvent(new win.MouseEvent('click',{clientX:(5.5)*cellW,clientY:(5.5)*cellH}));
+    const highlight=strokes.find(s=>s.style==='green');
+    expect(highlight).toBeDefined();
+    expect(highlight.x).toBeCloseTo(6*cellW);
+    expect(highlight.y).toBeCloseTo(5*cellH);
+  });
 });

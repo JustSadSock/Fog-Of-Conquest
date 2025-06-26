@@ -471,6 +471,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       zoneList.forEach(z=>ctx.strokeRect(z.c*cellW,z.r*cellH,cellW,cellH));
       ctx.setLineDash([]);
 
+
       // attackable enemies considering mountains
       units.filter(u=>u.owner!==sel.owner &&
           Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=UNIT_TYPES[sel.type].range &&
@@ -481,6 +482,19 @@ window.addEventListener('DOMContentLoaded',()=>{
           ctx.strokeRect(u.c*cellW,u.r*cellH,cellW,cellH);
           ctx.setLineDash([]);
         });
+
+      // healable allies for mage
+      if(sel.type==='mage'){
+        units.filter(u=>u.owner===sel.owner &&
+            u.hp<UNIT_TYPES[u.type].hpMax &&
+            Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=1)
+          .forEach(u=>{
+            ctx.strokeStyle='green';
+            ctx.setLineDash([4,4]);
+            ctx.strokeRect(u.c*cellW,u.r*cellH,cellW,cellH);
+            ctx.setLineDash([]);
+          });
+      }
     }
 
     // spawn zone
