@@ -7,6 +7,16 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   const IMG = {};
 
+  function playAudio(a){
+    if(!a || isTestEnv) return;
+    if(a.dataset.type==='sfx' && !sfxEnabled) return;
+    if(a.dataset.type==='music' && !musicEnabled) return;
+    try{
+      a.currentTime = 0;
+      a.play && a.play().catch(()=>{});
+    }catch(e){}
+  }
+
   function loadImages(){
     const files = {
       tiles:[
@@ -70,12 +80,15 @@ window.addEventListener('DOMContentLoaded',()=>{
         settingsBtn   = document.getElementById('settingsBtn'),
         settingsOverlay = document.getElementById('settingsOverlay'),
         simplifyChk   = document.getElementById('simplifyChk'),
+        musicEnableEl = document.getElementById('musicEnable'),
         musicVolumeEl = document.getElementById('musicVolume'),
+        sfxEnableEl   = document.getElementById('sfxEnable'),
         sfxVolumeEl   = document.getElementById('sfxVolume'),
-        settingsCloseBtn = document.getElementById('settingsCloseBtn');
-
-  loadSettings();
-  applyVolumes();
+        settingsCloseBtn = document.getElementById('settingsCloseBtn'),
+        bgm          = document.getElementById('bgm'),
+        attackSfx    = document.getElementById('attackSfx'),
+        healSfx      = document.getElementById('healSfx'),
+        captureSfx   = document.getElementById('captureSfx');
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
@@ -109,9 +122,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
 
   const SETTINGS_KEY = 'focSettings';
+  const isTestEnv = navigator.userAgent.includes('jsdom');
   let simpleView = false,
       musicVolume = 1,
-      sfxVolume = 1;
+      sfxVolume = 1,
+      musicEnabled = true,
+      sfxEnabled = true;
 
   function loadSettings(){
     try{
@@ -120,6 +136,8 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(typeof saved.simplified==='boolean') simpleView = saved.simplified;
         if(typeof saved.musicVolume==='number') musicVolume = saved.musicVolume;
         if(typeof saved.sfxVolume==='number') sfxVolume = saved.sfxVolume;
+        if(typeof saved.musicEnabled==='boolean') musicEnabled = saved.musicEnabled;
+        if(typeof saved.sfxEnabled==='boolean') sfxEnabled = saved.sfxEnabled;
       }
     }catch(e){}
   }
@@ -128,17 +146,32 @@ window.addEventListener('DOMContentLoaded',()=>{
     const obj = {
       simplified: simpleView,
       musicVolume,
-      sfxVolume
+      sfxVolume,
+      musicEnabled,
+      sfxEnabled
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
   }
 
   function applyVolumes(){
     document.querySelectorAll('audio').forEach(a=>{
-      if(a.dataset.type==='sfx') a.volume = sfxVolume;
-      else a.volume = musicVolume;
+      if(a.dataset.type==='sfx'){
+        a.volume = sfxVolume;
+        a.muted = !sfxEnabled;
+      } else {
+        a.volume = musicVolume;
+        a.muted = !musicEnabled;
+      }
     });
+    if(musicEnabled){
+      playAudio(bgm);
+    } else {
+      bgm.pause();
+    }
   }
+
+  loadSettings();
+  applyVolumes();
 
   function getUnitSprite(u){
     const side = u.owner===1?'ally':'enemy';
@@ -793,6 +826,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       recordEvent(baseTaken
         ? `Захвачена база`
         : `Захвачена добыча (${BUILD_LABELS[b.type]})`);
+      playAudio(captureSfx);
       b.owner=newOwner;
       b.hp=BUILD_TYPES[b.type].hpMax;
       if(!aiMode) addReplay({type:'capture',building:b});
@@ -886,6 +920,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(tgt&&abs(tgt.r-sel.r)+abs(tgt.c-sel.c)<=1){
         sel.mp=0; tgt.hp=Math.min(UNIT_TYPES[tgt.type].hpMax,tgt.hp+2);
         recordEvent(`Чародей восстановил ${UNIT_LABELS[tgt.type]} на 2 HP`);
+        playAudio(healSfx);
         sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
       }
     }
@@ -929,6 +964,7 @@ window.addEventListener('DOMContentLoaded',()=>{
           sel.mp=0;
           const {dmg,rdmg,killed}=doAttack(sel,tgt);
           if(!aiMode) addReplay({type:'attack',target:tgt});
+          playAudio(attackSfx);
           animateShake(tgt);
           if(killed && UNIT_TYPES[sel.type].range===1){
             if(!aiMode) addReplay({type:'move',unit:sel,from:{r:sel.r,c:sel.c},to:{r:tgt.r,c:tgt.c}});
@@ -1056,14 +1092,18 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   settingsBtn.addEventListener('click',()=>{
     simplifyChk.checked = simpleView;
+    musicEnableEl.checked = musicEnabled;
     musicVolumeEl.value = musicVolume;
+    sfxEnableEl.checked = sfxEnabled;
     sfxVolumeEl.value = sfxVolume;
     settingsOverlay.style.display='flex';
   });
   settingsCloseBtn.addEventListener('click',()=>{
     settingsOverlay.style.display='none';
     simpleView = simplifyChk.checked;
+    musicEnabled = musicEnableEl.checked;
     musicVolume = parseFloat(musicVolumeEl.value);
+    sfxEnabled = sfxEnableEl.checked;
     sfxVolume = parseFloat(sfxVolumeEl.value);
     applyVolumes();
     saveSettings();
