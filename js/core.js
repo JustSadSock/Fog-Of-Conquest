@@ -133,6 +133,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const BASE_ROWS = 20, BASE_COLS = 30;
   let ROWS = BASE_ROWS, COLS = BASE_COLS;
   let mapSize = 'medium';
+  const MIN_INFO_HEIGHT = 140;
   let aiMode = false, aiLevel = 2;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
   const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
@@ -449,14 +450,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // === Resize ===
   window.addEventListener('resize',()=>{
     const infoPanel = document.getElementById('infoPanel');
-    const infoH = infoPanel.offsetHeight;
     const size = Math.floor(Math.min(
       window.innerWidth / COLS,
-      (window.innerHeight - infoH) / ROWS
+      (window.innerHeight - MIN_INFO_HEIGHT) / ROWS
     ));
     cellW = cellH = size;
     canvas.width  = cellW * COLS;
     canvas.height = cellH * ROWS;
+    const panelH = Math.max(MIN_INFO_HEIGHT, window.innerHeight - canvas.height);
+    infoPanel.style.height = panelH + 'px';
     infoPanel.style.bottom = '0';
     updateAll();
   });
@@ -1549,11 +1551,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
       row.className='load-item';
       const date=new Date(s.timestamp).toLocaleString();
       row.innerHTML = `<span>${date}</span>`+
-        `<span><button data-key="${s.key}" class="loadBtn" data-i18n="loadSave">Загрузить</button>`+
-        `<button data-key="${s.key}" class="delBtn" data-i18n="deleteSave">Удалить</button></span>`;
+        `<span><button data-key="${s.key}" class="loadBtn game-btn" data-i18n="loadSave">Загрузить</button>`+
+        `<button data-key="${s.key}" class="delBtn game-btn" data-i18n="deleteSave">Удалить</button></span>`;
       loadList.appendChild(row);
     });
     applyStrings();
+    loadList.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('mouseenter',()=>playAudio(uiHoverSfx));
+      btn.addEventListener('click',()=>playAudio(uiClickSfx));
+    });
   }
 
   loadList.addEventListener('click',e=>{
