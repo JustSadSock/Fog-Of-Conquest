@@ -457,8 +457,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     cellW = cellH = size;
     canvas.width  = cellW * COLS;
     canvas.height = cellH * ROWS;
-    const extra = window.innerHeight - infoH - canvas.height;
-    infoPanel.style.bottom = extra > 0 ? extra + 'px' : '0';
+    infoPanel.style.bottom = '0';
     updateAll();
   });
 
