@@ -137,16 +137,10 @@
               u.r=enemy.r; u.c=enemy.c;
               let bb=buildings.find(b=>b.r===u.r&&b.c===u.c&&b.owner!==p);
               if(bb){
-                global.damageBuilding ? global.damageBuilding(bb,p)
-                                      : (bb.owner=p);
-                if(global.damageBuilding){
-                  if(bb.owner===p)
-                    global.addReplay && global.addReplay({type:'capture',building:bb});
-                } else {
-                  global.addReplay && global.addReplay({type:'capture',building:bb});
-                  global.recordEvent && global.recordEvent(`Захвачено ${global.BUILD_LABELS[bb.type]}`);
-                }
+                global.damageBuilding && global.damageBuilding(bb,p);
               }
+              bb=buildings.find(b=>b.r===u.r&&b.c===u.c);
+              if(bb) global.attemptCapture && global.attemptCapture(u, bb);
             }
           }
           u.mp=0;
@@ -251,19 +245,13 @@
           u.mp-=moveCost;
           let bb=buildings.find(b=>b.r===target.r&&b.c===target.c&&b.owner!==p);
           if(bb){
-            global.damageBuilding ? global.damageBuilding(bb,p)
-                                  : (bb.owner=p);
-            if(global.damageBuilding){
-              if(bb.owner===p)
-                global.addReplay && global.addReplay({type:'capture',building:bb});
-            } else {
-              global.addReplay && global.addReplay({type:'capture',building:bb});
-              global.recordEvent && global.recordEvent(`Захвачено ${global.BUILD_LABELS[bb.type]}`);
-            }
+            global.damageBuilding && global.damageBuilding(bb,p);
           }
           global.addReplay && global.addReplay({type:'move',unit:u,from:{r:u.r,c:u.c},to:{r:target.r,c:target.c}});
           global.recordEvent && global.recordEvent(`${global.UNIT_LABELS[u.type]} переместился`);
           u.r=target.r; u.c=target.c;
+          bb = buildings.find(b=>b.r===u.r && b.c===u.c);
+          if(bb) global.attemptCapture && global.attemptCapture(u, bb);
         } else break;
       }
     });

@@ -724,6 +724,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     nextTurn,
     recordEvent,
     damageBuilding,
+    attemptCapture,
     resetState
   , saveGame, loadGameData, listSaves, deleteSave });
 
@@ -1071,16 +1072,21 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function damageBuilding(b, newOwner, dmg=1){
     if(!b) return;
-    b.hp-=dmg;
-    if(b.hp<=0){
-      const baseTaken=(b.gen ?? BUILD_TYPES[b.type].gen)===0;
+    b.hp -= dmg;
+    if(b.hp <= 0) b.hp = 0;
+  }
+
+  function attemptCapture(unit, building){
+    if(!building) return;
+    if(unit.r===building.r && unit.c===building.c && building.hp<=0){
+      const baseTaken = (building.gen ?? BUILD_TYPES[building.type].gen) === 0;
       recordEvent(baseTaken
         ? `Захвачена база`
-        : `Захвачена добыча (${BUILD_LABELS[b.type]})`);
+        : `Захвачена добыча (${BUILD_LABELS[building.type]})`);
       playAudio(captureSfx);
-      b.owner=newOwner;
-      b.hp=BUILD_TYPES[b.type].hpMax;
-      if(!aiMode) addReplay({type:'capture',building:b});
+      building.owner = unit.owner;
+      building.hp = BUILD_TYPES[building.type].hpMax;
+      if(!aiMode) addReplay({type:'capture', building});
     }
   }
 
@@ -1232,6 +1238,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
             sel.r=tgt.r; sel.c=tgt.c;
             let bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c&&b.owner!==p);
             if(bb) damageBuilding(bb,p);
+            bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c);
+            if(bb) attemptCapture(sel, bb);
           }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));
@@ -1269,6 +1277,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
           if(moved && !aiMode) addReplay({type:'move',unit:sel,from,to:{r:y,c:x}});
           animateMove(sel,sel.r,sel.c,y,x);
           sel.r=y; sel.c=x;
+          bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c);
+          if(bb) attemptCapture(sel, bb);
           if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
           if(sel.mp>0){
             let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
