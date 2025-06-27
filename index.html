@@ -15,8 +15,8 @@
   <audio id="uiClickSfx" src="https://samplelib.com/lib/preview/mp3/sample-12s.mp3" data-type="sfx"></audio>
   <audio id="uiHoverSfx" src="https://samplelib.com/lib/preview/mp3/sample-15s.mp3" data-type="sfx"></audio>
   <div id="startPanel">
-    <h1>Fog of Conquest</h1>
-    <div id="summary">
+    <h1 data-i18n="title">Fog of Conquest</h1>
+    <div id="summary" data-i18n="summary">
       <strong>Суть игры:</strong><br>
       Fog of Conquest — пошаговая стратегия. Главная цель – захватить или разрушить все базы противника и тем самым лишить его возможности нанимать войска.<br><br>
       <em>Юниты:</em><br>
@@ -45,68 +45,72 @@
       • Кнопка «ℹ️» показывает легенду, а «Показать карту» доступна в бета-режиме.
       </div>
     <div id="setupOpts">
-      <label for="mapSizeSelect">Размер карты:</label>
+      <label for="mapSizeSelect" data-i18n="mapSizeLabel">Размер карты:</label>
       <select id="mapSizeSelect">
-        <option value="tiny">Крошечная</option>
-        <option value="small">Маленькая</option>
-        <option value="medium" selected>Средняя</option>
-        <option value="large">Большая</option>
+        <option value="tiny" data-i18n="mapSizeTiny">Крошечная</option>
+        <option value="small" data-i18n="mapSizeSmall">Маленькая</option>
+        <option value="medium" selected data-i18n="mapSizeMedium">Средняя</option>
+        <option value="large" data-i18n="mapSizeLarge">Большая</option>
       </select>
     </div>
-    <button id="twoBtn" class="game-btn">Начать игру</button>
-    <button id="aiBtn" class="game-btn">Одиночная игра</button>
-    <button id="betaBtn" class="game-btn">Расширенный режим (бета)</button>
-    <button id="startSettingsBtn" class="game-btn">Настройки</button>
+    <button id="twoBtn" class="game-btn" data-i18n="startTwo">Начать игру</button>
+    <button id="aiBtn" class="game-btn" data-i18n="startAi">Одиночная игра</button>
+    <button id="betaBtn" class="game-btn" data-i18n="startBeta">Расширенный режим (бета)</button>
+    <button id="startSettingsBtn" class="game-btn" data-i18n="startSettings">Настройки</button>
   </div>
 
   <div id="aiPanel" style="display:none;">
-    <h1>Выбор сложности</h1>
+    <h1 data-i18n="aiTitle">Выбор сложности</h1>
     <select id="aiLevelSelect">
-      <option value="1">Лёгкая</option>
-      <option value="2" selected>Средняя</option>
-      <option value="3">Сложная</option>
-      <option value="4">Невозможно</option>
+      <option value="1" data-i18n="aiL1">Лёгкая</option>
+      <option value="2" selected data-i18n="aiL2">Средняя</option>
+      <option value="3" data-i18n="aiL3">Сложная</option>
+      <option value="4" data-i18n="aiL4">Невозможно</option>
     </select>
-    <button id="aiStartBtn" class="game-btn">Начать</button>
+    <button id="aiStartBtn" class="game-btn" data-i18n="aiStart">Начать</button>
   </div>
 
   <div id="overlay">
     <div id="overlayMessage"></div>
-    <button id="yesBtn">Ок</button>
-    <button id="noBtn">Отмена</button>
+    <button id="yesBtn" data-i18n="yes">Ок</button>
+    <button id="noBtn" data-i18n="no">Отмена</button>
   </div>
 
   <div id="waitOverlay">
-    <div id="waitText">Подождите...</div>
-    <button id="skipReplayBtn" style="display:none;">Пропустить</button>
+    <div id="waitText" data-i18n="wait">Подождите...</div>
+    <button id="skipReplayBtn" style="display:none;" data-i18n="skip">Пропустить</button>
   </div>
 
   <div id="victoryOverlay">
     <div class="panel">
       <div id="victoryText"></div>
-      <button id="viewReplayBtn">Смотреть повтор</button>
-      <button id="victoryOkBtn">Ок</button>
+      <button id="viewReplayBtn" data-i18n="viewReplay">Смотреть повтор</button>
+      <button id="victoryOkBtn" data-i18n="victoryOk">Ок</button>
     </div>
   </div>
 
   <div id="replayOverlay">
     <div id="replayLog" class="panel"></div>
-    <button id="exitReplayBtn">В меню</button>
+    <button id="exitReplayBtn" data-i18n="exitReplay">В меню</button>
   </div>
 
   <div id="legendOverlay">
     <div class="panel" id="legendPanel"></div>
-    <button id="legendCloseBtn">Закрыть</button>
+    <button id="legendCloseBtn" data-i18n="legendClose">Закрыть</button>
   </div>
 
   <div id="settingsOverlay">
     <div class="panel">
-      <label><input type="checkbox" id="simplifyChk"/> Упрощённый вид</label>
-      <label><input type="checkbox" id="musicEnable"/> Музыка</label>
-      <label>Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/></label>
-      <label><input type="checkbox" id="sfxEnable"/> Звуковые эффекты</label>
-      <label>Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/></label>
-      <button id="settingsCloseBtn">Закрыть</button>
+      <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Упрощённый вид</span></label>
+      <label><input type="checkbox" id="musicEnable"/> <span data-i18n="music">Музыка</span></label>
+      <label data-i18n="musicVolume">Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/></label>
+      <label><input type="checkbox" id="sfxEnable"/> <span data-i18n="sfx">Звуковые эффекты</span></label>
+      <label data-i18n="sfxVolume">Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/></label>
+      <label data-i18n="langLabel">Language: <select id="langSelect">
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+      </select></label>
+      <button id="settingsCloseBtn" data-i18n="settingsClose">Закрыть</button>
     </div>
   </div>
 
@@ -118,11 +122,11 @@
 
   <div id="infoPanel">
     <div id="controls">
-      <button id="legendBtn" class="game-btn" title="Легенда">ℹ️</button>
-      <button id="settingsBtn" class="game-btn">Настройки</button>
-      <button id="revealBtn" class="game-btn">Показать карту</button>
-      <button id="tooltipToggle" class="game-btn">Подсказки</button>
-      <button id="endTurnBtn" class="game-btn">Конец хода</button>
+      <button id="legendBtn" class="game-btn" title="Легенда" data-i18n-title="legendBtnTitle">ℹ️</button>
+      <button id="settingsBtn" class="game-btn" data-i18n="settingsBtn">Настройки</button>
+      <button id="revealBtn" class="game-btn" data-i18n="revealShow">Показать карту</button>
+      <button id="tooltipToggle" class="game-btn" data-i18n="tooltip">Подсказки</button>
+      <button id="endTurnBtn" class="game-btn" data-i18n="endTurn">Конец хода</button>
     </div>
     <div id="statsLog">
       <div id="leftStats"></div>
