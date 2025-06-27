@@ -10,6 +10,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const orientationQuery = (typeof window.matchMedia==='function')
     ? window.matchMedia('(orientation: portrait)')
     : { matches:false, addEventListener:()=>{}, removeEventListener:()=>{} };
+
+  // === Параметры генерации мира ===
+  const NOISE_FREQS = [8, 16, 32];
+  const WATER_RATIO = 0.1;
+  const HILL_RATIO = 0.15;
+  const MOUNTAIN_RATIO = 0.1;
+  const FOREST_CHANCE = 0.25;
+  const RESOURCE_CHANCE = 0.05;
+  const START_CLEAR_RADIUS = 2;
   function handleOrientation(){
     window.dispatchEvent(new Event('resize'));
   }
@@ -521,66 +530,95 @@ window.addEventListener('DOMContentLoaded', ()=>{
     localStorage.removeItem(key);
   }
 
-  // === Генерация карты ===
-  function generateMap(){
+  // === Генерация мира ===
+  function generateWorld(){
     buildings.length = 0;
     units.length     = 0;
-    map.length = 0;
+
+    const heightMap = layeredNoise(ROWS, COLS);
+    classifyBiome(heightMap);
+    placeBases();
+    addForests();
+    addResources();
+    ensureConnectivity();
+    balanceStarts();
+    spiceRandom();
+
+    units.push({id:nextUnitId++,r:1,c:2,owner:1,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:1,startC:2});
+    units.push({id:nextUnitId++,r:2,c:1,owner:1,type:'archer',   hp:UNIT_TYPES.archer.hpMax,mp:UNIT_TYPES.archer.move,startR:2,startC:1});
+    units.push({id:nextUnitId++,r:ROWS-2,c:COLS-3,owner:2,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:ROWS-2,startC:COLS-3});
+    units.push({id:nextUnitId++,r:ROWS-3,c:COLS-2,owner:2,type:'archer',   hp:UNIT_TYPES.archer.hpMax,mp:UNIT_TYPES.archer.move,startR:ROWS-3,startC:COLS-2});
+    if(modeBeta){
+      units.push({id:nextUnitId++,r:5,c:5,owner:1,type:'bog',hp:UNIT_TYPES.bog.hpMax,mp:UNIT_TYPES.bog.move,startR:5,startC:5});
+      units.push({id:nextUnitId++,r:ROWS-6,c:COLS-6,owner:2,type:'bog',hp:UNIT_TYPES.bog.hpMax,mp:UNIT_TYPES.bog.move,startR:ROWS-6,startC:COLS-6});
+    }
+  }
+
+  function layeredNoise(rows, cols){
+    const map = Array.from({length:rows},()=>Array(cols).fill(0));
+    const weights = [1,0.5,0.25];
+    for(let i=0;i<NOISE_FREQS.length;i++){
+      const freq = NOISE_FREQS[i];
+      const w = weights[i];
+      for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+        const x=r/freq, y=c/freq;
+        map[r][c]+=smoothNoise(x,y)*w;
+      }
+    }
+    let min=Infinity,max=-Infinity;
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const v=map[r][c];if(v<min)min=v;if(v>max)max=v;}
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){map[r][c]=(map[r][c]-min)/(max-min);}
+    for(let k=0;k<2;k++) boxBlur(map);
+    return map;
+  }
+
+  function classifyBiome(hm){
+    const values=[];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++) values.push(hm[r][c]);
+    values.sort((a,b)=>a-b);
+    const q=(p)=>values[Math.floor(values.length*p)];
+    const tWater=q(WATER_RATIO);
+    const tMountain=q(1-MOUNTAIN_RATIO);
+    const tHill=q(1-(MOUNTAIN_RATIO+HILL_RATIO));
+    map.length=0;
     for(let r=0;r<ROWS;r++){
-      map[r] = Array(COLS).fill(TERRAIN.PLAIN);
-    }
-
-    const scale = ROWS / BASE_ROWS;
-
-    // --- Terrain generation via region growing ---
-    const terrainRatios = {
-      [TERRAIN.WATER]: 0.1,
-      [TERRAIN.FOREST]: 0.25,
-      [TERRAIN.HILL]: 0.15,
-      [TERRAIN.MOUNTAIN]: 0.1
-    };
-    const totalCells = ROWS * COLS;
-
-    const isBaseArea = (r,c) => {
-      return (r<=2 && c<=2) || (r>=ROWS-3 && c>=COLS-3);
-    };
-
-    function blob(type,count,size){
-      const clusters = Math.max(1, Math.round(count / size));
-      for(let i=0;i<clusters && count>0;i++){
-        let r=Math.random()*ROWS|0, c=Math.random()*COLS|0, tries=0;
-        while((map[r][c]!==TERRAIN.PLAIN || isBaseArea(r,c)) && tries<50){
-          r=Math.random()*ROWS|0; c=Math.random()*COLS|0; tries++;
-        }
-        for(let k=0;k<size && count>0;k++){
-          if(map[r][c]===TERRAIN.PLAIN && !isBaseArea(r,c)){
-            map[r][c]=type; count--;
-          }
-          const dir=[[1,0],[-1,0],[0,1],[0,-1]][Math.random()*4|0];
-          r=Math.max(1,Math.min(ROWS-2, r+dir[0]));
-          c=Math.max(1,Math.min(COLS-2, c+dir[1]));
-        }
+      map[r]=[];
+      for(let c=0;c<COLS;c++){
+        const h=hm[r][c];
+        let t=TERRAIN.PLAIN;
+        if(h<tWater) t=TERRAIN.WATER;
+        else if(h>tMountain) t=TERRAIN.MOUNTAIN;
+        else if(h>tHill) t=TERRAIN.HILL;
+        map[r][c]=t;
       }
     }
+  }
 
-    Object.entries(terrainRatios).forEach(([t,ratio])=>{
-      const cells=Math.round(totalCells*ratio);
-      blob(parseInt(t,10), cells, 20);
+  function placeBases(){
+    const spots=[[1,1],[ROWS-2,COLS-2]];
+    spots.forEach(([br,bc])=>{
+      for(let dr=-START_CLEAR_RADIUS;dr<=START_CLEAR_RADIUS;dr++)
+        for(let dc=-START_CLEAR_RADIUS;dc<=START_CLEAR_RADIUS;dc++){
+          const rr=br+dr, cc=bc+dc;
+          if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS) map[rr][cc]=TERRAIN.PLAIN;
+        }
     });
-
-    // keep bases clear of impassable terrain
-    [[1,1],[ROWS-2,COLS-2]].forEach(([br,bc])=>{
-      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-        const rr=br+dr, cc=bc+dc;
-        if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)
-          map[rr][cc]=TERRAIN.PLAIN;
-      }
-    });
-
-    // базы
     buildings.push({r:1,c:1,owner:1,type:'base',gen:BUILD_TYPES.base.gen,hp:BUILD_TYPES.base.hpMax});
     buildings.push({r:ROWS-2,c:COLS-2,owner:2,type:'base',gen:BUILD_TYPES.base.gen,hp:BUILD_TYPES.base.hpMax});
+  }
 
+  function addForests(){
+    const freq=NOISE_FREQS[1];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(map[r][c]===TERRAIN.PLAIN){
+        const v=smoothNoise(r/freq,c/freq);
+        if(v<FOREST_CHANCE) map[r][c]=TERRAIN.FOREST;
+      }
+    }
+  }
+
+  function addResources(){
+    const scale = ROWS / BASE_ROWS;
     function addRes(owner,type){
       const b=buildings.find(x=>x.owner===owner&&x.type==='base');
       [[1,0],[-1,0],[0,1],[0,-1]].some(([dr,dc])=>{
@@ -594,38 +632,70 @@ window.addEventListener('DOMContentLoaded', ()=>{
     addRes(1,'mine');
     addRes(2,'mine');
 
-    [['mine',2],['lumber',2],['barracks',2],
-     ['stable',2],['mageTower',1],['fort',4]]
+    [['mine',2],['lumber',2],['barracks',2],['stable',2],['mageTower',1],['fort',4]]
       .forEach(([type,count])=>{
-        count = Math.max(1,Math.round(count*scale));
+        count=Math.max(1,Math.round(count*scale));
         let half=count/2|0;
         for(let i=0;i<half;i++){
-          let p=freeCell(1);
-          if(!p){
-            p = freeCell();
-            if(!p) console.warn(`Unable to place ${type} on side 1`);
-          }
+          let p=freeCell(1); if(!p){p=freeCell();}
           if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen,hp:BUILD_TYPES[type].hpMax});
         }
         for(let i=0;i<count-half;i++){
-          let p=freeCell(2);
-          if(!p){
-            p = freeCell();
-            if(!p) console.warn(`Unable to place ${type} on side 2`);
-          }
+          let p=freeCell(2); if(!p){p=freeCell();}
           if(p) buildings.push({r:p.r,c:p.c,owner:0,type,gen:BUILD_TYPES[type].gen,hp:BUILD_TYPES[type].hpMax});
         }
       });
+  }
 
-    units.push({id:nextUnitId++,r:1,c:2,owner:1,type:'swordsman',hp:5,mp:2,startR:1,startC:2});
-    units.push({id:nextUnitId++,r:2,c:1,owner:1,type:'archer',   hp:4,mp:2,startR:2,startC:1});
-    units.push({id:nextUnitId++,r:ROWS-2,c:COLS-3,owner:2,type:'swordsman',hp:5,mp:2,startR:ROWS-2,startC:COLS-3});
-    units.push({id:nextUnitId++,r:ROWS-3,c:COLS-2,owner:2,type:'archer',   hp:4,mp:2,startR:ROWS-3,startC:COLS-2});
-    if(modeBeta){
-      units.push({id:nextUnitId++,r:5,c:5,owner:1,type:'bog',hp:1000,mp:1000,startR:5,startC:5});
-      units.push({id:nextUnitId++,r:ROWS-6,c:COLS-6,owner:2,type:'bog',hp:1000,mp:1000,startR:ROWS-6,startC:COLS-6});
+  function ensureConnectivity(){
+    const pass=t=>t!==TERRAIN.MOUNTAIN&&t!==TERRAIN.WATER;
+    const visited=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    const q=[[1,1]]; visited[1][1]=true;
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    while(q.length){
+      const [r,c]=q.shift();
+      for(const [dr,dc] of dirs){
+        const rr=r+dr, cc=c+dc;
+        if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&!visited[rr][cc]&&pass(map[rr][cc])){
+          visited[rr][cc]=true; q.push([rr,cc]);
+        }
+      }
+    }
+    if(!visited[ROWS-2][COLS-2]){
+      let r=1,c=1; while(r<ROWS-1&&c<COLS-1){ map[r][c]=TERRAIN.PLAIN; r++; c++; }
     }
   }
+
+  function balanceStarts(){}
+
+  function spiceRandom(){}
+
+  function rand2(x,y){
+    return Math.abs(Math.sin(x*374761393 + y*668265263 + 1337))%1;
+  }
+
+  function smoothNoise(x,y){
+    const x0=Math.floor(x), y0=Math.floor(y);
+    const x1=x0+1, y1=y0+1;
+    const sx=x-x0, sy=y-y0;
+    const n00=rand2(x0,y0), n10=rand2(x1,y0), n01=rand2(x0,y1), n11=rand2(x1,y1);
+    const ix0=n00+(n10-n00)*sx, ix1=n01+(n11-n01)*sx;
+    return ix0+(ix1-ix0)*sy;
+  }
+
+  function boxBlur(arr){
+    const rows=arr.length, cols=arr[0].length;
+    const cp=arr.map(r=>r.slice());
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      let sum=0,count=0;
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+        const rr=r+dr, cc=c+dc;
+        if(rr>=0&&rr<rows&&cc>=0&&cc<cols){ sum+=cp[rr][cc]; count++; }
+      }
+      arr[r][c]=sum/count;
+    }
+  }
+
 
   function freeCell(side){
     for(let i=0;i<500;i++){
@@ -1566,7 +1636,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     aiMode=false;
     setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
-    generateMap();
+    generateWorld();
     recordTurn(); updateAll();
   });
 
@@ -1584,7 +1654,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     window.aiLevel = aiLevel;
     setMapSize(mapSizeSel.value);
     aiPanel.style.display='none';
-    generateMap();
+    generateWorld();
     recordTurn(); updateAll();
   });
 
@@ -1595,7 +1665,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     aiMode=false;
     setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
-    generateMap();
+    generateWorld();
     recordTurn(); updateAll();
   });
 
