@@ -224,8 +224,8 @@ describe('Fog of Conquest core', () => {
   test('nextTurn applies per-building income', () => {
     const { buildings, state, nextTurn } = window;
     document.getElementById('twoBtn').click();
-    const mine = buildings.find(b => b.owner === 2 && b.type === 'mine');
-    mine.gen = 2;
+    const mill = buildings.find(b => b.owner === 2 && b.type === 'mill');
+    mill.gen = 2;
     state.gold[2] = 5;
     state.currentPlayer = 1;
     nextTurn();

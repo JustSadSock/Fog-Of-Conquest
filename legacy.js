@@ -42,8 +42,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     barracks:  {spawn:['heavy'],gen:0,def:0},
     stable:    {spawn:['cavalry'],gen:0,def:0},
     mageTower: {spawn:['mage'],gen:0,def:0},
-    mine:      {spawn:[],gen:1,def:0},
-    lumber:    {spawn:[],gen:1,def:0},
+    mill:      {spawn:[],gen:1,def:0},
     fort:      {spawn:[],gen:0,def:2}
   };
 
@@ -53,7 +52,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
   const BUILD_LABELS = {
     base:'баз', barracks:'каз', stable:'кон',
-    mageTower:'баш', mine:'руд', lumber:'лес', fort:'фор'
+    mageTower:'баш', mill:'мел', fort:'фор'
   };
 
   // === Состояние ===
@@ -166,10 +165,10 @@ window.addEventListener('DOMContentLoaded',()=>{
         }
       });
     }
-    addRes(1,'mine');
-    addRes(2,'mine');
+    addRes(1,'mill');
+    addRes(2,'mill');
 
-    [['mine',2],['lumber',2],['barracks',2],
+    [['mill',4],['barracks',2],
      ['stable',2],['mageTower',1],['fort',4]]
       .forEach(([type,count])=>{
         let half=count/2|0;

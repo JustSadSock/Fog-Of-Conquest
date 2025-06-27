@@ -266,8 +266,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       barracks:'buildings/barracks',
       stable:'buildings/stable',
       mageTower:`buildings/healers_tents_${owner}`,
-      mine:'buildings/windmill',
-      lumber:'buildings/windmill',
+      mill:'buildings/windmill',
       fort:`buildings/fort_${owner}`
     };
     return IMG[map[b.type]];
@@ -303,8 +302,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     stable:    {spawn:['cavalry'],gen:0,def:0,hpMax:3},
     mageTower: {spawn:['mage'],gen:0,def:0,hpMax:3},
     // genUp указывает доход после улучшения
-    mine:      {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
-    lumber:    {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
+    mill:      {spawn:[],gen:1,genUp:2,def:0,hpMax:2},
     fort:      {spawn:[],gen:0,def:2,hpMax:4}
   };
 
@@ -323,8 +321,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     barracks:'⚔',
     stable:'🐴',
     mageTower:'🔮',
-    mine:'⛏',
-    lumber:'🪓',
+    mill:'🌾',
     fort:'🏯'
   };
 
@@ -644,10 +641,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
         }
       });
     }
-    addRes(1,'mine');
-    addRes(2,'mine');
+    addRes(1,'mill');
+    addRes(2,'mill');
 
-    [['mine',2],['lumber',2],['barracks',2],['stable',2],['mageTower',1],['fort',4]]
+    [['mill',4],['barracks',2],['stable',2],['mageTower',1],['fort',4]]
       .forEach(([type,count])=>{
         count=Math.max(1,Math.round(count*scale));
         let half=count/2|0;

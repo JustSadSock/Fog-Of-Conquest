@@ -13,8 +13,7 @@
     barracks:20,
     stable:20,
     mageTower:20,
-    mine:10,
-    lumber:10,
+    mill:10,
     fort:30
   };
 
