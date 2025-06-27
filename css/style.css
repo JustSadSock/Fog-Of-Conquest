@@ -526,6 +526,16 @@ h1 {
   font-weight: bold;
 }
 
+#settingsCloseBtn {
+  background: #d9534f;
+  color: #fff;
+  margin-top: 20px;
+}
+
+#settingsCloseBtn:hover {
+  background: #c9302c;
+}
+
 #legendOverlay .panel,
 #victoryOverlay .panel,
 #replayControls {
