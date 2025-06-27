@@ -172,7 +172,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       sfxVolume = 0.5,
       musicEnabled = false,
       sfxEnabled = true,
-      lang = 'ru',
+      lang = 'en',
       strings = {};
 
   function loadSettings(){

@@ -398,8 +398,8 @@ describe('Fog of Conquest core', () => {
     const beforeText=reveal.textContent;
     reveal.click();
     const afterText=reveal.textContent;
-    expect(beforeText).toBe('Показать карту');
-    expect(afterText).toBe('Скрыть карту');
+    expect(beforeText).toBe('Show map');
+    expect(afterText).toBe('Hide map');
   });
 
   test('combat and capture work in beta mode', () => {
