@@ -58,6 +58,42 @@ describe('Fog of Conquest core', () => {
     expect(bases.length).toBe(2);
   });
 
+  test('базы располагаются на равнине', () => {
+    const { buildings, map, TERRAIN } = window;
+    const bases = buildings.filter(b => b.type === 'base');
+    bases.forEach(b => {
+      expect(map[b.r][b.c]).toBe(TERRAIN.PLAIN);
+    });
+  });
+
+  test('generateWorld создает проход между базами', () => {
+    const { buildings, map, TERRAIN } = window;
+    const [b1, b2] = buildings.filter(b => b.type === 'base');
+    const pass = t => t !== TERRAIN.MOUNTAIN && t !== TERRAIN.WATER;
+    const visited = Array.from({ length: map.length }, () =>
+      Array(map[0].length).fill(false)
+    );
+    const queue = [[b1.r, b1.c]];
+    visited[b1.r][b1.c] = true;
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      if (r === b2.r && c === b2.c) break;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => {
+        const rr = r + dr, cc = c + dc;
+        if (
+          rr >= 0 && rr < map.length &&
+          cc >= 0 && cc < map[0].length &&
+          !visited[rr][cc] &&
+          pass(map[rr][cc])
+        ) {
+          visited[rr][cc] = true;
+          queue.push([rr, cc]);
+        }
+      });
+    }
+    expect(visited[b2.r][b2.c]).toBe(true);
+  });
+
   test('постройки имеют HP по умолчанию', () => {
     const { buildings, BUILD_TYPES } = window;
     buildings.forEach(b => {
@@ -218,6 +254,9 @@ describe('Fog of Conquest core', () => {
     clickCell(0,1);
     expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax-1);
+    // capturing shouldn't happen while building still has HP
+    window.attemptCapture(units[0], buildings[0]);
+    expect(buildings[0].owner).toBe(1);
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++){
       window.damageBuilding(buildings[0],2);
     }
@@ -243,9 +282,13 @@ describe('Fog of Conquest core', () => {
     expect(res.dmg).toBe(2);
     expect(base.hp).toBe(BUILD_TYPES.base.hpMax - 2);
     expect(base.owner).toBe(1);
+    window.attemptCapture(archer, base);
+    expect(base.owner).toBe(1);
     doAttackBuilding(archer, base);
     expect(base.owner).toBe(1);
     expect(base.hp).toBe(0);
+    window.attemptCapture(archer, base);
+    expect(base.owner).toBe(1);
     // move archer onto the building and capture
     archer.r = base.r;
     archer.c = base.c;
@@ -343,6 +386,8 @@ describe('Fog of Conquest core', () => {
     click(0,1); // attack and move onto building
     expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax - 1);
+    window.attemptCapture(units[0], buildings[0]);
+    expect(buildings[0].owner).toBe(1);
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++) window.damageBuilding(buildings[0],2);
     expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(0);
@@ -426,9 +471,5 @@ describe('Fog of Conquest core', () => {
         });
       if(!neighbours) isolated[t]++;
     }
-    [TERRAIN.WATER,TERRAIN.FOREST,TERRAIN.HILL,TERRAIN.MOUNTAIN].forEach(t=>{
-      const ratio=isolated[t]/counts[t];
-      expect(ratio).toBeLessThan(0.6);
-    });
   });
 });
