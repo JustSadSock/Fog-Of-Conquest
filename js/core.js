@@ -830,6 +830,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
           ctx.strokeRect(b.c*cellW,b.r*cellH,cellW,cellH);
           ctx.setLineDash([]);
         }
+        let bw=cellW*0.6, bh=cellH*0.08,
+            bx=b.c*cellW+(cellW-bw)/2,
+            by=b.r*cellH+cellH*0.05;
+        ctx.fillStyle='#600'; ctx.fillRect(bx,by,bw,bh);
+        let frac=b.hp/BUILD_TYPES[b.type].hpMax;
+        ctx.fillStyle=b.owner===p?'#0f0':'#f00';
+        ctx.fillRect(bx,by,bw*frac,bh);
       }
     });
 
@@ -855,6 +862,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
         let frac=u.hp/UNIT_TYPES[u.type].hpMax;
         ctx.fillStyle=u.owner===p?'#0f0':'#f00';
         ctx.fillRect(bx,by,w*frac,h);
+        if(u.mp>0){
+          ctx.fillStyle='#fff';
+          ctx.beginPath();
+          ctx.arc(cx+rad*0.6,cy-rad*0.6,rad*0.2,0,2*Math.PI);
+          ctx.fill();
+        }
       }
     });
 
