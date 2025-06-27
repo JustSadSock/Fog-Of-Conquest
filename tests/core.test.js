@@ -232,6 +232,16 @@ describe('Fog of Conquest core', () => {
     expect(state.gold[2]).toBe(7);
   });
 
+  test('destroying a building captures it for the attacker', () => {
+    const { buildings, damageBuilding, BUILD_TYPES } = window;
+    document.getElementById('twoBtn').click();
+    const base = buildings.find(b => b.owner === 1 && b.type === 'base');
+    base.hp = 1;
+    damageBuilding(base, 2, 1);
+    expect(base.hp).toBe(0);
+    expect(base.owner).toBe(2);
+  });
+
   test('building takes damage and is captured after repeated occupation', () => {
     const { map, TERRAIN, buildings, units, state, BUILD_TYPES, UNIT_TYPES } = window;
     document.getElementById('twoBtn').click();
@@ -260,7 +270,7 @@ describe('Fog of Conquest core', () => {
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++){
       window.damageBuilding(buildings[0],2);
     }
-    expect(buildings[0].owner).toBe(1);
+    expect(buildings[0].owner).toBe(2);
     expect(buildings[0].hp).toBe(0);
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(2);
@@ -285,12 +295,12 @@ describe('Fog of Conquest core', () => {
     window.attemptCapture(archer, base);
     expect(base.owner).toBe(1);
     doAttackBuilding(archer, base);
-    expect(base.owner).toBe(1);
+    expect(base.owner).toBe(2);
     expect(base.hp).toBe(0);
     expect(archer.r).toBe(0);
     expect(archer.c).toBe(0);
     window.attemptCapture(archer, base);
-    expect(base.owner).toBe(1);
+    expect(base.owner).toBe(2);
     // move archer onto the building and capture
     archer.r = base.r;
     archer.c = base.c;
@@ -415,7 +425,7 @@ describe('Fog of Conquest core', () => {
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(1);
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++) window.damageBuilding(buildings[0],2);
-    expect(buildings[0].owner).toBe(1);
+    expect(buildings[0].owner).toBe(2);
     expect(buildings[0].hp).toBe(0);
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(2);

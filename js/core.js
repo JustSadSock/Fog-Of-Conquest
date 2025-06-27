@@ -1105,7 +1105,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   function damageBuilding(b, newOwner, dmg=1){
     if(!b) return;
     b.hp -= dmg;
-    if(b.hp <= 0) b.hp = 0;
+    if(b.hp <= 0){
+      b.hp = 0;
+      b.owner = newOwner;
+    }
   }
 
   function attemptCapture(unit, building){
