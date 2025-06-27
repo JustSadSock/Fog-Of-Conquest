@@ -2,8 +2,7 @@
 
 window.addEventListener('DOMContentLoaded', ()=>{
   // === Утилиты ===
-  const abs = Math.abs,
-        randChoice = arr => arr[Math.random()*arr.length|0];
+  const abs = Math.abs;
 
   const IMG = {};
 
