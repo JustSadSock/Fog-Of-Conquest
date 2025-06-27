@@ -636,9 +636,23 @@ h1 {
   flex-wrap: wrap;
   gap: 6px;
 }
+#replayControls.collapsed {
+  left: 10px;
+  transform: none;
+  padding: 6px;
+}
+#replayControls.collapsed > :not(#replayToggleBtn) {
+  display: none;
+}
 #replayControls input[type="range"] {
   flex: 1 1 100%;
   margin-bottom: 6px;
+}
+#replayPauseBtn {
+  position: absolute;
+  top: 10px;
+  left: 50px;
+  display: none;
 }
 #exitReplayBtn {
   position: absolute;

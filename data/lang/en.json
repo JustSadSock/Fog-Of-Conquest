@@ -54,4 +54,6 @@
   ,"replaySide": "Switch side"
   ,"replayRestart": "Restart"
   ,"saveReplay": "Save video"
+  ,"replayCollapse": "Hide controls"
+  ,"replayExpand": "Show controls"
 }

@@ -605,4 +605,27 @@ describe('Fog of Conquest core', () => {
     expect(max).toBeGreaterThanOrEqual(0);
     window.stopMatchReplay();
   });
+
+  test('replay controls can be collapsed and expanded', () => {
+    document.getElementById('twoBtn').click();
+    window.startMatchReplay();
+    const toggle = document.getElementById('replayToggleBtn');
+    toggle.click();
+    expect(document.getElementById('replayControls').classList.contains('collapsed')).toBe(true);
+    toggle.click();
+    expect(document.getElementById('replayControls').classList.contains('collapsed')).toBe(false);
+    window.stopMatchReplay();
+  });
+
+  test('pause button works when controls collapsed', () => {
+    document.getElementById('twoBtn').click();
+    window.startMatchReplay();
+    document.getElementById('replayToggleBtn').click();
+    const pauseBtn = document.getElementById('replayPauseBtn');
+    pauseBtn.click();
+    expect(window.replayPaused).toBe(true);
+    pauseBtn.click();
+    expect(window.replayPaused).toBe(false);
+    window.stopMatchReplay();
+  });
 });

@@ -128,7 +128,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
         fullscreenBtn = document.getElementById('fullscreenBtn'),
         newGameBtn   = document.getElementById('newGameBtn'),
         newGameOptions = document.getElementById('newGameOptions'),
-        replaySideBtn = document.getElementById('replaySideBtn');
+        replaySideBtn = document.getElementById('replaySideBtn'),
+        replayToggleBtn = document.getElementById('replayToggleBtn'),
+        replayPauseBtn = document.getElementById('replayPauseBtn');
   const speedBtns = document.querySelectorAll('.speedBtn');
 
   // === Константы ===
@@ -388,7 +390,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     UNIT_LABELS, BUILD_LABELS,
     aiLevel,
     fogSnapshot,
-    replayEvents
+    replayEvents,
+    replayPaused
   });
 
   let cellW, cellH;
@@ -1489,6 +1492,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
         replayPaused = false;
         if(wasPaused && typeof runReplayStep === 'function') runReplayStep();
       }
+      updateReplayPauseBtn();
+      window.replayPaused = replayPaused;
     });
   });
   if(replaySideBtn){
@@ -1507,10 +1512,48 @@ window.addEventListener('DOMContentLoaded', ()=>{
     replayRestartBtn.addEventListener('click',()=>{
       replayPaused = false;
       seekReplay(0);
+      window.replayPaused = replayPaused;
+      updateReplayPauseBtn();
     });
   }
   if(saveReplayBtn){
     saveReplayBtn.addEventListener('click', recordReplayVideo);
+  }
+
+  if(replayToggleBtn){
+    replayToggleBtn.addEventListener('click',()=>{
+      const collapsed = replayControls.classList.toggle('collapsed');
+      if(collapsed){
+        if(replayPauseBtn){ updateReplayPauseBtn(); replayPauseBtn.style.display='block'; }
+        replayToggleBtn.setAttribute('title', t('replayExpand'));
+      }else{
+        if(replayPauseBtn) replayPauseBtn.style.display='none';
+        replayToggleBtn.setAttribute('title', t('replayCollapse'));
+      }
+      window.replayPaused = replayPaused;
+    });
+  }
+
+  function updateReplayPauseBtn(){
+    if(!replayPauseBtn) return;
+    replayPauseBtn.textContent = replayPaused ? '▶' : '⏸';
+  }
+
+  if(replayPauseBtn){
+    replayPauseBtn.addEventListener('click',()=>{
+      if(replayPaused){
+        replayPaused = false;
+        if(replaySpeed===0) replaySpeed = 1;
+        speedBtns.forEach(b=>b.classList.remove('speed-selected'));
+        const def=document.querySelector(`.speedBtn[data-speed="${replaySpeed}"]`);
+        if(def) def.classList.add('speed-selected');
+        if(typeof runReplayStep === 'function') runReplayStep();
+      }else{
+        replayPaused = true;
+      }
+      updateReplayPauseBtn();
+      window.replayPaused = replayPaused;
+    });
   }
 
   skipReplayBtn.addEventListener('click', stopReplay);
@@ -1746,6 +1789,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
     replayIndex = 0;
     replaySpeed = 1;
     replayPaused = false;
+    replayControls.classList.remove('collapsed');
+    if(replayPauseBtn){
+      replayPauseBtn.style.display='none';
+      updateReplayPauseBtn();
+    }
+    if(replayToggleBtn) replayToggleBtn.setAttribute('title', t('replayCollapse'));
+    window.replayPaused = replayPaused;
     revealAll = true;
     replaySide = 1;
     currentReplaySnapshot = replayEvents[0].snapshot;
@@ -1822,8 +1872,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
     if(videoRecorder && videoRecorder.state !== 'inactive') videoRecorder.stop();
     replayOverlay.style.display='none';
+    replayControls.classList.remove('collapsed');
+    if(replayPauseBtn){
+      replayPauseBtn.style.display='none';
+      updateReplayPauseBtn();
+    }
+    if(replayToggleBtn) replayToggleBtn.setAttribute('title', t('replayCollapse'));
     runReplayStep = null;
     replayPaused = false;
+    window.replayPaused = replayPaused;
     replaySide = null;
     revealAll = false;
   }
