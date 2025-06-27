@@ -371,6 +371,88 @@ describe('Fog of Conquest core', () => {
     expect(highlight.y).toBeCloseTo(5*cellH);
   });
 
+  test('mage highlight works in simple view', async () => {
+    const fills = [];
+    HTMLCanvasElement.prototype.getContext = () => {
+      return {
+        strokeStyle:'', lineWidth:0, fillStyle:'',
+        setLineDash:()=>{}, strokeRect:()=>{}, drawImage:()=>{},
+        fillRect:function(x,y,w,h){ fills.push({style:this.fillStyle,x,y,w,h}); },
+        clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
+        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
+      };
+    };
+    const html = fs.readFileSync('index.html','utf8');
+    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const win = dom.window;
+    const { document } = win;
+    win.requestAnimationFrame = cb => cb();
+    win.cancelAnimationFrame = () => {};
+    win.HTMLCanvasElement.prototype.getContext = HTMLCanvasElement.prototype.getContext;
+    await new Promise(res=>document.addEventListener('DOMContentLoaded',res));
+    document.getElementById('betaBtn').click();
+    const { units, map, TERRAIN, UNIT_TYPES } = win;
+    units.length = 0;
+    map[5][5]=TERRAIN.PLAIN; map[5][6]=TERRAIN.PLAIN;
+    units.push({id:1,r:5,c:5,owner:1,type:'mage',hp:UNIT_TYPES.mage.hpMax,mp:UNIT_TYPES.mage.move,startR:5,startC:5});
+    units.push({id:2,r:5,c:6,owner:1,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax-1,mp:UNIT_TYPES.swordsman.move,startR:5,startC:6});
+    document.getElementById('revealBtn').click();
+    Object.defineProperty(win, 'localStorage', {configurable:true, value:{getItem:()=>null,setItem:()=>{},removeItem:()=>{},clear:()=>{}}});
+    const chk=document.getElementById('simplifyChk');
+    chk.checked = true;
+    chk.dispatchEvent(new win.Event('input'));
+    fills.length=0;
+    const canvas=document.getElementById('canvas');
+    canvas.getBoundingClientRect=()=>({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW=canvas.width/map[0].length, cellH=canvas.height/map.length;
+    canvas.dispatchEvent(new win.MouseEvent('click',{clientX:(5.5)*cellW,clientY:(5.5)*cellH}));
+    const hl=fills.find(f=>f.style.includes('0,255,0'));
+    expect(hl).toBeDefined();
+    expect(hl.x).toBeCloseTo(6*cellW);
+    expect(hl.y).toBeCloseTo(5*cellH);
+  });
+
+  test('simple view highlights attack targets', async () => {
+    const fills = [];
+    HTMLCanvasElement.prototype.getContext = () => {
+      return {
+        strokeStyle:'', lineWidth:0, fillStyle:'',
+        setLineDash:()=>{}, strokeRect:()=>{}, drawImage:()=>{},
+        fillRect:function(x,y,w,h){ fills.push({style:this.fillStyle,x,y,w,h}); },
+        clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
+        stroke:()=>{}, fillText:()=>{}, moveTo:()=>{}, lineTo:()=>{}, closePath:()=>{}, createPattern:()=>{}
+      };
+    };
+    const html = fs.readFileSync('index.html','utf8');
+    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const win = dom.window;
+    const { document } = win;
+    win.requestAnimationFrame = cb => cb();
+    win.cancelAnimationFrame = () => {};
+    win.HTMLCanvasElement.prototype.getContext = HTMLCanvasElement.prototype.getContext;
+    await new Promise(res=>document.addEventListener('DOMContentLoaded',res));
+    document.getElementById('betaBtn').click();
+    const { units, map, TERRAIN, UNIT_TYPES } = win;
+    units.length = 0;
+    map[5][5]=TERRAIN.PLAIN; map[5][6]=TERRAIN.PLAIN;
+    units.push({id:1,r:5,c:5,owner:1,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:5,startC:5});
+    units.push({id:2,r:5,c:6,owner:2,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:5,startC:6});
+    document.getElementById('revealBtn').click();
+    Object.defineProperty(win, 'localStorage', {configurable:true, value:{getItem:()=>null,setItem:()=>{},removeItem:()=>{},clear:()=>{}}});
+    const chk2=document.getElementById('simplifyChk');
+    chk2.checked = true;
+    chk2.dispatchEvent(new win.Event('input'));
+    fills.length=0;
+    const canvas=document.getElementById('canvas');
+    canvas.getBoundingClientRect=()=>({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW=canvas.width/map[0].length, cellH=canvas.height/map.length;
+    canvas.dispatchEvent(new win.MouseEvent('click',{clientX:(5.5)*cellW,clientY:(5.5)*cellH}));
+    const hl=fills.find(f=>f.style.includes('255,0,0'));
+    expect(hl).toBeDefined();
+    expect(hl.x).toBeCloseTo(6*cellW);
+    expect(hl.y).toBeCloseTo(5*cellH);
+  });
+
   test('beta mode initialization enables bog spawn and reveal toggling', async () => {
     const strokes = [];
     HTMLCanvasElement.prototype.getContext = () => {
