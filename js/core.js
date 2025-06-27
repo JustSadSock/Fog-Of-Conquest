@@ -447,44 +447,47 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
     const scale = ROWS / BASE_ROWS;
 
-    // --- Terrain generation via layered noise ---
-    const seed = Math.random() * 1000;
-    const noise = (x,y)=>{
-      const n = Math.sin((x*12.9898 + y*78.233 + seed) * 43758.5453);
-      return n - Math.floor(n);
+    // --- Terrain generation via region growing ---
+    const terrainRatios = {
+      [TERRAIN.WATER]: 0.1,
+      [TERRAIN.FOREST]: 0.25,
+      [TERRAIN.HILL]: 0.15,
+      [TERRAIN.MOUNTAIN]: 0.1
     };
-    const layeredNoise = (x,y)=>{
-      let v=0, amp=1, sum=0;
-      for(let i=0;i<3;i++){
-        v += noise(x,y) * amp;
-        sum += amp;
-        x *= 2; y *= 2; amp /= 2;
-      }
-      return v / sum;
+    const totalCells = ROWS * COLS;
+
+    const isBaseArea = (r,c) => {
+      return (r<=2 && c<=2) || (r>=ROWS-3 && c>=COLS-3);
     };
 
-    const waterT = 0.10,
-          forestT = 0.225,
-          hillT = 0.325,
-          mountainT = 0.925;
-
-    for(let r=0;r<ROWS;r++){
-      for(let c=0;c<COLS;c++){
-        let n = layeredNoise(r/ROWS, c/COLS);
-        if(n < waterT) map[r][c] = TERRAIN.WATER;
-        else if(n < forestT) map[r][c] = TERRAIN.FOREST;
-        else if(n < hillT) map[r][c] = TERRAIN.HILL;
-        else {
-          let m = layeredNoise(r/ROWS + 100, c/COLS - 100);
-          if(m > mountainT) map[r][c] = TERRAIN.MOUNTAIN;
+    function blob(type,count,size){
+      const clusters = Math.max(1, Math.round(count / size));
+      for(let i=0;i<clusters && count>0;i++){
+        let r=Math.random()*ROWS|0, c=Math.random()*COLS|0, tries=0;
+        while((map[r][c]!==TERRAIN.PLAIN || isBaseArea(r,c)) && tries<50){
+          r=Math.random()*ROWS|0; c=Math.random()*COLS|0; tries++;
+        }
+        for(let k=0;k<size && count>0;k++){
+          if(map[r][c]===TERRAIN.PLAIN && !isBaseArea(r,c)){
+            map[r][c]=type; count--;
+          }
+          const dir=[[1,0],[-1,0],[0,1],[0,-1]][Math.random()*4|0];
+          r=Math.max(1,Math.min(ROWS-2, r+dir[0]));
+          c=Math.max(1,Math.min(COLS-2, c+dir[1]));
         }
       }
     }
-    // keep mountains away from bases
+
+    Object.entries(terrainRatios).forEach(([t,ratio])=>{
+      const cells=Math.round(totalCells*ratio);
+      blob(parseInt(t,10), cells, 20);
+    });
+
+    // keep bases clear of impassable terrain
     [[1,1],[ROWS-2,COLS-2]].forEach(([br,bc])=>{
       for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-        let rr=br+dr, cc=bc+dc;
-        if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS && map[rr][cc]===TERRAIN.MOUNTAIN)
+        const rr=br+dr, cc=bc+dc;
+        if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)
           map[rr][cc]=TERRAIN.PLAIN;
       }
     });
