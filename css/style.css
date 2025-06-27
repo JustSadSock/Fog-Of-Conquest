@@ -164,11 +164,16 @@ h1 {
   padding-right: 24px; /* ensure space for the triangle */
   border-radius: 4px;
   font-family: 'Lora', serif;
-  border: 1px solid #555;
-  background: #2e2e2e;
-  color: #ddd;
+  border: 1px solid #bda46a;
+  background: linear-gradient(#cfc092, #bda46a);
+  color: #2e2e2e;
   cursor: pointer;
   position: relative;
+  transition: background 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.dropdown-toggle:hover {
+  background: linear-gradient(#d8c18f, #c6b47a);
 }
 .dropdown-toggle::after {
   content: ' \25BC';
@@ -192,10 +197,11 @@ h1 {
   list-style: none;
   margin: 0;
   padding: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 .dropdown.open .dropdown-menu { display: block; }
 .dropdown-menu li { padding: 4px 10px; cursor: pointer; }
-.dropdown-menu li:hover { background: #444; }
+.dropdown-menu li:hover { background: #d8c18f; color: #2e2e2e; }
 .dropdown-menu li.focused,
 .dropdown-menu li.selected { background: #bda46a; color: #2e2e2e; }
 #aiPanel {
