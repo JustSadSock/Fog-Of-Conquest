@@ -110,7 +110,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         langSelect    = document.getElementById('langSelect'),
         settingsCloseBtn = document.getElementById('settingsCloseBtn'),
         settingsMenuBtn = document.getElementById('settingsMenuBtn'),
-        tooltipToggle = document.getElementById('tooltipToggle'),
+        hintsChk = document.getElementById('hintsChk'),
         tooltipDiv   = document.getElementById('tooltip'),
         bgm          = document.getElementById('bgm'),
         attackSfx    = document.getElementById('attackSfx'),
@@ -1420,9 +1420,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   skipReplayBtn.addEventListener('click', stopReplay);
 
-  tooltipToggle.addEventListener('click',()=>{
-    tooltipEnabled = !tooltipEnabled;
-    tooltipToggle.textContent = tooltipEnabled ? t('tooltipOn') : t('tooltip');
+  hintsChk.addEventListener('change',()=>{
+    tooltipEnabled = hintsChk.checked;
     if(!tooltipEnabled) tooltipDiv.style.display = 'none';
   });
 
@@ -1433,6 +1432,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     sfxEnableEl.checked = sfxEnabled;
     sfxVolumeEl.value = sfxVolume;
     langSelect.value = lang;
+    hintsChk.checked = tooltipEnabled;
     settingsOverlay.style.display='flex';
   });
 
