@@ -348,7 +348,14 @@ window.addEventListener('DOMContentLoaded',()=>{
     requestAnimationFrame(redraw);
   }
 
-  // === Resize & Fog init ===
+  function initFog(){
+    [1,2].forEach(p=>{
+      state.fog[p]  = Array.from({length:ROWS},()=>Array(COLS).fill(true));
+      state.seen[p] = Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    });
+  }
+
+  // === Resize ===
   window.addEventListener('resize',()=>{
     const infoH = document.getElementById('infoPanel').offsetHeight;
     const size = Math.floor(Math.min(
@@ -358,10 +365,6 @@ window.addEventListener('DOMContentLoaded',()=>{
     cellW = cellH = size;
     canvas.width  = cellW * COLS;
     canvas.height = cellH * ROWS;
-    [1,2].forEach(p=>{
-      state.fog[p]  = Array.from({length:ROWS},()=>Array(COLS).fill(true));
-      state.seen[p] = Array.from({length:ROWS},()=>Array(COLS).fill(false));
-    });
     updateAll();
   });
 
@@ -379,10 +382,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     state.gold = {1:5,2:5};
     state.grace = {1:null,2:null};
     state.log   = {1:[],2:[]};
-    [1,2].forEach(p=>{
-      state.fog[p]  = Array.from({length:ROWS},()=>Array(COLS).fill(true));
-      state.seen[p] = Array.from({length:ROWS},()=>Array(COLS).fill(false));
-    });
+    initFog();
     overlay.style.display = 'none';
     spawnPanel.style.display = 'none';
   }
@@ -1179,6 +1179,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     }else{
       ROWS=BASE_ROWS; COLS=BASE_COLS;
     }
+    initFog();
     window.dispatchEvent(new Event('resize'));
   }
 
