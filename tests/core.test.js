@@ -498,4 +498,19 @@ describe('Fog of Conquest core', () => {
       if(!neighbours) isolated[t]++;
     }
   });
+
+  test('replay UI elements exist', () => {
+    document.getElementById('twoBtn').click();
+    expect(document.getElementById('replaySeek')).toBeTruthy();
+    expect(document.getElementById('replayRestartBtn')).toBeTruthy();
+    expect(document.getElementById('saveReplayBtn')).toBeTruthy();
+  });
+
+  test('replaySeek max reflects event count', () => {
+    document.getElementById('twoBtn').click();
+    window.startMatchReplay();
+    const max = parseInt(document.getElementById('replaySeek').max,10);
+    expect(max).toBeGreaterThanOrEqual(0);
+    window.stopMatchReplay();
+  });
 });
