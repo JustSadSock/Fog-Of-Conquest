@@ -85,6 +85,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         waitOverlay = document.getElementById('waitOverlay'),
         waitText    = document.getElementById('waitText'),
         skipReplayBtn = document.getElementById('skipReplayBtn'),
+        startSettingsBtn = document.getElementById('startSettingsBtn'),
         settingsBtn   = document.getElementById('settingsBtn'),
         settingsOverlay = document.getElementById('settingsOverlay'),
         simplifyChk   = document.getElementById('simplifyChk'),
@@ -1136,6 +1137,12 @@ window.addEventListener('DOMContentLoaded',()=>{
     sfxVolumeEl.value = sfxVolume;
     settingsOverlay.style.display='flex';
   });
+
+  if(startSettingsBtn){
+    startSettingsBtn.addEventListener('click', ()=>{
+      settingsBtn.click();
+    });
+  }
   function applySettings(){
     simpleView = simplifyChk.checked;
     musicEnabled = musicEnableEl.checked;
