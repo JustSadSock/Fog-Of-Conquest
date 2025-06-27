@@ -496,15 +496,18 @@ h1 {
   padding: 20px;
   border: 1px solid #555;
   border-radius: 6px;
-  width: auto;
-  max-width: 600px;
+  width: 80%;
+  max-width: 800px;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #settingsOverlay label {
   margin: 6px 0;
+  flex: 1 1 45%;
+  text-align: left;
 }
 
 #settingsOverlay input[type="range"],
@@ -514,8 +517,8 @@ h1 {
 }
 
 #settingsOverlay button {
-  align-self: center;
-  margin: 10px auto 0;
+  flex: 1 1 45%;
+  margin: 10px;
   padding: 6px 12px;
   background: #bda46a;
   border: none;
@@ -527,13 +530,13 @@ h1 {
 }
 
 #settingsCloseBtn {
-  background: #d9534f;
-  color: #fff;
+  background: #c4a05d;
+  color: #2e2e2e;
   margin-top: 20px;
 }
 
 #settingsCloseBtn:hover {
-  background: #c9302c;
+  background: #d0ad69;
 }
 
 #legendOverlay .panel,
