@@ -356,6 +356,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
       replayTimer = null,
       replayEvents = [],
       replaySpeed = 1,
+      replayPaused = false,
+      runReplayStep = null,
       replaySide = null,
       currentReplaySnapshot = null,
       tooltipEnabled = false;
@@ -1452,7 +1454,16 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   document.querySelectorAll('.speedBtn').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      replaySpeed=parseFloat(btn.dataset.speed);
+      const sp = parseFloat(btn.dataset.speed);
+      if(sp === 0){
+        replaySpeed = 0;
+        replayPaused = true;
+      }else{
+        const wasPaused = replayPaused;
+        replaySpeed = sp;
+        replayPaused = false;
+        if(wasPaused && typeof runReplayStep === 'function') runReplayStep();
+      }
     });
   });
   if(replaySideBtn){
@@ -1690,23 +1701,30 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(!replayEvents.length) return;
     let i=1;
     replaySpeed = 1;
+    replayPaused = false;
     revealAll = true;
     replaySide = 1;
     currentReplaySnapshot = replayEvents[0].snapshot;
     applySnapshot(currentReplaySnapshot);
     replayOverlay.style.display='flex';
-    const run=()=>{
-      if(i>=replayEvents.length){ return; }
-      const ev=replayEvents[i++];
+    runReplayStep = function(){
+      if(replayPaused || i>=replayEvents.length) return;
+      const ev = replayEvents[i++];
       handleReplayAction(ev.action);
-      const base=ev.action? (ev.action.type==='move'?300:ev.action.type==='attack'?150:250) : 400;
-      replayTimer=setTimeout(()=>{ currentReplaySnapshot=ev.snapshot; applySnapshot(ev.snapshot); run(); }, base/replaySpeed);
+      const base = ev.action ? (ev.action.type==='move'?300:ev.action.type==='attack'?150:250) : 400;
+      replayTimer = setTimeout(()=>{
+        currentReplaySnapshot = ev.snapshot;
+        applySnapshot(ev.snapshot);
+        runReplayStep();
+      }, base / replaySpeed);
     };
-    run();
+    runReplayStep();
   }
   function stopMatchReplay(){
     if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
     replayOverlay.style.display='none';
+    runReplayStep = null;
+    replayPaused = false;
     replaySide = null;
     revealAll = false;
   }
