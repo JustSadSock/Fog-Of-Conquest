@@ -107,6 +107,8 @@
 
   <div id="replayOverlay">
     <div id="replayControls">
+      <input id="replaySeek" type="range" min="0" value="0">
+      <button id="replayRestartBtn" class="game-btn" data-i18n="replayRestart">Restart</button>
       <button class="speedBtn game-btn" data-speed="0">0×</button>
       <button class="speedBtn game-btn" data-speed="1">1×</button>
       <button class="speedBtn game-btn" data-speed="2">2×</button>
@@ -114,6 +116,7 @@
       <button class="speedBtn game-btn" data-speed="4">4×</button>
       <button class="speedBtn game-btn" data-speed="5">5×</button>
       <button id="replaySideBtn" class="game-btn" data-i18n="replaySide">Сменить сторону</button>
+      <button id="saveReplayBtn" class="game-btn" data-i18n="saveReplay">Save video</button>
     </div>
     <button id="exitReplayBtn" class="game-btn" data-i18n="exitReplay">В меню</button>
   </div>

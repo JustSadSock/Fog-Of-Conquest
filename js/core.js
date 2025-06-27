@@ -88,6 +88,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
         victoryMenuBtn = document.getElementById('victoryMenuBtn'),
         replayOverlay = document.getElementById('replayOverlay'),
         replayControls = document.getElementById('replayControls'),
+        replaySeek = document.getElementById('replaySeek'),
+        replayRestartBtn = document.getElementById('replayRestartBtn'),
+        saveReplayBtn = document.getElementById('saveReplayBtn'),
         exitReplayBtn = document.getElementById('exitReplayBtn'),
         endTurnBtn  = document.getElementById('endTurnBtn'),
         leftStats   = document.getElementById('leftStats'),
@@ -354,10 +357,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
       replayEvents = [],
       replaySpeed = 1,
       replayPaused = false,
+      replayIndex = 0,
       runReplayStep = null,
       replaySide = null,
       currentReplaySnapshot = null,
-      tooltipEnabled = false;
+      tooltipEnabled = false,
+      videoRecorder = null,
+      recordedChunks = [];
 
   Object.assign(window, { spawnZones });
 
@@ -381,7 +387,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     UNIT_TYPES, BUILD_TYPES,
     UNIT_LABELS, BUILD_LABELS,
     aiLevel,
-    fogSnapshot
+    fogSnapshot,
+    replayEvents
   });
 
   let cellW, cellH;
@@ -738,7 +745,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     damageBuilding,
     attemptCapture,
     resetState
-  , saveGame, loadGameData, listSaves, deleteSave });
+  , saveGame, loadGameData, listSaves, deleteSave,
+    startMatchReplay, stopMatchReplay, seekReplay });
 
   // === LOS ===
   function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
@@ -1465,6 +1473,21 @@ window.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
+  if(replaySeek){
+    replaySeek.addEventListener('input',()=>{
+      seekReplay(parseInt(replaySeek.value,10));
+    });
+  }
+  if(replayRestartBtn){
+    replayRestartBtn.addEventListener('click',()=>{
+      replayPaused = false;
+      seekReplay(0);
+    });
+  }
+  if(saveReplayBtn){
+    saveReplayBtn.addEventListener('click', recordReplayVideo);
+  }
+
   skipReplayBtn.addEventListener('click', stopReplay);
 
   hintsChk.addEventListener('change',()=>{
@@ -1695,29 +1718,79 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function startMatchReplay(){
     if(!replayEvents.length) return;
-    let i=1;
+    replayIndex = 0;
     replaySpeed = 1;
     replayPaused = false;
     revealAll = true;
     replaySide = 1;
     currentReplaySnapshot = replayEvents[0].snapshot;
     applySnapshot(currentReplaySnapshot);
+    if(replaySeek){
+      replaySeek.max = replayEvents.length - 1;
+      replaySeek.value = 0;
+    }
     replayOverlay.style.display='flex';
     runReplayStep = function(){
-      if(replayPaused || i>=replayEvents.length) return;
-      const ev = replayEvents[i++];
+      if(replayPaused || replayIndex >= replayEvents.length - 1){
+        if(videoRecorder && videoRecorder.state !== 'inactive') videoRecorder.stop();
+        return;
+      }
+      replayIndex++;
+      const ev = replayEvents[replayIndex];
       handleReplayAction(ev.action);
       const base = ev.action ? (ev.action.type==='move'?300:ev.action.type==='attack'?150:250) : 400;
       replayTimer = setTimeout(()=>{
         currentReplaySnapshot = ev.snapshot;
         applySnapshot(ev.snapshot);
+        if(replaySeek) replaySeek.value = replayIndex;
         runReplayStep();
       }, base / replaySpeed);
     };
     runReplayStep();
   }
+
+  function recordReplayVideo(){
+    if(videoRecorder && videoRecorder.state !== 'inactive'){
+      videoRecorder.stop();
+      return;
+    }
+    const stream = canvas.captureStream();
+    recordedChunks = [];
+    try{
+      videoRecorder = new MediaRecorder(stream);
+    }catch(e){
+      return;
+    }
+    videoRecorder.ondataavailable = e => {
+      if(e.data && e.data.size) recordedChunks.push(e.data);
+    };
+    videoRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, {type:'video/webm'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'replay.webm';
+      a.click();
+    };
+    videoRecorder.start();
+    seekReplay(0);
+  }
+
+  function seekReplay(idx){
+    if(!replayEvents.length) return;
+    if(idx < 0) idx = 0;
+    if(idx > replayEvents.length - 1) idx = replayEvents.length - 1;
+    replayIndex = idx;
+    if(replaySeek) replaySeek.value = replayIndex;
+    currentReplaySnapshot = replayEvents[replayIndex].snapshot;
+    applySnapshot(currentReplaySnapshot);
+    if(!replayPaused && typeof runReplayStep === 'function'){
+      if(replayTimer){ clearTimeout(replayTimer); replayTimer = null; }
+      runReplayStep();
+    }
+  }
   function stopMatchReplay(){
     if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
+    if(videoRecorder && videoRecorder.state !== 'inactive') videoRecorder.stop();
     replayOverlay.style.display='none';
     runReplayStep = null;
     replayPaused = false;

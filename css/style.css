@@ -627,6 +627,13 @@ h1 {
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#replayControls input[type="range"] {
+  flex: 1 1 100%;
+  margin-bottom: 6px;
 }
 #exitReplayBtn {
   position: absolute;
