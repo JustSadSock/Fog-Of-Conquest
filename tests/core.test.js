@@ -374,6 +374,25 @@ describe('Fog of Conquest core', () => {
     expect(state.fog[1][r][c]).toBe(true);
   });
 
+  test('resetState fully reinitializes fog and clears snapshot', () => {
+    const { state, resetState } = window;
+    document.getElementById('twoBtn').click();
+    state.fog[1][0][0] = false;
+    state.seen[1][0][0] = true;
+    state.fog[2][0][0] = false;
+    state.seen[2][0][0] = true;
+    window.fogSnapshot = [[false]];
+    resetState();
+    const rows = window.map.length, cols = window.map[0].length;
+    [1,2].forEach(p=>{
+      expect(state.fog[p].length).toBe(rows);
+      expect(state.fog[p][0].length).toBe(cols);
+      expect(state.fog[p].every(row=>row.every(v=>v===true))).toBe(true);
+      expect(state.seen[p].every(row=>row.every(v=>v===false))).toBe(true);
+    });
+    expect(window.fogSnapshot).toBeNull();
+  });
+
   test('terrain distribution is balanced and clustered', () => {
     document.getElementById('twoBtn').click();
     const { map, TERRAIN } = window;

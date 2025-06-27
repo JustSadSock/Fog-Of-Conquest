@@ -364,7 +364,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     TERRAIN, TERR_COST, TERR_DEF,
     UNIT_TYPES, BUILD_TYPES,
     UNIT_LABELS, BUILD_LABELS,
-    aiLevel
+    aiLevel,
+    fogSnapshot
   });
 
   let cellW, cellH;
@@ -457,6 +458,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     state.grace = {1:null,2:null};
     state.log   = {1:[],2:[]};
     replayEvents = [];
+    fogSnapshot = null;
+    window.fogSnapshot = fogSnapshot;
     initFog();
     overlay.style.display = 'none';
     spawnPanel.style.display = 'none';
@@ -650,7 +653,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     updateFog,
     nextTurn,
     recordEvent,
-    damageBuilding
+    damageBuilding,
+    resetState
   , saveGame, loadGameData, listSaves, deleteSave });
 
   // === LOS ===
@@ -1285,6 +1289,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       overlay.style.display='none';
       if(aiMode){
         fogSnapshot = state.fog[1].map(r=>r.slice());
+        window.fogSnapshot = fogSnapshot;
         waitText.textContent = 'Ход противника...';
         skipReplayBtn.style.display='none';
         waitOverlay.style.display='flex';
