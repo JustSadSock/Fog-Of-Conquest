@@ -24,84 +24,83 @@
   <div id="startPanel">
     <div id="startHeader">
       <h1 data-i18n="title">Fog of Conquest</h1>
-      <button id="startSettingsBtn" class="game-btn" title="Настройки" data-i18n-title="startSettings">⚙</button>
+      <button id="startSettingsBtn" class="game-btn" title="Settings" data-i18n-title="startSettings">⚙</button>
     </div>
     <div id="summary" data-i18n="summary">
-      <strong>Суть игры:</strong><br>
-      Fog of Conquest — пошаговая стратегия. Главная цель – захватить или разрушить все базы противника и тем самым лишить его возможности нанимать войска.<br><br>
-      <em>Юниты:</em><br>
-      • Рубака — ход 2, атака 2, защита 1, дальность 1, 5 HP, 3 зол.<br>
-      • Стрелок — ход 2, атака 3, защита 0, дальность 2, 4 HP, 4 зол.<br>
-      • Щитоносец — ход 1, атака 3, защита 2, дальность 1, 6 HP, 5 зол.<br>
-      • Всадник — ход 3, атака 3, защита 1, дальность 1, 5 HP, 7 зол.<br>
-      • Чародей — ход 2, атака 0, защита 0, дальность 1, 4 HP, 7 зол; лечит соседние отряды.<br>
-      • Бог (бета) обладает уникальными способностями.<br><br>
-      <em>Постройки:</em><br>
-      • База обучает начальные войска.<br>
-      • Казарма, конюшня и башня мага открывают новые типы юнитов.<br>
-      • Шахты и лесопилки приносят золото каждый ход.<br>
-      • Форт усиливает оборону занимающего его отряда.<br><br>
-      <em>Рельеф:</em><br>
-      Лес и холмы повышают защиту, вода замедляет, горы непроходимы.<br><br>
-      <em>Ход игры:</em><br>
-      • Захватывайте здания, чтобы получать золото и нанимать войска.<br>
-      • В начале каждого хода вы получаете доход со всех добывающих построек.<br>
-      • Перемещайте отряды и атакуйте врагов, после чего жмите «Конец хода».<br>
-      • Туман войны скрывает области, которые ваши войска ещё не разведали.<br>
-      Побеждает тот, кто уничтожит все базы и войска соперника.<br><br>
-      <em>Управление:</em><br>
-      • Левой кнопкой мыши выбирайте юнитов и клетки на карте.<br>
-      • Правой кнопкой отменяйте выбор.<br>
-      • Кнопка «ℹ️» показывает легенду, а «Показать карту» доступна в бета-режиме.
+      Turn-based strategy. Capture or destroy all enemy bases.<br><br>
+      <em>Units:</em><br>
+      • Swordsman — move 2, attack 2, defense 1, range 1, 5 HP, 3 gold.<br>
+      • Archer — move 2, attack 3, defense 0, range 2, 4 HP, 4 gold.<br>
+      • Heavy — move 1, attack 3, defense 2, range 1, 6 HP, 5 gold.<br>
+      • Rider — move 3, attack 3, defense 1, range 1, 5 HP, 7 gold.<br>
+      • Mage — move 2, attack 0, defense 0, range 1, 4 HP, 7 gold; heals adjacent allies.<br>
+      • Bog (beta) has unique abilities.<br><br>
+      <em>Buildings:</em><br>
+      • Base trains basic troops.<br>
+      • Barracks, stable and mage tower unlock new units.<br>
+      • Mills bring gold each turn.<br>
+      • Fort grants defense bonus.<br><br>
+      <em>Terrain:</em><br>
+      Forest and hills give defense, water slows, mountains impassable.<br><br>
+      <em>Gameplay:</em><br>
+      • Capture buildings to get gold and recruit units.<br>
+      • Income from resources each turn.<br>
+      • Move units and attack, then press End turn.<br>
+      • Fog of war hides unexplored areas.<br>
+      Win by destroying all enemy bases and troops.<br><br>
+      <em>Controls:</em><br>
+      • Left click to select units and cells.<br>
+      • Right click to cancel selection.<br>
+      • ℹ️ shows legend, Show map only in beta.
       </div>
     <div id="startButtons">
-      <button id="loadBtn" class="game-btn" data-i18n="loadBtn">Загрузить игру</button>
-      <button id="newGameBtn" class="game-btn" data-i18n="newGame">Начать новую игру</button>
+      <button id="loadBtn" class="game-btn" data-i18n="loadBtn">Load game</button>
+      <button id="newGameBtn" class="game-btn" data-i18n="newGame">Start new game</button>
       <div id="newGameOptions" style="display:none; flex-direction:column; align-items:center;">
         <div id="setupOpts">
-          <label for="mapSizeSelect" data-i18n="mapSizeLabel">Размер карты:</label>
+          <label for="mapSizeSelect" data-i18n="mapSizeLabel">Map size:</label>
           <select id="mapSizeSelect">
-            <option value="tiny" data-i18n="mapSizeTiny">Крошечная</option>
-            <option value="small" data-i18n="mapSizeSmall">Маленькая</option>
-            <option value="medium" selected data-i18n="mapSizeMedium">Средняя</option>
-            <option value="large" data-i18n="mapSizeLarge">Большая</option>
+            <option value="tiny" data-i18n="mapSizeTiny">Tiny</option>
+            <option value="small" data-i18n="mapSizeSmall">Small</option>
+            <option value="medium" selected data-i18n="mapSizeMedium">Medium</option>
+            <option value="large" data-i18n="mapSizeLarge">Large</option>
           </select>
         </div>
-        <button id="twoBtn" class="game-btn" data-i18n="startTwo">Два игрока</button>
-        <button id="aiBtn" class="game-btn" data-i18n="startAi">Один игрок</button>
-        <button id="betaBtn" class="game-btn" data-i18n="startBeta">Бета-игра</button>
+        <button id="twoBtn" class="game-btn" data-i18n="startTwo">Start game</button>
+        <button id="aiBtn" class="game-btn" data-i18n="startAi">Single player</button>
+        <button id="betaBtn" class="game-btn" data-i18n="startBeta">Extended mode (beta)</button>
       </div>
     </div>
   </div>
 
   <div id="aiPanel" style="display:none;">
-    <h1 data-i18n="aiTitle">Выбор сложности</h1>
+    <h1 data-i18n="aiTitle">Choose difficulty</h1>
     <select id="aiLevelSelect">
-      <option value="1" data-i18n="aiL1">Лёгкая</option>
-      <option value="2" selected data-i18n="aiL2">Средняя</option>
-      <option value="3" data-i18n="aiL3">Сложная</option>
-      <option value="4" data-i18n="aiL4">Невозможно</option>
+      <option value="1" data-i18n="aiL1">Easy</option>
+      <option value="2" selected data-i18n="aiL2">Normal</option>
+      <option value="3" data-i18n="aiL3">Hard</option>
+      <option value="4" data-i18n="aiL4">Impossible</option>
     </select>
-    <button id="aiStartBtn" class="game-btn" data-i18n="aiStart">Начать</button>
+    <button id="aiStartBtn" class="game-btn" data-i18n="aiStart">Start</button>
   </div>
 
   <div id="overlay">
     <div id="overlayMessage"></div>
-    <button id="yesBtn" class="game-btn" data-i18n="yes">Ок</button>
-    <button id="noBtn" class="game-btn" data-i18n="no">Отмена</button>
+    <button id="yesBtn" class="game-btn" data-i18n="yes">Ok</button>
+    <button id="noBtn" class="game-btn" data-i18n="no">Cancel</button>
   </div>
 
   <div id="waitOverlay">
-    <div id="waitText" data-i18n="wait">Подождите...</div>
-    <button id="skipReplayBtn" class="game-btn" style="display:none;" data-i18n="skip">Пропустить</button>
+    <div id="waitText" data-i18n="wait">Please wait...</div>
+    <button id="skipReplayBtn" class="game-btn" style="display:none;" data-i18n="skip">Skip</button>
   </div>
 
   <div id="victoryOverlay">
     <div class="panel">
       <div id="victoryText"></div>
-      <button id="viewReplayBtn" class="game-btn" data-i18n="viewReplay">Смотреть повтор</button>
-      <button id="victoryOkBtn" class="game-btn" data-i18n="victoryOk">Ок</button>
-      <button id="victoryMenuBtn" class="game-btn" data-i18n="exitReplay">В меню</button>
+      <button id="viewReplayBtn" class="game-btn" data-i18n="viewReplay">View replay</button>
+      <button id="victoryOkBtn" class="game-btn" data-i18n="victoryOk">Ok</button>
+      <button id="victoryMenuBtn" class="game-btn" data-i18n="exitReplay">Menu</button>
     </div>
   </div>
 
@@ -115,57 +114,57 @@
       <button class="speedBtn game-btn" data-speed="3">3×</button>
       <button class="speedBtn game-btn" data-speed="4">4×</button>
       <button class="speedBtn game-btn" data-speed="5">5×</button>
-      <button id="replaySideBtn" class="game-btn" data-i18n="replaySide">Сменить сторону</button>
+      <button id="replaySideBtn" class="game-btn" data-i18n="replaySide">Switch side</button>
       <button id="saveReplayBtn" class="game-btn" data-i18n="saveReplay">Save video</button>
     </div>
     <button id="replayPauseBtn" class="game-btn">⏸</button>
-    <button id="exitReplayBtn" class="game-btn" data-i18n="exitReplay">В меню</button>
+    <button id="exitReplayBtn" class="game-btn" data-i18n="exitReplay">Menu</button>
   </div>
 
   <div id="legendOverlay">
     <div class="panel" id="legendPanel"></div>
-    <button id="legendCloseBtn" class="game-btn" data-i18n="legendClose">Закрыть</button>
+    <button id="legendCloseBtn" class="game-btn" data-i18n="legendClose">Close</button>
   </div>
 
   <div id="settingsOverlay">
     <div class="panel">
       <div class="settings-group">
-        <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Упрощённый вид</span></label>
-        <label><input type="checkbox" id="hintsChk"/> <span data-i18n="tooltip">Подсказки</span></label>
+        <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Simplified view</span></label>
+        <label><input type="checkbox" id="hintsChk"/> <span data-i18n="tooltip">Hints</span></label>
       </div>
       <div class="settings-group">
         <div class="volume-setting">
           <input type="checkbox" id="musicEnable"/>
-          <span data-i18n="music">Музыка</span>
-          <span data-i18n="musicVolume">Громкость музыки:</span>
+          <span data-i18n="music">Music</span>
+          <span data-i18n="musicVolume">Music volume:</span>
           <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/>
         </div>
         <div class="volume-setting">
           <input type="checkbox" id="sfxEnable"/>
-          <span data-i18n="sfx">Звуковые эффекты</span>
-          <span data-i18n="sfxVolume">Громкость эффектов:</span>
+          <span data-i18n="sfx">Sound effects</span>
+          <span data-i18n="sfxVolume">Effects volume:</span>
           <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/>
         </div>
       </div>
       <div class="settings-group">
         <label for="langSelect" data-i18n="langLabel">Language</label>
         <select id="langSelect">
-          <option value="ru">Русский</option>
+          <option value="ru">Russian</option>
           <option value="en" selected>English</option>
-          <option value="uk">Українська</option>
+          <option value="uk">Ukrainian</option>
         </select>
       </div>
       <button id="fullscreenBtn" class="game-btn" data-i18n="fullscreen">Fullscreen</button>
-      <button id="saveBtn" class="game-btn" style="display:none;" data-i18n="saveBtn">Сохранить</button>
-      <button id="settingsMenuBtn" class="game-btn" data-i18n="exitReplay">В меню</button>
-      <button id="settingsCloseBtn" class="game-btn" data-i18n="settingsClose">Закрыть</button>
+      <button id="saveBtn" class="game-btn" style="display:none;" data-i18n="saveBtn">Save</button>
+      <button id="settingsMenuBtn" class="game-btn" data-i18n="exitReplay">Menu</button>
+      <button id="settingsCloseBtn" class="game-btn" data-i18n="settingsClose">Close</button>
     </div>
   </div>
 
   <div id="loadOverlay">
     <div class="panel">
       <div id="loadList"></div>
-      <button id="loadCloseBtn" class="game-btn" data-i18n="settingsClose">Закрыть</button>
+      <button id="loadCloseBtn" class="game-btn" data-i18n="settingsClose">Close</button>
     </div>
   </div>
 
@@ -177,10 +176,10 @@
 
   <div id="infoPanel">
     <div id="controls">
-      <button id="legendBtn" class="game-btn" title="Легенда" data-i18n-title="legendBtnTitle">ℹ️</button>
-      <button id="settingsBtn" class="game-btn" title="Настройки" data-i18n-title="settingsBtn">⚙</button>
-      <button id="revealBtn" class="game-btn" data-i18n="revealShow">Показать карту</button>
-      <button id="endTurnBtn" class="game-btn" data-i18n="endTurn">Конец хода</button>
+      <button id="legendBtn" class="game-btn" title="Legend" data-i18n-title="legendBtnTitle">ℹ️</button>
+      <button id="settingsBtn" class="game-btn" title="Settings" data-i18n-title="settingsBtn">⚙</button>
+      <button id="revealBtn" class="game-btn" data-i18n="revealShow">Show map</button>
+      <button id="endTurnBtn" class="game-btn" data-i18n="endTurn">End turn</button>
     </div>
     <div id="statsLog">
       <div id="leftStats"></div>
