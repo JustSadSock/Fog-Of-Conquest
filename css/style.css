@@ -491,15 +491,21 @@ h1 {
   padding: 20px;
   border: 1px solid #555;
   border-radius: 6px;
-  width: 90%;
-  max-width: 400px;
+  width: auto;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 
 #settingsOverlay label {
   margin: 6px 0;
+}
+
+#settingsOverlay input[type="range"],
+#settingsOverlay select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #settingsOverlay button {
