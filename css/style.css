@@ -12,6 +12,11 @@ html, body {
   font-family: 'MedievalSharp', cursive;
 }
 
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 h1 {
   font-family: 'Cinzel Decorative','MedievalSharp', cursive;
   margin-top: 0;
