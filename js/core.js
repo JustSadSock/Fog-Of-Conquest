@@ -401,20 +401,39 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     const scale = ROWS / BASE_ROWS;
 
-    function blob(type,count){
-      for(let i=0;i<count;i++){
-        let r=Math.random()*ROWS|0, c=Math.random()*COLS|0;
-        for(let k=0;k<15;k++){
-          map[r][c]=type;
-          r=Math.max(1,Math.min(ROWS-2, r+[1,-1,0,0][Math.random()*4|0]));
-          c=Math.max(1,Math.min(COLS-2, c+[0,0,1,-1][Math.random()*4|0]));
+    // --- Terrain generation via layered noise ---
+    const seed = Math.random() * 1000;
+    const noise = (x,y)=>{
+      const n = Math.sin((x*12.9898 + y*78.233 + seed) * 43758.5453);
+      return n - Math.floor(n);
+    };
+    const layeredNoise = (x,y)=>{
+      let v=0, amp=1, sum=0;
+      for(let i=0;i<3;i++){
+        v += noise(x,y) * amp;
+        sum += amp;
+        x *= 2; y *= 2; amp /= 2;
+      }
+      return v / sum;
+    };
+
+    const waterT = 0.10,
+          forestT = 0.225,
+          hillT = 0.325,
+          mountainT = 0.925;
+
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        let n = layeredNoise(r/ROWS, c/COLS);
+        if(n < waterT) map[r][c] = TERRAIN.WATER;
+        else if(n < forestT) map[r][c] = TERRAIN.FOREST;
+        else if(n < hillT) map[r][c] = TERRAIN.HILL;
+        else {
+          let m = layeredNoise(r/ROWS + 100, c/COLS - 100);
+          if(m > mountainT) map[r][c] = TERRAIN.MOUNTAIN;
         }
       }
     }
-    blob(TERRAIN.WATER,Math.max(1,Math.round(4*scale)));
-    blob(TERRAIN.FOREST,Math.max(1,Math.round(5*scale)));
-    blob(TERRAIN.HILL,Math.max(1,Math.round(4*scale)));
-    blob(TERRAIN.MOUNTAIN,Math.max(1,Math.round(3*scale)));
     // keep mountains away from bases
     [[1,1],[ROWS-2,COLS-2]].forEach(([br,bc])=>{
       for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
