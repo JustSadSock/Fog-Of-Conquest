@@ -6,6 +6,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  touch-action: manipulation;
   background: radial-gradient(#111, #000);
   color: #2e2e2e;
   font-family: 'MedievalSharp', cursive;
@@ -31,6 +32,9 @@ h1 {
   cursor: pointer;
   font: 1em 'Lora', serif;
   font-weight: bold;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
   transition: background 0.3s, transform 0.2s;
 }
 
@@ -61,6 +65,26 @@ h1 {
   font: 1.1em 'MedievalSharp', cursive;
   z-index: 30;
   text-shadow: 0 0 6px #000;
+}
+
+#startHeader {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+#startHeader h1 {
+  margin: 0 auto;
+}
+
+#startHeader button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 #summary {

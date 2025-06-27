@@ -448,7 +448,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // === Resize ===
   window.addEventListener('resize',()=>{
-    const infoH = document.getElementById('infoPanel').offsetHeight;
+    const infoPanel = document.getElementById('infoPanel');
+    const infoH = infoPanel.offsetHeight;
     const size = Math.floor(Math.min(
       window.innerWidth / COLS,
       (window.innerHeight - infoH) / ROWS
@@ -456,6 +457,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     cellW = cellH = size;
     canvas.width  = cellW * COLS;
     canvas.height = cellH * ROWS;
+    const extra = window.innerHeight - infoH - canvas.height;
+    infoPanel.style.bottom = extra > 0 ? extra + 'px' : '0';
     updateAll();
   });
 

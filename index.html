@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#000000"/>
   <title>Fog of Conquest</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora&family=MedievalSharp&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
@@ -15,7 +19,10 @@
   <audio id="uiClickSfx" src="https://samplelib.com/lib/preview/mp3/sample-12s.mp3" data-type="sfx"></audio>
   <audio id="uiHoverSfx" src="https://samplelib.com/lib/preview/mp3/sample-15s.mp3" data-type="sfx"></audio>
   <div id="startPanel">
-    <h1 data-i18n="title">Fog of Conquest</h1>
+    <div id="startHeader">
+      <h1 data-i18n="title">Fog of Conquest</h1>
+      <button id="startSettingsBtn" class="game-btn" data-i18n="startSettings">⚙</button>
+    </div>
     <div id="summary" data-i18n="summary">
       <strong>Суть игры:</strong><br>
       Fog of Conquest — пошаговая стратегия. Главная цель – захватить или разрушить все базы противника и тем самым лишить его возможности нанимать войска.<br><br>
@@ -45,7 +52,6 @@
       • Кнопка «ℹ️» показывает легенду, а «Показать карту» доступна в бета-режиме.
       </div>
     <div id="startButtons">
-      <button id="startSettingsBtn" class="game-btn" data-i18n="startSettings">⚙</button>
       <button id="loadBtn" class="game-btn" data-i18n="loadBtn">Загрузить игру</button>
       <button id="newGameBtn" class="game-btn" data-i18n="newGame">Начать новую игру</button>
       <div id="newGameOptions" style="display:none; flex-direction:column; align-items:center;">
