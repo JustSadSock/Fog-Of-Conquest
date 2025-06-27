@@ -77,7 +77,13 @@ h1 {
 }
 
 #startPanel button {
-  margin: 6px;
+  margin: 0;
+}
+#startButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
 }
 #startPanel button:hover:not(:disabled) {
   animation: pulse 0.4s ease;
@@ -380,7 +386,7 @@ h1 {
   background: rgba(0, 0, 0, 0.8);
   color: #fff;
   font: 1.1em 'Lora', serif;
-  z-index: 50;
+  z-index: 60;
   text-align: center;
 }
 
