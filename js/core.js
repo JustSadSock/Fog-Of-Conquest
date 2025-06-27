@@ -1,6 +1,6 @@
 // js/core.js
 
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded', ()=>{
   // === Утилиты ===
   const abs = Math.abs,
         randChoice = arr => arr[Math.random()*arr.length|0];
@@ -97,6 +97,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         musicVolumeEl = document.getElementById('musicVolume'),
         sfxEnableEl   = document.getElementById('sfxEnable'),
         sfxVolumeEl   = document.getElementById('sfxVolume'),
+        langSelect    = document.getElementById('langSelect'),
         settingsCloseBtn = document.getElementById('settingsCloseBtn'),
         tooltipToggle = document.getElementById('tooltipToggle'),
         tooltipDiv   = document.getElementById('tooltip'),
@@ -144,7 +145,9 @@ window.addEventListener('DOMContentLoaded',()=>{
       musicVolume = 0.5,
       sfxVolume = 0.5,
       musicEnabled = false,
-      sfxEnabled = true;
+      sfxEnabled = true,
+      lang = 'ru',
+      strings = {};
 
   function loadSettings(){
     try{
@@ -155,6 +158,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(typeof saved.sfxVolume==='number') sfxVolume = saved.sfxVolume;
         if(typeof saved.musicEnabled==='boolean') musicEnabled = saved.musicEnabled;
         if(typeof saved.sfxEnabled==='boolean') sfxEnabled = saved.sfxEnabled;
+        if(typeof saved.lang==='string') lang = saved.lang;
       }
     }catch(e){}
   }
@@ -165,7 +169,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       musicVolume,
       sfxVolume,
       musicEnabled,
-      sfxEnabled
+      sfxEnabled,
+      lang
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
   }
@@ -189,7 +194,40 @@ window.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
+  function loadLangStrings(){
+    try{
+      if(location.protocol === 'file:' && typeof require==='function'){
+        const fs = require('fs');
+        const path = require('path');
+        const base = path.dirname(location.pathname);
+        const file = path.join(base,'data','lang',lang+'.json');
+        strings = JSON.parse(fs.readFileSync(file,'utf8'));
+      } else {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `data/lang/${lang}.json`, false);
+        xhr.send(null);
+        if(xhr.status===200) strings = JSON.parse(xhr.responseText);
+      }
+    }catch(e){ strings = {}; }
+  }
+
+  function t(key){ return strings[key] || key; }
+
+  function applyStrings(){
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const k=el.getAttribute('data-i18n');
+      if(strings[k]) el.innerHTML=strings[k];
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+      const k=el.getAttribute('data-i18n-title');
+      if(strings[k]) el.setAttribute('title', strings[k]);
+    });
+  }
+
   loadSettings();
+  loadLangStrings();
+  applyStrings();
   applyVolumes();
 
   function getUnitSprite(u){
@@ -918,7 +956,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   function endGame(w){
     gameOver=true;
-    victoryText.textContent = `Игрок ${w} победил!`;
+    victoryText.textContent = t('victory').replace('{player}', w);
     victoryOverlay.style.display = 'flex';
   }
 
@@ -933,9 +971,17 @@ window.addEventListener('DOMContentLoaded',()=>{
     units.filter(u=>u.owner===p).forEach(u=>counts[u.type]=(counts[u.type]||0)+1);
     let selInfo=sel
       ? sel.type==='mage'
-        ? `Выбран: ${UNIT_LABELS[sel.type]} MP:${sel.mp}/${UNIT_TYPES[sel.type].move}`
-        : `Выбран: ${UNIT_LABELS[sel.type]} HP:${sel.hp}/${UNIT_TYPES[sel.type].hpMax} MP:${sel.mp}/${UNIT_TYPES[sel.type].move}`
-      : 'Объект не выбран';
+        ? t('selectedMage')
+            .replace('{unit}', UNIT_LABELS[sel.type])
+            .replace('{mp}', sel.mp)
+            .replace('{move}', UNIT_TYPES[sel.type].move)
+        : t('selectedUnit')
+            .replace('{unit}', UNIT_LABELS[sel.type])
+            .replace('{hp}', sel.hp)
+            .replace('{hpMax}', UNIT_TYPES[sel.type].hpMax)
+            .replace('{mp}', sel.mp)
+            .replace('{move}', UNIT_TYPES[sel.type].move)
+      : t('notSelected');
     leftStats.innerHTML=
       `<div>Ход: ${state.turn} — Игрок ${p}</div>
        <div>Золото: ${state.gold[p]} (+${income}/ход)</div>
@@ -973,7 +1019,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       let tgt=units.find(u=>u.r===y&&u.c===x&&u.owner===p&&u.hp<UNIT_TYPES[u.type].hpMax);
       if(tgt&&abs(tgt.r-sel.r)+abs(tgt.c-sel.c)<=1){
         sel.mp=0; tgt.hp=Math.min(UNIT_TYPES[tgt.type].hpMax,tgt.hp+2);
-        recordEvent(`Чародей восстановил ${UNIT_LABELS[tgt.type]} на 2 HP`);
+        recordEvent(t('mageHeal').replace('{unit}', UNIT_LABELS[tgt.type]));
         playAudio(healSfx);
         sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
       }
@@ -1013,7 +1059,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         const bldTgt=!tgt && buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
         if(tgt&&dist<=info.range && hasLOS(sel.r,sel.c,tgt.r,tgt.c,{forestBlock:false})){
           if(map[sel.r][sel.c]===TERRAIN.WATER){
-            recordEvent('Нельзя атаковать из воды');
+            recordEvent(t('noAttackWater'));
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
           }
           sel.mp=0;
@@ -1039,7 +1085,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         }
         if(bldTgt && dist<=info.range && hasLOS(sel.r,sel.c,bldTgt.r,bldTgt.c,{forestBlock:false})){
           if(map[sel.r][sel.c]===TERRAIN.WATER){
-            recordEvent('Нельзя атаковать из воды');
+            recordEvent(t('noAttackWater'));
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
           }
           sel.mp=0;
@@ -1197,7 +1243,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   tooltipToggle.addEventListener('click',()=>{
     tooltipEnabled = !tooltipEnabled;
-    tooltipToggle.textContent = tooltipEnabled ? 'Подсказки ✓' : 'Подсказки';
+    tooltipToggle.textContent = tooltipEnabled ? t('tooltipOn') : t('tooltip');
     if(!tooltipEnabled) tooltipDiv.style.display = 'none';
   });
 
@@ -1207,6 +1253,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     musicVolumeEl.value = musicVolume;
     sfxEnableEl.checked = sfxEnabled;
     sfxVolumeEl.value = sfxVolume;
+    langSelect.value = lang;
     settingsOverlay.style.display='flex';
   });
 
@@ -1215,18 +1262,21 @@ window.addEventListener('DOMContentLoaded',()=>{
       settingsBtn.click();
     });
   }
-  function applySettings(){
+  async function applySettings(){
     simpleView = simplifyChk.checked;
     musicEnabled = musicEnableEl.checked;
     musicVolume = parseFloat(musicVolumeEl.value);
     sfxEnabled = sfxEnableEl.checked;
     sfxVolume = parseFloat(sfxVolumeEl.value);
+    lang = langSelect.value;
+    loadLangStrings();
+    applyStrings();
     applyVolumes();
     saveSettings();
     updateAll();
   }
 
-  [simplifyChk,musicEnableEl,musicVolumeEl,sfxEnableEl,sfxVolumeEl].forEach(el=>{
+  [simplifyChk,musicEnableEl,musicVolumeEl,sfxEnableEl,sfxVolumeEl,langSelect].forEach(el=>{
     el.addEventListener('input', applySettings);
     el.addEventListener('change', applySettings);
   });
@@ -1245,7 +1295,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   revealBtn.addEventListener('click',()=>{
     if(!modeBeta) return;
     revealAll = !revealAll;
-    revealBtn.textContent = revealAll?'Скрыть карту':'Показать карту';
+    revealBtn.textContent = revealAll ? t('revealHide') : t('revealShow');
     updateAll();
   });
 
