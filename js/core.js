@@ -812,6 +812,26 @@ window.addEventListener('DOMContentLoaded', ()=>{
       ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
       zoneList.forEach(z=>ctx.strokeRect(z.c*cellW+1,z.r*cellH+1,cellW-2,cellH-2));
       ctx.setLineDash([]);
+
+      // attackable enemies considering mountains
+      units.filter(u=>u.owner!==sel.owner &&
+          Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=UNIT_TYPES[sel.type].range &&
+          hasLOS(sel.r,sel.c,u.r,u.c,{forestBlock:false}))
+        .forEach(u=>{
+          ctx.fillStyle='rgba(255,0,0,0.3)';
+          ctx.fillRect(u.c*cellW,u.r*cellH,cellW,cellH);
+        });
+
+      // healable allies for mage
+      if(sel.type==='mage'){
+        units.filter(u=>u.owner===sel.owner &&
+            u.hp<UNIT_TYPES[u.type].hpMax &&
+            Math.abs(u.r-sel.r)+Math.abs(u.c-sel.c)<=1)
+          .forEach(u=>{
+            ctx.fillStyle='rgba(0,255,0,0.3)';
+            ctx.fillRect(u.c*cellW,u.r*cellH,cellW,cellH);
+          });
+      }
     }
 
     if(spawnMode){
