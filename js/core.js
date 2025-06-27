@@ -495,6 +495,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     hasLOS,
     doAttack,
     doAttackBuilding,
+    spawn,
     addReplay,
     updateFog,
     nextTurn,

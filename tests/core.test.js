@@ -314,6 +314,52 @@ describe('Fog of Conquest core', () => {
     expect(afterText).toBe('Скрыть карту');
   });
 
+  test('combat and capture work in beta mode', () => {
+    const { map, TERRAIN, buildings, units, state, BUILD_TYPES, UNIT_TYPES } = window;
+    document.getElementById('betaBtn').click();
+    document.getElementById('revealBtn').click();
+    units.length = 0;
+    buildings.length = 0;
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++) map[r][c] = TERRAIN.PLAIN;
+    buildings.push({ r:0, c:1, owner:1, type:'base', gen:BUILD_TYPES.base.gen, hp:BUILD_TYPES.base.hpMax });
+    units.push({ id:1, r:0, c:0, owner:2, type:'swordsman', hp:UNIT_TYPES.swordsman.hpMax, mp:UNIT_TYPES.swordsman.move, startR:0, startC:0 });
+    units.push({ id:2, r:0, c:1, owner:1, type:'swordsman', hp:1, mp:UNIT_TYPES.swordsman.move, startR:0, startC:1 });
+    state.currentPlayer = 2;
+    const canvas = document.getElementById('canvas');
+    canvas.getBoundingClientRect = () => ({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW = canvas.width / map[0].length;
+    const cellH = canvas.height / map.length;
+    const click = (r,c) => canvas.dispatchEvent(new window.MouseEvent('click', {clientX:(c+0.5)*cellW, clientY:(r+0.5)*cellH}));
+    click(0,0); // select attacker
+    click(0,1); // attack and move onto building
+    expect(buildings[0].owner).toBe(1);
+    expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax - 1);
+    for(let i=1;i<BUILD_TYPES.base.hpMax;i++) window.damageBuilding(buildings[0],2);
+    expect(buildings[0].owner).toBe(2);
+    expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax);
+  });
+
+  test('unit spawning works in beta mode', () => {
+    const { map, TERRAIN, buildings, units, state, BUILD_TYPES } = window;
+    document.getElementById('betaBtn').click();
+    document.getElementById('revealBtn').click();
+    units.length = 0;
+    buildings.length = 0;
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++) map[r][c] = TERRAIN.PLAIN;
+    buildings.push({ r:1, c:1, owner:1, type:'base', gen:BUILD_TYPES.base.gen, hp:BUILD_TYPES.base.hpMax });
+    state.currentPlayer = 1;
+    const canvas = document.getElementById('canvas');
+    canvas.getBoundingClientRect = () => ({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW = canvas.width / map[0].length;
+    const cellH = canvas.height / map.length;
+    const click = (r,c) => canvas.dispatchEvent(new window.MouseEvent('click', {clientX:(c+0.5)*cellW, clientY:(r+0.5)*cellH}));
+    click(1,1); // select base
+    document.getElementById('spawnPanel').querySelector('button').click();
+    click(0,1); // spawn above base
+    const spawned = units.find(u => u.owner === 1 && u.r === 0 && u.c === 1 && u.type === 'swordsman');
+    expect(spawned).toBeDefined();
+  });
+
   test('starting a new match resets fog after resizing', () => {
     const { state } = window;
     state.seen[1][0][0] = true;
