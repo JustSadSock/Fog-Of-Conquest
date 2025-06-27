@@ -126,10 +126,18 @@
   <div id="settingsOverlay">
     <div class="panel">
       <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Упрощённый вид</span></label>
-      <label><input type="checkbox" id="musicEnable"/> <span data-i18n="music">Музыка</span></label>
-      <label data-i18n="musicVolume">Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/></label>
-      <label><input type="checkbox" id="sfxEnable"/> <span data-i18n="sfx">Звуковые эффекты</span></label>
-      <label data-i18n="sfxVolume">Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/></label>
+      <div class="volume-setting">
+        <input type="checkbox" id="musicEnable"/>
+        <span data-i18n="music">Музыка</span>
+        <span data-i18n="musicVolume">Громкость музыки:</span>
+        <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/>
+      </div>
+      <div class="volume-setting">
+        <input type="checkbox" id="sfxEnable"/>
+        <span data-i18n="sfx">Звуковые эффекты</span>
+        <span data-i18n="sfxVolume">Громкость эффектов:</span>
+        <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/>
+      </div>
       <label data-i18n="langLabel">Language: <select id="langSelect">
         <option value="ru">Русский</option>
         <option value="en">English</option>

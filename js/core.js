@@ -1480,8 +1480,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   settingsBtn.addEventListener('click',()=>{
     simplifyChk.checked = simpleView;
     musicEnableEl.checked = musicEnabled;
+    musicVolumeEl.disabled = !musicEnabled;
     musicVolumeEl.value = musicVolume;
     sfxEnableEl.checked = sfxEnabled;
+    sfxVolumeEl.disabled = !sfxEnabled;
     sfxVolumeEl.value = sfxVolume;
     langSelect.value = lang;
     hintsChk.checked = tooltipEnabled;
@@ -1505,8 +1507,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   async function applySettings(){
     simpleView = simplifyChk.checked;
     musicEnabled = musicEnableEl.checked;
+    musicVolumeEl.disabled = !musicEnabled;
     musicVolume = parseFloat(musicVolumeEl.value);
     sfxEnabled = sfxEnableEl.checked;
+    sfxVolumeEl.disabled = !sfxEnabled;
     sfxVolume = parseFloat(sfxVolumeEl.value);
     lang = langSelect.value;
     loadLangStrings();
