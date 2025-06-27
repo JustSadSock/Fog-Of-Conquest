@@ -492,6 +492,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     computeZone,
     hasLOS,
     doAttack,
+    doAttackBuilding,
     addReplay,
     updateFog,
     nextTurn,
@@ -830,9 +831,20 @@ window.addEventListener('DOMContentLoaded',()=>{
     return {dmg,rdmg,killed};
   }
 
-  function damageBuilding(b, newOwner){
+  function doAttackBuilding(att,bld){
+    if(att.type==='mage') return {dmg:0};
+    const info=UNIT_TYPES[att.type];
+    let atk=info.atk;
+    if(att.type==='cavalry' && BUILD_TYPES[bld.type].def>0) atk--;
+    let defV=BUILD_TYPES[bld.type].def+TERR_DEF[map[bld.r][bld.c]];
+    let dmg=Math.max(1,atk-defV);
+    damageBuilding(bld, att.owner, dmg);
+    return {dmg};
+  }
+
+  function damageBuilding(b, newOwner, dmg=1){
     if(!b) return;
-    b.hp--;
+    b.hp-=dmg;
     if(b.hp<=0){
       const baseTaken=(b.gen ?? BUILD_TYPES[b.type].gen)===0;
       recordEvent(baseTaken
@@ -968,6 +980,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         const info=UNIT_TYPES[sel.type];
         const dist=abs(y-sel.r)+abs(x-sel.c);
         const tgt=units.find(u=>u.r===y&&u.c===x&&u.owner!==p);
+        const bldTgt=!tgt && buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
         if(tgt&&dist<=info.range && hasLOS(sel.r,sel.c,tgt.r,tgt.c,{forestBlock:false})){
           if(map[sel.r][sel.c]===TERRAIN.WATER){
             recordEvent('Нельзя атаковать из воды');
@@ -987,6 +1000,24 @@ window.addEventListener('DOMContentLoaded',()=>{
           }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
                       (rdmg?`, получил ${rdmg}`:''));
+          if(sel.mp>0){
+            let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
+          } else {
+            sel=null; zoneMap=null; zoneList=[];
+          }
+          updateAll(); return;
+        }
+        if(bldTgt && dist<=info.range && hasLOS(sel.r,sel.c,bldTgt.r,bldTgt.c,{forestBlock:false})){
+          if(map[sel.r][sel.c]===TERRAIN.WATER){
+            recordEvent('Нельзя атаковать из воды');
+            sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
+          }
+          sel.mp=0;
+          const {dmg}=doAttackBuilding(sel,bldTgt);
+          if(!aiMode) addReplay({type:'attack',target:bldTgt});
+          playAudio(attackSfx);
+          animateShake(bldTgt);
+          recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${BUILD_LABELS[bldTgt.type]} за ${dmg}`);
           if(sel.mp>0){
             let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
           } else {

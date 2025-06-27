@@ -225,6 +225,26 @@ describe('Fog of Conquest core', () => {
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax);
   });
 
+  test('archer damages building from range', () => {
+    const { map, TERRAIN, buildings, units, state, BUILD_TYPES, UNIT_TYPES, doAttackBuilding } = window;
+    document.getElementById('twoBtn').click();
+    units.length = 0;
+    buildings.length = 0;
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++) map[r][c]=TERRAIN.PLAIN;
+    buildings.push({r:0,c:1,owner:1,type:'base',gen:BUILD_TYPES.base.gen,hp:BUILD_TYPES.base.hpMax});
+    units.push({id:1,r:0,c:0,owner:2,type:'archer',hp:UNIT_TYPES.archer.hpMax,mp:UNIT_TYPES.archer.move,startR:0,startC:0});
+    state.currentPlayer = 2;
+    const archer = units[0];
+    const base = buildings[0];
+    const res = doAttackBuilding(archer, base);
+    expect(res.dmg).toBe(2);
+    expect(base.hp).toBe(BUILD_TYPES.base.hpMax - 2);
+    expect(base.owner).toBe(1);
+    doAttackBuilding(archer, base);
+    expect(base.owner).toBe(2);
+    expect(base.hp).toBe(BUILD_TYPES.base.hpMax);
+  });
+
   test('mage highlights adjacent injured allies', async () => {
     const draws = [];
     HTMLCanvasElement.prototype.getContext = () => {
