@@ -1280,23 +1280,18 @@ window.addEventListener('DOMContentLoaded', ()=>{
             recordEvent(t('noAttackWater'));
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
           }
-          if(bldTgt.hp<=0){
-            const from={r:sel.r,c:sel.c};
-            sel.mp=zoneMap.rem[bldTgt.r][bldTgt.c]>=0?zoneMap.rem[bldTgt.r][bldTgt.c]:0;
-            if(!aiMode) addReplay({type:'move',unit:sel,from,to:{r:bldTgt.r,c:bldTgt.c}});
-            animateMove(sel,sel.r,sel.c,bldTgt.r,bldTgt.c);
-            sel.r=bldTgt.r; sel.c=bldTgt.c;
-            attemptCapture(sel,bldTgt);
-            recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
-            if(sel.mp>0){ let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list; }
-            else { sel=null; zoneMap=null; zoneList=[]; }
-            updateAll(); return;
-          }
           sel.mp=0;
           const {dmg}=doAttackBuilding(sel,bldTgt);
           if(!aiMode) addReplay({type:'attack',target:bldTgt});
           playAudio(attackSfx);
           animateShake(bldTgt);
+          let destroyed = bldTgt.hp<=0;
+          if(destroyed && UNIT_TYPES[sel.type].range===1){
+            if(!aiMode) addReplay({type:'move',unit:sel,from:{r:sel.r,c:sel.c},to:{r:bldTgt.r,c:bldTgt.c}});
+            animateMove(sel,sel.r,sel.c,bldTgt.r,bldTgt.c);
+            sel.r=bldTgt.r; sel.c=bldTgt.c;
+            attemptCapture(sel,bldTgt);
+          }
           recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${BUILD_LABELS[bldTgt.type]} за ${dmg}`);
           if(sel.mp>0){
             let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
