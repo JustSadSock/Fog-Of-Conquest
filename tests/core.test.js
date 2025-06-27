@@ -293,4 +293,18 @@ describe('Fog of Conquest core', () => {
     expect(beforeText).toBe('Показать карту');
     expect(afterText).toBe('Скрыть карту');
   });
+
+  test('starting a new match resets fog after resizing', () => {
+    const { state } = window;
+    state.seen[1][0][0] = true;
+    state.fog[1][0][0] = false;
+    document.getElementById('mapSizeSelect').value = 'large';
+    document.getElementById('twoBtn').click();
+    const rows = window.map.length, cols = window.map[0].length;
+    const r = Math.floor(rows/2), c = Math.floor(cols/2);
+    expect(state.seen[1].length).toBe(rows);
+    expect(state.seen[1][0].length).toBe(cols);
+    expect(state.seen[1][r][c]).toBe(false);
+    expect(state.fog[1][r][c]).toBe(true);
+  });
 });
