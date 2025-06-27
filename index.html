@@ -9,9 +9,11 @@
 </head>
 <body>
   <!-- Background music removed -->
-  <audio id="attackSfx" src="https://www.w3schools.com/html/horse.mp3" data-type="sfx"></audio>
-  <audio id="healSfx" src="https://www.w3schools.com/html/horse.mp3" data-type="sfx"></audio>
-  <audio id="captureSfx" src="https://www.w3schools.com/html/horse.mp3" data-type="sfx"></audio>
+  <audio id="attackSfx" src="https://samplelib.com/lib/preview/mp3/sample-3s.mp3" data-type="sfx"></audio>
+  <audio id="healSfx" src="https://samplelib.com/lib/preview/mp3/sample-6s.mp3" data-type="sfx"></audio>
+  <audio id="captureSfx" src="https://samplelib.com/lib/preview/mp3/sample-9s.mp3" data-type="sfx"></audio>
+  <audio id="uiClickSfx" src="https://samplelib.com/lib/preview/mp3/sample-12s.mp3" data-type="sfx"></audio>
+  <audio id="uiHoverSfx" src="https://samplelib.com/lib/preview/mp3/sample-15s.mp3" data-type="sfx"></audio>
   <div id="startPanel">
     <h1>Fog of Conquest</h1>
     <div id="summary">
@@ -95,9 +97,9 @@
     <div class="panel">
       <label><input type="checkbox" id="simplifyChk"/> Упрощённый вид</label>
       <label><input type="checkbox" id="musicEnable"/> Музыка</label>
-      <label>Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01"/></label>
+      <label>Громкость музыки: <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/></label>
       <label><input type="checkbox" id="sfxEnable"/> Звуковые эффекты</label>
-      <label>Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01"/></label>
+      <label>Громкость эффектов: <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/></label>
       <button id="settingsCloseBtn">Закрыть</button>
     </div>
   </div>
