@@ -108,7 +108,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
         healSfx      = document.getElementById('healSfx'),
         captureSfx   = document.getElementById('captureSfx'),
         uiClickSfx   = document.getElementById('uiClickSfx'),
-        uiHoverSfx   = document.getElementById('uiHoverSfx');
+        uiHoverSfx   = document.getElementById('uiHoverSfx'),
+        loadBtn      = document.getElementById('loadBtn'),
+        loadOverlay  = document.getElementById('loadOverlay'),
+        loadList     = document.getElementById('loadList'),
+        loadCloseBtn = document.getElementById('loadCloseBtn'),
+        saveBtn      = document.getElementById('saveBtn');
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
@@ -142,6 +147,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   };
 
   const SETTINGS_KEY = 'focSettings';
+  const SAVE_PREFIX = 'focSave_';
+  const SAVE_VERSION = 1;
   const isTestEnv = navigator.userAgent.includes('jsdom');
   let simpleView = false,
       musicVolume = 0.5,
@@ -443,6 +450,57 @@ window.addEventListener('DOMContentLoaded', ()=>{
     startPanel.style.display='flex';
   }
 
+  function listSaves(){
+    const arr = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith(SAVE_PREFIX)){
+        try{
+          const d = JSON.parse(localStorage.getItem(k));
+          if(d && d.timestamp) arr.push({key:k, timestamp:d.timestamp});
+        }catch(e){}
+      }
+    }
+    return arr.sort((a,b)=>b.timestamp-a.timestamp);
+  }
+
+  function saveGame(){
+    const data = {
+      version: SAVE_VERSION,
+      timestamp: Date.now(),
+      map,
+      buildings,
+      units,
+      state,
+      mapSize,
+      nextUnitId
+    };
+    try{ localStorage.setItem(SAVE_PREFIX+data.timestamp, JSON.stringify(data)); }
+    catch(e){}
+  }
+
+  function loadGameData(key){
+    try{
+      const d = JSON.parse(localStorage.getItem(key));
+      if(!d) return;
+      resetState();
+      map.length = 0; d.map.forEach(row=>map.push([...row]));
+      buildings.length = 0; d.buildings.forEach(b=>buildings.push({...b}));
+      units.length = 0; d.units.forEach(u=>units.push({...u}));
+      Object.assign(state, d.state);
+      mapSize = d.mapSize || mapSize;
+      ROWS = map.length; COLS = map[0].length;
+      nextUnitId = d.nextUnitId || (Math.max(0,...units.map(u=>u.id))+1);
+      startPanel.style.display='none';
+      window.dispatchEvent(new Event('resize'));
+      updateAll();
+    }catch(e){}
+  }
+
+  function deleteSave(key){
+    localStorage.removeItem(key);
+  }
+
   // === Генерация карты ===
   function generateMap(){
     buildings.length = 0;
@@ -576,7 +634,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     nextTurn,
     recordEvent,
     damageBuilding
-  });
+  , saveGame, loadGameData, listSaves, deleteSave });
 
   // === LOS ===
   function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
@@ -1308,6 +1366,51 @@ window.addEventListener('DOMContentLoaded', ()=>{
     btn.addEventListener('mouseenter',()=>playAudio(uiHoverSfx));
     btn.addEventListener('click',()=>playAudio(uiClickSfx));
   });
+
+  if(saveBtn){
+    saveBtn.addEventListener('click', saveGame);
+  }
+
+  if(loadBtn){
+    loadBtn.addEventListener('click', ()=>{
+      populateLoadList();
+      loadOverlay.style.display='flex';
+    });
+  }
+
+  function populateLoadList(){
+    loadList.innerHTML = '';
+    const saves = listSaves();
+    if(!saves.length){
+      const div=document.createElement('div');
+      div.textContent = t('noSaves');
+      loadList.appendChild(div);
+      return;
+    }
+    saves.forEach(s=>{
+      const row=document.createElement('div');
+      row.className='load-item';
+      const date=new Date(s.timestamp).toLocaleString();
+      row.innerHTML = `<span>${date}</span>`+
+        `<span><button data-key="${s.key}" class="loadBtn" data-i18n="loadSave">Загрузить</button>`+
+        `<button data-key="${s.key}" class="delBtn" data-i18n="deleteSave">Удалить</button></span>`;
+      loadList.appendChild(row);
+    });
+    applyStrings();
+  }
+
+  loadList.addEventListener('click',e=>{
+    const key=e.target.dataset.key;
+    if(e.target.classList.contains('loadBtn')){
+      loadGameData(key);
+      loadOverlay.style.display='none';
+    }else if(e.target.classList.contains('delBtn')){
+      deleteSave(key);
+      populateLoadList();
+    }
+  });
+
+  loadCloseBtn.addEventListener('click',()=>{loadOverlay.style.display='none';});
 
   // === Туман войны (бета) ===
   revealBtn.addEventListener('click',()=>{
