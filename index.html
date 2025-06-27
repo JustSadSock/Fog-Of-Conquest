@@ -110,7 +110,6 @@
       <button id="replayToggleBtn" class="game-btn" data-i18n-title="replayCollapse">☰</button>
       <input id="replaySeek" type="range" min="0" value="0">
       <button id="replayRestartBtn" class="game-btn" data-i18n="replayRestart">Restart</button>
-      <button class="speedBtn game-btn" data-speed="0">0×</button>
       <button class="speedBtn game-btn" data-speed="1">1×</button>
       <button class="speedBtn game-btn" data-speed="2">2×</button>
       <button class="speedBtn game-btn" data-speed="3">3×</button>
@@ -130,25 +129,32 @@
 
   <div id="settingsOverlay">
     <div class="panel">
-      <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Упрощённый вид</span></label>
-      <div class="volume-setting">
-        <input type="checkbox" id="musicEnable"/>
-        <span data-i18n="music">Музыка</span>
-        <span data-i18n="musicVolume">Громкость музыки:</span>
-        <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/>
+      <div class="settings-group">
+        <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Упрощённый вид</span></label>
+        <label><input type="checkbox" id="hintsChk"/> <span data-i18n="tooltip">Подсказки</span></label>
       </div>
-      <div class="volume-setting">
-        <input type="checkbox" id="sfxEnable"/>
-        <span data-i18n="sfx">Звуковые эффекты</span>
-        <span data-i18n="sfxVolume">Громкость эффектов:</span>
-        <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/>
+      <div class="settings-group">
+        <div class="volume-setting">
+          <input type="checkbox" id="musicEnable"/>
+          <span data-i18n="music">Музыка</span>
+          <span data-i18n="musicVolume">Громкость музыки:</span>
+          <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="0.5"/>
+        </div>
+        <div class="volume-setting">
+          <input type="checkbox" id="sfxEnable"/>
+          <span data-i18n="sfx">Звуковые эффекты</span>
+          <span data-i18n="sfxVolume">Громкость эффектов:</span>
+          <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.5"/>
+        </div>
       </div>
-      <label data-i18n="langLabel">Language: <select id="langSelect">
-        <option value="ru">Русский</option>
-        <option value="en">English</option>
-        <option value="uk">Українська</option>
-      </select></label>
-      <label><input type="checkbox" id="hintsChk"/> <span data-i18n="tooltip">Подсказки</span></label>
+      <div class="settings-group">
+        <label for="langSelect" data-i18n="langLabel">Language</label>
+        <select id="langSelect">
+          <option value="ru">Русский</option>
+          <option value="en" selected>English</option>
+          <option value="uk">Українська</option>
+        </select>
+      </div>
       <button id="fullscreenBtn" class="game-btn" data-i18n="fullscreen">Fullscreen</button>
       <button id="saveBtn" class="game-btn" style="display:none;" data-i18n="saveBtn">Сохранить</button>
       <button id="settingsMenuBtn" class="game-btn" data-i18n="exitReplay">В меню</button>

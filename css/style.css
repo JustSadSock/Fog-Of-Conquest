@@ -40,7 +40,7 @@ h1 {
   border-radius: 4px;
   color: #2e2e2e;
   cursor: pointer;
-  font: 1em 'Lora', serif;
+  font: 1em 'Cinzel Decorative','Lora', serif;
   font-weight: bold;
   user-select: none;
   -webkit-user-select: none;
@@ -105,6 +105,7 @@ h1 {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  transform-origin: center;
 }
 
 #startHeader button:hover:not(:disabled) {
@@ -168,17 +169,16 @@ h1 {
   padding: 6px 10px;
   padding-right: 24px; /* ensure space for the triangle */
   border-radius: 4px;
-  font-family: 'Lora', serif;
-  border: 1px solid #bda46a;
-  background: linear-gradient(#cfc092, #bda46a);
+  font-family: 'Cinzel Decorative','Lora',serif;
+  border: 1px solid #8b6f4d;
+  background: #bda46a;
   color: #2e2e2e;
   cursor: pointer;
   position: relative;
   transition: background 0.3s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .dropdown-toggle:hover {
-  background: linear-gradient(#d8c18f, #c6b47a);
+  background: #d8c18f;
 }
 .dropdown-toggle::after {
   content: ' \25BC';
@@ -192,9 +192,9 @@ h1 {
   top: 100%;
   left: 0;
   right: 0;
-  background: #2e2e2e;
-  border: 1px solid #555;
-  color: #ddd;
+  background: #3a2e1a;
+  border: 1px solid #8b6f4d;
+  color: #eee;
   max-height: 200px;
   overflow-y: auto;
   z-index: 60;
@@ -202,11 +202,11 @@ h1 {
   list-style: none;
   margin: 0;
   padding: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: none;
 }
 .dropdown.open .dropdown-menu { display: block; }
 .dropdown-menu li { padding: 4px 10px; cursor: pointer; }
-.dropdown-menu li:hover { background: #d8c18f; color: #2e2e2e; }
+.dropdown-menu li:hover { background: #8b6f4d; color: #fff; }
 .dropdown-menu li.focused,
 .dropdown-menu li.selected { background: #bda46a; color: #2e2e2e; }
 #aiPanel {
@@ -584,6 +584,14 @@ h1 {
   gap: 6px;
 }
 
+.settings-group {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: space-between;
+}
+
 #settingsOverlay .volume-setting input[type="range"] {
   flex: 1;
 }
@@ -608,15 +616,15 @@ h1 {
 }
 
 #settingsCloseBtn {
-  background: #9d8260;
-  border-color: #9d8260;
+  background: #8b6f4d;
+  border-color: #8b6f4d;
   color: #2e2e2e;
   margin-top: 20px;
 }
 
 #settingsCloseBtn:hover {
-  background: #ad9270;
-  border-color: #ad9270;
+  background: #9c805d;
+  border-color: #9c805d;
 }
 
 #legendOverlay .panel,
@@ -651,7 +659,7 @@ h1 {
 #replayPauseBtn {
   position: absolute;
   top: 10px;
-  left: 50px;
+  left: 100px;
   display: none;
 }
 #exitReplayBtn {
