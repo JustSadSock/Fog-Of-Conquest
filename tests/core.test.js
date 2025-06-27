@@ -221,6 +221,9 @@ describe('Fog of Conquest core', () => {
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++){
       window.damageBuilding(buildings[0],2);
     }
+    expect(buildings[0].owner).toBe(1);
+    expect(buildings[0].hp).toBe(0);
+    window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(2);
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax);
   });
@@ -241,6 +244,12 @@ describe('Fog of Conquest core', () => {
     expect(base.hp).toBe(BUILD_TYPES.base.hpMax - 2);
     expect(base.owner).toBe(1);
     doAttackBuilding(archer, base);
+    expect(base.owner).toBe(1);
+    expect(base.hp).toBe(0);
+    // move archer onto the building and capture
+    archer.r = base.r;
+    archer.c = base.c;
+    window.attemptCapture(archer, base);
     expect(base.owner).toBe(2);
     expect(base.hp).toBe(BUILD_TYPES.base.hpMax);
   });
@@ -335,6 +344,9 @@ describe('Fog of Conquest core', () => {
     expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax - 1);
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++) window.damageBuilding(buildings[0],2);
+    expect(buildings[0].owner).toBe(1);
+    expect(buildings[0].hp).toBe(0);
+    window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(2);
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax);
   });
