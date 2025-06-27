@@ -530,13 +530,15 @@ h1 {
 }
 
 #settingsCloseBtn {
-  background: #c4a05d;
+  background: #c7a86f;
+  border-color: #c7a86f;
   color: #2e2e2e;
   margin-top: 20px;
 }
 
 #settingsCloseBtn:hover {
-  background: #d0ad69;
+  background: #d1b379;
+  border-color: #d1b379;
 }
 
 #legendOverlay .panel,
