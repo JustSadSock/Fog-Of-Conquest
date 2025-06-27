@@ -44,4 +44,9 @@
   "victory": "Player {player} wins!",
   "noAttackWater": "Cannot attack from water",
   "mageHeal": "Mage healed {unit} for 2 HP"
+  ,"saveBtn": "Save"
+  ,"loadBtn": "Load game"
+  ,"loadSave": "Load"
+  ,"deleteSave": "Delete"
+  ,"noSaves": "No saves found"
 }

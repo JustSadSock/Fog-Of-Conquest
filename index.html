@@ -56,6 +56,7 @@
     <button id="twoBtn" class="game-btn" data-i18n="startTwo">Начать игру</button>
     <button id="aiBtn" class="game-btn" data-i18n="startAi">Одиночная игра</button>
     <button id="betaBtn" class="game-btn" data-i18n="startBeta">Расширенный режим (бета)</button>
+    <button id="loadBtn" class="game-btn" data-i18n="loadBtn">Загрузить игру</button>
     <button id="startSettingsBtn" class="game-btn" data-i18n="startSettings">Настройки</button>
   </div>
 
@@ -112,7 +113,14 @@
         <option value="en">English</option>
       </select></label>
       <button id="settingsCloseBtn" data-i18n="settingsClose">Закрыть</button>
-      <button id="settingsMenuBtn" data-i18n="exitReplay">В меню</button>
+    <button id="settingsMenuBtn" data-i18n="exitReplay">В меню</button>
+    </div>
+  </div>
+
+  <div id="loadOverlay">
+    <div class="panel">
+      <div id="loadList"></div>
+      <button id="loadCloseBtn" data-i18n="settingsClose">Закрыть</button>
     </div>
   </div>
 
@@ -128,6 +136,7 @@
       <button id="settingsBtn" class="game-btn" data-i18n="settingsBtn">Настройки</button>
       <button id="revealBtn" class="game-btn" data-i18n="revealShow">Показать карту</button>
       <button id="tooltipToggle" class="game-btn" data-i18n="tooltip">Подсказки</button>
+      <button id="saveBtn" class="game-btn" data-i18n="saveBtn">Сохранить</button>
       <button id="endTurnBtn" class="game-btn" data-i18n="endTurn">Конец хода</button>
     </div>
     <div id="statsLog">

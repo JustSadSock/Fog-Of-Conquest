@@ -44,4 +44,9 @@
   "victory": "Игрок {player} победил!",
   "noAttackWater": "Нельзя атаковать из воды",
   "mageHeal": "Чародей восстановил {unit} на 2 HP"
+  ,"saveBtn": "Сохранить"
+  ,"loadBtn": "Загрузить игру"
+  ,"loadSave": "Загрузить"
+  ,"deleteSave": "Удалить"
+  ,"noSaves": "Сохранений нет"
 }
