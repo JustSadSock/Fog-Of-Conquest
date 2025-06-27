@@ -870,9 +870,25 @@ window.addEventListener('DOMContentLoaded', ()=>{
       }
     });
 
+    let animRunning=false;
     units.forEach(u=>{
       if((!F[u.r][u.c]||revealAll)&&S[u.r][u.c]){
         let cx=u.c*cellW+cellW/2, cy=u.r*cellH+cellH/2, rad=Math.min(cellW,cellH)/3;
+        if(u.animMove){
+          let t=Math.min(1,(Date.now()-u.animMove.start)/u.animMove.dur);
+          cx=(u.animMove.fc+(u.animMove.tc-u.animMove.fc)*t)*cellW+cellW/2;
+          cy=(u.animMove.fr+(u.animMove.tr-u.animMove.fr)*t)*cellH+cellH/2;
+          if(t<1) animRunning=true; else delete u.animMove;
+        }
+        if(u.animShake){
+          let t=(Date.now()-u.animShake.start)/u.animShake.dur;
+          if(t<1){
+            let amp=2;
+            cx+=(Math.random()*2-1)*amp;
+            cy+=(Math.random()*2-1)*amp;
+            animRunning=true;
+          } else delete u.animShake;
+        }
         ctx.fillStyle=UNIT_TYPES[u.type].color;
         ctx.beginPath(); ctx.arc(cx,cy,rad,0,2*Math.PI); ctx.fill();
         ctx.lineWidth=0;
@@ -905,6 +921,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       ctx.strokeStyle='yellow'; ctx.lineWidth=2; ctx.setLineDash([]);
       ctx.strokeRect(sel.c*cellW+2,sel.r*cellH+2,cellW-4,cellH-4);
     }
+    if(animRunning) requestAnimationFrame(redrawSimple);
   }
 
   function redraw(){
@@ -1075,6 +1092,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
         let rr=o.r+d[0], cc=o.c+d[1];
         if(rr<0||rr>=ROWS||cc<0||cc>=COLS) return;
         if(units.some(us=>us.r===rr&&us.c===cc&&us!==u)) return;
+        let bldBlock = buildings.find(b=>b.r===rr&&b.c===cc && b.owner!==u.owner && b.hp>0);
+        if(bldBlock) return;
         let cost=TERR_COST[map[rr][cc]];
         if(cost>o.mp) return;
         let left=o.mp-cost;
@@ -1126,18 +1145,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
     return {dmg};
   }
 
-  function damageBuilding(b, newOwner, dmg=1){
+  function damageBuilding(b, _newOwner, dmg=1){
     if(!b) return;
     b.hp -= dmg;
-    if(b.hp <= 0){
-      b.hp = 0;
-      b.owner = newOwner;
-    }
+    if(b.hp < 0) b.hp = 0;
   }
 
   function attemptCapture(unit, building){
     if(!building) return;
-    if(unit.r===building.r && unit.c===building.c && building.hp<=0){
+    if(unit.r===building.r && unit.c===building.c && building.hp<=0 && building.owner!==unit.owner){
       const baseTaken = (building.gen ?? BUILD_TYPES[building.type].gen) === 0;
       recordEvent(baseTaken
         ? `Захвачена база`
@@ -1483,15 +1499,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
       const sp = parseFloat(btn.dataset.speed);
       speedBtns.forEach(b=>b.classList.remove('speed-selected'));
       btn.classList.add('speed-selected');
-      if(sp === 0){
-        replaySpeed = 0;
-        replayPaused = true;
-      }else{
-        const wasPaused = replayPaused;
-        replaySpeed = sp;
-        replayPaused = false;
-        if(wasPaused && typeof runReplayStep === 'function') runReplayStep();
-      }
+      const wasPaused = replayPaused;
+      replaySpeed = sp;
+      replayPaused = false;
+      if(wasPaused && typeof runReplayStep === 'function') runReplayStep();
       updateReplayPauseBtn();
       window.replayPaused = replayPaused;
     });
@@ -1543,7 +1554,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
     replayPauseBtn.addEventListener('click',()=>{
       if(replayPaused){
         replayPaused = false;
-        if(replaySpeed===0) replaySpeed = 1;
         speedBtns.forEach(b=>b.classList.remove('speed-selected'));
         const def=document.querySelector(`.speedBtn[data-speed="${replaySpeed}"]`);
         if(def) def.classList.add('speed-selected');
@@ -1844,14 +1854,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
     videoRecorder.ondataavailable = e => {
       if(e.data && e.data.size) recordedChunks.push(e.data);
     };
-    videoRecorder.onstop = () => {
+  videoRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, {type:'video/webm'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'replay.webm';
       a.click();
     };
-    videoRecorder.start();
+  videoRecorder.start();
+    replayPaused = false;
+    replaySpeed = 1;
+    speedBtns.forEach(b=>b.classList.remove('speed-selected'));
+    const def=document.querySelector('.speedBtn[data-speed="1"]');
+    if(def) def.classList.add('speed-selected');
+    updateReplayPauseBtn();
     seekReplay(0);
   }
 
