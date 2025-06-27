@@ -328,6 +328,10 @@ h1 {
   animation: pulse 0.4s ease;
 }
 
+#settingsBtn:hover:not(:disabled) {
+  animation: pulse 0.4s ease;
+}
+
 #statsLog {
   flex: 1 1 auto;
   display: flex;
