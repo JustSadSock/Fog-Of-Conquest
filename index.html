@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>Fog of Conquest</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lora&family=MedievalSharp&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Lora&family=MedievalSharp&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
@@ -53,10 +53,10 @@
         <option value="large">Большая</option>
       </select>
     </div>
-    <button id="twoBtn">Начать игру</button>
-    <button id="aiBtn">Одиночная игра</button>
-    <button id="betaBtn">Расширенный режим (бета)</button>
-    <button id="startSettingsBtn">Настройки</button>
+    <button id="twoBtn" class="game-btn">Начать игру</button>
+    <button id="aiBtn" class="game-btn">Одиночная игра</button>
+    <button id="betaBtn" class="game-btn">Расширенный режим (бета)</button>
+    <button id="startSettingsBtn" class="game-btn">Настройки</button>
   </div>
 
   <div id="aiPanel" style="display:none;">
@@ -67,7 +67,7 @@
       <option value="3">Сложная</option>
       <option value="4">Невозможно</option>
     </select>
-    <button id="aiStartBtn">Начать</button>
+    <button id="aiStartBtn" class="game-btn">Начать</button>
   </div>
 
   <div id="overlay">
@@ -112,11 +112,11 @@
 
   <div id="infoPanel">
     <div id="controls">
-      <button id="legendBtn" title="Легенда">ℹ️</button>
-      <button id="settingsBtn">Настройки</button>
-      <button id="revealBtn">Показать карту</button>
-      <button id="tooltipToggle">Подсказки</button>
-      <button id="endTurnBtn">Конец хода</button>
+      <button id="legendBtn" class="game-btn" title="Легенда">ℹ️</button>
+      <button id="settingsBtn" class="game-btn">Настройки</button>
+      <button id="revealBtn" class="game-btn">Показать карту</button>
+      <button id="tooltipToggle" class="game-btn">Подсказки</button>
+      <button id="endTurnBtn" class="game-btn">Конец хода</button>
     </div>
     <div id="statsLog">
       <div id="leftStats"></div>
