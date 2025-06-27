@@ -76,6 +76,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         victoryText = document.getElementById('victoryText'),
         viewReplayBtn = document.getElementById('viewReplayBtn'),
         victoryOkBtn = document.getElementById('victoryOkBtn'),
+        victoryMenuBtn = document.getElementById('victoryMenuBtn'),
         replayOverlay = document.getElementById('replayOverlay'),
         replayLogDiv  = document.getElementById('replayLog'),
         exitReplayBtn = document.getElementById('exitReplayBtn'),
@@ -99,6 +100,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         sfxVolumeEl   = document.getElementById('sfxVolume'),
         langSelect    = document.getElementById('langSelect'),
         settingsCloseBtn = document.getElementById('settingsCloseBtn'),
+        settingsMenuBtn = document.getElementById('settingsMenuBtn'),
         tooltipToggle = document.getElementById('tooltipToggle'),
         tooltipDiv   = document.getElementById('tooltip'),
         bgm          = document.getElementById('bgm'),
@@ -434,6 +436,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
     initFog();
     overlay.style.display = 'none';
     spawnPanel.style.display = 'none';
+  }
+
+  function goToMenu(){
+    resetState();
+    startPanel.style.display='flex';
   }
 
   // === Генерация карты ===
@@ -1227,8 +1234,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
   legendCloseBtn.addEventListener('click',()=>{ legendOverlay.style.display='none'; });
   victoryOkBtn.addEventListener('click',()=>{
     victoryOverlay.style.display='none';
-    resetState();
-    startPanel.style.display='flex';
+    goToMenu();
+  });
+
+  victoryMenuBtn.addEventListener('click',()=>{
+    victoryOverlay.style.display='none';
+    goToMenu();
   });
 
   viewReplayBtn.addEventListener('click',()=>{
@@ -1238,8 +1249,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   exitReplayBtn.addEventListener('click',()=>{
     stopMatchReplay();
-    resetState();
-    startPanel.style.display='flex';
+    goToMenu();
   });
 
   skipReplayBtn.addEventListener('click', stopReplay);
@@ -1286,6 +1296,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   settingsCloseBtn.addEventListener('click',()=>{
     settingsOverlay.style.display='none';
+  });
+
+  settingsMenuBtn.addEventListener('click',()=>{
+    settingsOverlay.style.display='none';
+    goToMenu();
   });
 
   // === UI sounds ===
