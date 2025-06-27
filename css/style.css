@@ -525,6 +525,16 @@ h1 {
   text-align: left;
 }
 
+#settingsOverlay .volume-setting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#settingsOverlay .volume-setting input[type="range"] {
+  flex: 1;
+}
+
 #settingsOverlay input[type="range"],
 #settingsOverlay select {
   width: 100%;
