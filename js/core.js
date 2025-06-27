@@ -99,7 +99,9 @@ window.addEventListener('DOMContentLoaded',()=>{
         bgm          = document.getElementById('bgm'),
         attackSfx    = document.getElementById('attackSfx'),
         healSfx      = document.getElementById('healSfx'),
-        captureSfx   = document.getElementById('captureSfx');
+        captureSfx   = document.getElementById('captureSfx'),
+        uiClickSfx   = document.getElementById('uiClickSfx'),
+        uiHoverSfx   = document.getElementById('uiHoverSfx');
 
   // === Константы ===
   const BASE_ROWS = 30, BASE_COLS = 20;
@@ -135,8 +137,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const SETTINGS_KEY = 'focSettings';
   const isTestEnv = navigator.userAgent.includes('jsdom');
   let simpleView = false,
-      musicVolume = 1,
-      sfxVolume = 1,
+      musicVolume = 0.5,
+      sfxVolume = 0.5,
       musicEnabled = false,
       sfxEnabled = true;
 
@@ -1192,6 +1194,12 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   settingsCloseBtn.addEventListener('click',()=>{
     settingsOverlay.style.display='none';
+  });
+
+  // === UI sounds ===
+  document.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('mouseenter',()=>playAudio(uiHoverSfx));
+    btn.addEventListener('click',()=>playAudio(uiClickSfx));
   });
 
   // === Туман войны (бета) ===
