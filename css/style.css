@@ -164,8 +164,16 @@ h1 {
   border-radius: 4px;
   font-family: 'Lora', serif;
   border: 1px solid #555;
-  background: #fff;
+  background: #2e2e2e;
+  color: #ddd;
   cursor: pointer;
+  position: relative;
+}
+.dropdown-toggle::after {
+  content: ' \25BC';
+  position: absolute;
+  right: 8px;
+  pointer-events: none;
 }
 .dropdown.open .dropdown-toggle { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .dropdown-menu {
@@ -173,8 +181,9 @@ h1 {
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
+  background: #2e2e2e;
   border: 1px solid #555;
+  color: #ddd;
   max-height: 200px;
   overflow-y: auto;
   z-index: 60;
@@ -185,6 +194,7 @@ h1 {
 }
 .dropdown.open .dropdown-menu { display: block; }
 .dropdown-menu li { padding: 4px 10px; cursor: pointer; }
+.dropdown-menu li:hover { background: #444; }
 .dropdown-menu li.focused,
 .dropdown-menu li.selected { background: #bda46a; color: #2e2e2e; }
 #aiPanel {
