@@ -12,8 +12,37 @@ html, body {
 }
 
 h1 {
-  font-family: 'MedievalSharp', cursive;
+  font-family: 'Cinzel Decorative','MedievalSharp', cursive;
   margin-top: 0;
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.game-btn {
+  margin: 6px;
+  padding: 10px 20px;
+  background: #bda46a;
+  border: 1px solid #bda46a;
+  border-radius: 4px;
+  color: #2e2e2e;
+  cursor: pointer;
+  font: 1em 'Lora', serif;
+  font-weight: bold;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.game-btn:hover:not(:disabled) {
+  background: #d8c18f;
+  animation: pulse 0.4s ease;
+}
+
+.game-btn:disabled {
+  background: #666;
+  color: #999;
+  cursor: default;
 }
 
 
@@ -27,7 +56,7 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: radial-gradient(#222, #000);
+  background: radial-gradient(circle at center, #333, #000);
   color: #eee;
   font: 1.1em 'MedievalSharp', cursive;
   z-index: 30;
@@ -49,26 +78,9 @@ h1 {
 
 #startPanel button {
   margin: 6px;
-  padding: 10px 20px;
-  background: #444;
-  border: none;
-  border-radius: 4px;
-  color: #eee;
-  cursor: pointer;
-  font-family: 'Lora', serif;
-  font-weight: bold;
-  transition: background 0.3s, transform 0.2s;
 }
-
-#startPanel button:disabled {
-  background: #666;
-  color: #999;
-  cursor: default;
-}
-
 #startPanel button:hover:not(:disabled) {
-  background: #666;
-  transform: scale(1.05);
+  animation: pulse 0.4s ease;
 }
 
 #setupOpts {
@@ -257,20 +269,9 @@ h1 {
 
 #controls button {
   margin-left: 8px;
-  padding: 6px 12px;
-  background: #bda46a;
-  border: 1px solid #bda46a;
-  border-radius: 4px;
-  color: #2e2e2e;
-  cursor: pointer;
-  font: 1em 'Lora', serif;
-  font-weight: bold;
-  transition: background 0.3s, transform 0.2s;
 }
-
 #controls button:hover {
-  background: #d8c18f;
-  transform: scale(1.05);
+  animation: pulse 0.4s ease;
 }
 
 #statsLog {
