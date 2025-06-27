@@ -265,8 +265,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   function setupLegend(){
     const unitRows = Object.entries(UNIT_TYPES)
       .filter(([t]) => t !== 'bog')
-      .map(([t]) =>
-        `<div class="legendItem"><span class="legendColor" style="background:${UNIT_TYPES[t].color}"></span>${UNIT_LABELS[t]}</div>`
+      .map(([t, info]) =>
+        `<div class="legendItem"><span class="legendColor" style="background:${info.color}"></span>${UNIT_LABELS[t]} — ход ${info.move}, атк ${info.atk}, защ ${info.def}, дальн ${info.range}, HP ${info.hpMax}, ${info.cost} зол.</div>`
       ).join('');
     const terrRows = TERR_LABELS.map((label,i) => {
       const bonus = TERR_DEF[i];
