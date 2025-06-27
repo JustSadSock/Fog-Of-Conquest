@@ -74,7 +74,11 @@ window.addEventListener('DOMContentLoaded',()=>{
         legendCloseBtn = document.getElementById('legendCloseBtn'),
         victoryOverlay = document.getElementById('victoryOverlay'),
         victoryText = document.getElementById('victoryText'),
+        viewReplayBtn = document.getElementById('viewReplayBtn'),
         victoryOkBtn = document.getElementById('victoryOkBtn'),
+        replayOverlay = document.getElementById('replayOverlay'),
+        replayLogDiv  = document.getElementById('replayLog'),
+        exitReplayBtn = document.getElementById('exitReplayBtn'),
         endTurnBtn  = document.getElementById('endTurnBtn'),
         leftStats   = document.getElementById('leftStats'),
         rightLog    = document.getElementById('rightLog'),
@@ -288,6 +292,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       fogSnapshot = null,
       aiReplay = [],
       replayTimer = null,
+      replayEvents = [],
       tooltipEnabled = false;
 
   Object.assign(window, { spawnZones });
@@ -321,11 +326,13 @@ window.addEventListener('DOMContentLoaded',()=>{
     const p = state.currentPlayer;
     state.log[p].push(txt);
     if(aiMode && p===2) state.log[1].push('Враг: '+txt);
+    replayEvents.push(txt);
     renderLog();
   }
   function recordTurn(){
     const p = state.currentPlayer;
     state.log[p].push(`--- Ход ${state.turn+1} ---`);
+    replayEvents.push(`--- Ход ${state.turn+1} ---`);
     renderLog();
   }
   function renderLog(){
@@ -385,6 +392,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     state.gold = {1:5,2:5};
     state.grace = {1:null,2:null};
     state.log   = {1:[],2:[]};
+    replayEvents = [];
     initFog();
     overlay.style.display = 'none';
     spawnPanel.style.display = 'none';
@@ -1174,6 +1182,17 @@ window.addEventListener('DOMContentLoaded',()=>{
     startPanel.style.display='flex';
   });
 
+  viewReplayBtn.addEventListener('click',()=>{
+    victoryOverlay.style.display='none';
+    startMatchReplay();
+  });
+
+  exitReplayBtn.addEventListener('click',()=>{
+    stopMatchReplay();
+    resetState();
+    startPanel.style.display='flex';
+  });
+
   skipReplayBtn.addEventListener('click', stopReplay);
 
   tooltipToggle.addEventListener('click',()=>{
@@ -1296,6 +1315,26 @@ window.addEventListener('DOMContentLoaded',()=>{
       redraw();
     };
     run();
+  }
+
+  function startMatchReplay(){
+    let i=0;
+    replayLogDiv.innerHTML='';
+    replayOverlay.style.display='flex';
+    const run=()=>{
+      if(i>=replayEvents.length){ return; }
+      const line=replayEvents[i++];
+      const d=document.createElement('div');
+      d.textContent=line;
+      replayLogDiv.appendChild(d);
+      replayLogDiv.scrollTop=replayLogDiv.scrollHeight;
+      replayTimer=setTimeout(run,800);
+    };
+    run();
+  }
+  function stopMatchReplay(){
+    if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
+    replayOverlay.style.display='none';
   }
 
   twoBtn.addEventListener('click',()=>{
