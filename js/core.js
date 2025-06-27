@@ -129,6 +129,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         newGameBtn   = document.getElementById('newGameBtn'),
         newGameOptions = document.getElementById('newGameOptions'),
         replaySideBtn = document.getElementById('replaySideBtn');
+  const speedBtns = document.querySelectorAll('.speedBtn');
 
   // === Константы ===
   // default orientation switched to horizontal
@@ -1454,9 +1455,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
     goToMenu();
   });
 
-  document.querySelectorAll('.speedBtn').forEach(btn=>{
+  speedBtns.forEach(btn=>{
     btn.addEventListener('click',()=>{
       const sp = parseFloat(btn.dataset.speed);
+      speedBtns.forEach(b=>b.classList.remove('speed-selected'));
+      btn.classList.add('speed-selected');
       if(sp === 0){
         replaySpeed = 0;
         replayPaused = true;
@@ -1732,6 +1735,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
       replaySeek.value = 0;
     }
     replayOverlay.style.display='flex';
+    if(speedBtns.length){
+      speedBtns.forEach(b=>b.classList.remove('speed-selected'));
+      const def=document.querySelector('.speedBtn[data-speed="1"]');
+      if(def) def.classList.add('speed-selected');
+    }
     runReplayStep = function(){
       if(replayPaused || replayIndex >= replayEvents.length - 1){
         if(videoRecorder && videoRecorder.state !== 'inactive') videoRecorder.stop();

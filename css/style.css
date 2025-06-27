@@ -64,6 +64,11 @@ h1 {
   cursor: default;
 }
 
+.speed-selected {
+  background: #d8c18f;
+  border-color: #d8c18f;
+}
+
 
 #startPanel {
   position: fixed;
