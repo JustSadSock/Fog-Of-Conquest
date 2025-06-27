@@ -122,10 +122,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
         loadOverlay  = document.getElementById('loadOverlay'),
         loadList     = document.getElementById('loadList'),
         loadCloseBtn = document.getElementById('loadCloseBtn'),
-        saveBtn      = document.getElementById('saveBtn');
+        saveBtn      = document.getElementById('saveBtn'),
+        fullscreenBtn = document.getElementById('fullscreenBtn'),
+        newGameBtn   = document.getElementById('newGameBtn'),
+        newGameOptions = document.getElementById('newGameOptions'),
+        replaySideBtn = document.getElementById('replaySideBtn');
 
   // === Константы ===
-  const BASE_ROWS = 30, BASE_COLS = 20;
+  // default orientation switched to horizontal
+  const BASE_ROWS = 20, BASE_COLS = 30;
   let ROWS = BASE_ROWS, COLS = BASE_COLS;
   let mapSize = 'medium';
   let aiMode = false, aiLevel = 2;
@@ -350,6 +355,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
       replayTimer = null,
       replayEvents = [],
       replaySpeed = 1,
+      replaySide = null,
+      currentReplaySnapshot = null,
       tooltipEnabled = false;
 
   Object.assign(window, { spawnZones });
@@ -477,6 +484,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   function goToMenu(){
     resetState();
     startPanel.style.display='flex';
+    if(newGameOptions) newGameOptions.style.display='none';
+    if(newGameBtn) newGameBtn.style.display='inline-block';
   }
 
   function listSaves(){
@@ -1255,6 +1264,18 @@ window.addEventListener('DOMContentLoaded', ()=>{
             recordEvent(t('noAttackWater'));
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
           }
+          if(bldTgt.hp<=0){
+            const from={r:sel.r,c:sel.c};
+            sel.mp=zoneMap.rem[bldTgt.r][bldTgt.c]>=0?zoneMap.rem[bldTgt.r][bldTgt.c]:0;
+            if(!aiMode) addReplay({type:'move',unit:sel,from,to:{r:bldTgt.r,c:bldTgt.c}});
+            animateMove(sel,sel.r,sel.c,bldTgt.r,bldTgt.c);
+            sel.r=bldTgt.r; sel.c=bldTgt.c;
+            attemptCapture(sel,bldTgt);
+            recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
+            if(sel.mp>0){ let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list; }
+            else { sel=null; zoneMap=null; zoneList=[]; }
+            updateAll(); return;
+          }
           sel.mp=0;
           const {dmg}=doAttackBuilding(sel,bldTgt);
           if(!aiMode) addReplay({type:'attack',target:bldTgt});
@@ -1417,6 +1438,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
       replaySpeed=parseFloat(btn.dataset.speed);
     });
   });
+  if(replaySideBtn){
+    replaySideBtn.addEventListener('click',()=>{
+      replaySide = replaySide===1?2:1;
+      applySnapshot(currentReplaySnapshot);
+    });
+  }
 
   skipReplayBtn.addEventListener('click', stopReplay);
 
@@ -1439,6 +1466,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
   if(startSettingsBtn){
     startSettingsBtn.addEventListener('click', ()=>{
       settingsBtn.click();
+    });
+  }
+  if(newGameBtn){
+    newGameBtn.addEventListener('click', ()=>{
+      newGameBtn.style.display='none';
+      if(newGameOptions) newGameOptions.style.display='flex';
     });
   }
   async function applySettings(){
@@ -1468,6 +1501,16 @@ window.addEventListener('DOMContentLoaded', ()=>{
     settingsOverlay.style.display='none';
     goToMenu();
   });
+
+  if(fullscreenBtn){
+    fullscreenBtn.addEventListener('click',()=>{
+      if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen().catch(()=>{});
+      }else{
+        document.exitFullscreen().catch(()=>{});
+      }
+    });
+  }
 
   // === UI sounds ===
   document.querySelectorAll('button').forEach(btn=>{
@@ -1600,7 +1643,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(!snap) return;
     units.length=0; snap.units.forEach(u=>units.push({...u}));
     buildings.length=0; snap.buildings.forEach(b=>buildings.push({...b}));
-    state.currentPlayer=snap.state.currentPlayer;
+    state.currentPlayer = replaySide || snap.state.currentPlayer;
     state.turn=snap.state.turn;
     state.gold={...snap.state.gold};
     updateAll();
@@ -1623,20 +1666,24 @@ window.addEventListener('DOMContentLoaded', ()=>{
     let i=1;
     replaySpeed = 1;
     revealAll = true;
-    applySnapshot(replayEvents[0].snapshot);
+    replaySide = 1;
+    currentReplaySnapshot = replayEvents[0].snapshot;
+    applySnapshot(currentReplaySnapshot);
     replayOverlay.style.display='flex';
     const run=()=>{
       if(i>=replayEvents.length){ return; }
       const ev=replayEvents[i++];
       handleReplayAction(ev.action);
       const base=ev.action? (ev.action.type==='move'?300:ev.action.type==='attack'?150:250) : 400;
-      replayTimer=setTimeout(()=>{ applySnapshot(ev.snapshot); run(); }, base/replaySpeed);
+      replayTimer=setTimeout(()=>{ currentReplaySnapshot=ev.snapshot; applySnapshot(ev.snapshot); run(); }, base/replaySpeed);
     };
     run();
   }
   function stopMatchReplay(){
     if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
     replayOverlay.style.display='none';
+    replaySide = null;
+    revealAll = false;
   }
 
   twoBtn.addEventListener('click',()=>{

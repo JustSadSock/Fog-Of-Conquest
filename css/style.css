@@ -85,6 +85,14 @@ h1 {
   gap: 8px;
   align-items: center;
 }
+
+#newGameOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
 #startPanel button:hover:not(:disabled) {
   animation: pulse 0.4s ease;
 }
@@ -219,6 +227,7 @@ h1 {
   box-shadow: 0 0 8px rgba(0,0,0,0.4);
   border: 1px solid #777;
   image-rendering: auto;
+  touch-action: manipulation;
 }
 
 #spawnPanel {
@@ -374,6 +383,15 @@ h1 {
   text-align: center;
 }
 
+#replayOverlay {
+  background: none;
+  pointer-events: none;
+}
+
+#replayOverlay > * {
+  pointer-events: auto;
+}
+
 #settingsOverlay {
   position: fixed;
   top: 0;
@@ -475,6 +493,15 @@ h1 {
   border-radius: 6px;
   max-height: 70%;
   overflow-y: auto;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+#exitReplayBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 #victoryOverlay .panel {
@@ -515,15 +542,6 @@ h1 {
   font-weight: bold;
 }
 
-#replayControls {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-#replayControls .speedBtn {
-  padding: 4px 8px;
-}
 
 /* Styling for shield icons drawn on canvas */
 .shield-icon {

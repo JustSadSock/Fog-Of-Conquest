@@ -49,4 +49,7 @@
   ,"loadSave": "Load"
   ,"deleteSave": "Delete"
   ,"noSaves": "No saves found"
+  ,"newGame": "Start new game"
+  ,"fullscreen": "Fullscreen"
+  ,"replaySide": "Switch side"
 }
