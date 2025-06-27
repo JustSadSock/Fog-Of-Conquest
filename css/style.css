@@ -462,7 +462,7 @@ h1 {
 
 #legendOverlay .panel,
 #victoryOverlay .panel,
-#replayLog {
+#replayControls {
   background: #222;
   padding: 20px;
   border: 1px solid #555;
@@ -507,6 +507,16 @@ h1 {
   cursor: pointer;
   font: 1em 'Lora', serif;
   font-weight: bold;
+}
+
+#replayControls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#replayControls .speedBtn {
+  padding: 4px 8px;
 }
 
 /* Styling for shield icons drawn on canvas */

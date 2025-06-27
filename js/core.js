@@ -78,7 +78,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         victoryOkBtn = document.getElementById('victoryOkBtn'),
         victoryMenuBtn = document.getElementById('victoryMenuBtn'),
         replayOverlay = document.getElementById('replayOverlay'),
-        replayLogDiv  = document.getElementById('replayLog'),
+        replayControls = document.getElementById('replayControls'),
         exitReplayBtn = document.getElementById('exitReplayBtn'),
         endTurnBtn  = document.getElementById('endTurnBtn'),
         leftStats   = document.getElementById('leftStats'),
@@ -340,6 +340,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       aiReplay = [],
       replayTimer = null,
       replayEvents = [],
+      replaySpeed = 1,
       tooltipEnabled = false;
 
   Object.assign(window, { spawnZones });
@@ -369,17 +370,32 @@ window.addEventListener('DOMContentLoaded', ()=>{
   let cellW, cellH;
 
   // === Лог событий ===
+  let lastAction=null;
+
+  function snapshot(){
+    return {
+      units: units.map(u=>({...u})),
+      buildings: buildings.map(b=>({...b})),
+      state: {
+        turn: state.turn,
+        currentPlayer: state.currentPlayer,
+        gold: {...state.gold}
+      }
+    };
+  }
+
   function recordEvent(txt){
     const p = state.currentPlayer;
     state.log[p].push(txt);
     if(aiMode && p===2) state.log[1].push('Враг: '+txt);
-    replayEvents.push(txt);
+    replayEvents.push({type:'action',action:lastAction,text:txt,snapshot:snapshot()});
+    lastAction=null;
     renderLog();
   }
   function recordTurn(){
     const p = state.currentPlayer;
     state.log[p].push(`--- Ход ${state.turn+1} ---`);
-    replayEvents.push(`--- Ход ${state.turn+1} ---`);
+    replayEvents.push({type:'turn',turn:state.turn+1,snapshot:snapshot()});
     renderLog();
   }
   function renderLog(){
@@ -394,6 +410,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function addReplay(evt){
     aiReplay.push(evt);
+    lastAction = JSON.parse(JSON.stringify(evt));
   }
 
   function animateMove(u,fr,fc,tr,tc,dur=200){
@@ -1310,6 +1327,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
     goToMenu();
   });
 
+  document.querySelectorAll('.speedBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      replaySpeed=parseFloat(btn.dataset.speed);
+    });
+  });
+
   skipReplayBtn.addEventListener('click', stopReplay);
 
   tooltipToggle.addEventListener('click',()=>{
@@ -1488,18 +1511,41 @@ window.addEventListener('DOMContentLoaded', ()=>{
     run();
   }
 
+  function applySnapshot(snap){
+    if(!snap) return;
+    units.length=0; snap.units.forEach(u=>units.push({...u}));
+    buildings.length=0; snap.buildings.forEach(b=>buildings.push({...b}));
+    state.currentPlayer=snap.state.currentPlayer;
+    state.turn=snap.state.turn;
+    state.gold={...snap.state.gold};
+    updateAll();
+  }
+
+  function handleReplayAction(act){
+    if(!act) return;
+    if(act.type==='move'){
+      const u=units.find(x=>x.id===act.unit.id);
+      if(u) animateMove(u,act.from.r,act.from.c,act.to.r,act.to.c,200/replaySpeed);
+    }else if(act.type==='attack'){
+      let tgt=units.find(x=>x.id=== (act.target.id || act.target));
+      if(!tgt) tgt=buildings.find(b=>b.r===act.target.r && b.c===act.target.c);
+      if(tgt) animateShake(tgt,100/replaySpeed);
+    }
+  }
+
   function startMatchReplay(){
-    let i=0;
-    replayLogDiv.innerHTML='';
+    if(!replayEvents.length) return;
+    let i=1;
+    replaySpeed = 1;
+    revealAll = true;
+    applySnapshot(replayEvents[0].snapshot);
     replayOverlay.style.display='flex';
     const run=()=>{
       if(i>=replayEvents.length){ return; }
-      const line=replayEvents[i++];
-      const d=document.createElement('div');
-      d.textContent=line;
-      replayLogDiv.appendChild(d);
-      replayLogDiv.scrollTop=replayLogDiv.scrollHeight;
-      replayTimer=setTimeout(run,800);
+      const ev=replayEvents[i++];
+      handleReplayAction(ev.action);
+      const base=ev.action? (ev.action.type==='move'?300:ev.action.type==='attack'?150:250) : 400;
+      replayTimer=setTimeout(()=>{ applySnapshot(ev.snapshot); run(); }, base/replaySpeed);
     };
     run();
   }
