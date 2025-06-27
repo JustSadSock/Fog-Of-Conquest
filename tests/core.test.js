@@ -373,4 +373,39 @@ describe('Fog of Conquest core', () => {
     expect(state.seen[1][r][c]).toBe(false);
     expect(state.fog[1][r][c]).toBe(true);
   });
+
+  test('terrain distribution is balanced and clustered', () => {
+    document.getElementById('twoBtn').click();
+    const { map, TERRAIN } = window;
+    const rows = map.length, cols = map[0].length;
+    const counts = {0:0,1:0,2:0,3:0,4:0};
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++) counts[map[r][c]]++;
+    const total = rows*cols;
+    const exp={
+      [TERRAIN.WATER]:0.1,
+      [TERRAIN.FOREST]:0.25,
+      [TERRAIN.HILL]:0.15,
+      [TERRAIN.MOUNTAIN]:0.1
+    };
+    Object.entries(exp).forEach(([t,val])=>{
+      const ratio=counts[t]/total;
+      expect(Math.abs(ratio-val)).toBeLessThan(0.15);
+    });
+
+    const isolated = {1:0,2:0,3:0,4:0};
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const t=map[r][c];
+      if(t===TERRAIN.PLAIN) continue;
+      const neighbours=[[1,0],[-1,0],[0,1],[0,-1]]
+        .some(([dr,dc])=>{
+          const rr=r+dr, cc=c+dc;
+          return rr>=0&&rr<rows&&cc>=0&&cc<cols && map[rr][cc]===t;
+        });
+      if(!neighbours) isolated[t]++;
+    }
+    [TERRAIN.WATER,TERRAIN.FOREST,TERRAIN.HILL,TERRAIN.MOUNTAIN].forEach(t=>{
+      const ratio=isolated[t]/counts[t];
+      expect(ratio).toBeLessThan(0.4);
+    });
+  });
 });
