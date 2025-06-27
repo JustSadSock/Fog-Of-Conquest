@@ -1462,6 +1462,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
     sfxVolumeEl.value = sfxVolume;
     langSelect.value = lang;
     hintsChk.checked = tooltipEnabled;
+    if(saveBtn){
+      saveBtn.style.display = (startPanel.style.display === 'none') ? 'block' : 'none';
+    }
     settingsOverlay.style.display='flex';
   });
 
