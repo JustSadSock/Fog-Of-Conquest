@@ -1505,11 +1505,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   if(fullscreenBtn){
-    fullscreenBtn.addEventListener('click',()=>{
-      if(!document.fullscreenElement){
-        document.documentElement.requestFullscreen().catch(()=>{});
-      }else{
-        document.exitFullscreen().catch(()=>{});
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const el = document.documentElement;
+        (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+      } else {
+        (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
       }
     });
   }
