@@ -487,6 +487,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     state.grace = {1:null,2:null};
     state.log   = {1:[],2:[]};
     replayEvents = [];
+    window.replayEvents = replayEvents;
     fogSnapshot = null;
     window.fogSnapshot = fogSnapshot;
     initFog();
@@ -745,10 +746,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
     updateFog,
     nextTurn,
     recordEvent,
+    snapshot,
+    recordTurn,
     damageBuilding,
     attemptCapture,
-    resetState
-  , saveGame, loadGameData, listSaves, deleteSave,
+    resetState,
+    endGame,
+    recordReplayVideo,
+    replayIndex,
+    saveGame, loadGameData, listSaves, deleteSave,
     startMatchReplay, stopMatchReplay, seekReplay });
 
   // === LOS ===
@@ -1145,23 +1151,29 @@ window.addEventListener('DOMContentLoaded', ()=>{
     return {dmg};
   }
 
-  function damageBuilding(b, _newOwner, dmg=1){
+  function damageBuilding(b, newOwner, dmg=1){
     if(!b) return;
     b.hp -= dmg;
-    if(b.hp < 0) b.hp = 0;
+    if(b.hp <= 0){
+      b.hp = 0;
+      if(newOwner!==undefined) b.owner = newOwner;
+    }
   }
 
   function attemptCapture(unit, building){
     if(!building) return;
-    if(unit.r===building.r && unit.c===building.c && building.hp<=0 && building.owner!==unit.owner){
+    if(unit.r===building.r && unit.c===building.c && building.hp<=0){
+      const already = building.owner === unit.owner;
       const baseTaken = (building.gen ?? BUILD_TYPES[building.type].gen) === 0;
-      recordEvent(baseTaken
-        ? `Захвачена база`
-        : `Захвачена добыча (${BUILD_LABELS[building.type]})`);
-      playAudio(captureSfx);
-      building.owner = unit.owner;
+      if(!already){
+        recordEvent(baseTaken
+          ? `Захвачена база`
+          : `Захвачена добыча (${BUILD_LABELS[building.type]})`);
+        playAudio(captureSfx);
+        building.owner = unit.owner;
+        if(!aiMode) addReplay({type:'capture', building});
+      }
       building.hp = BUILD_TYPES[building.type].hpMax;
-      if(!aiMode) addReplay({type:'capture', building});
     }
   }
 
@@ -1196,6 +1208,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function endGame(w){
     gameOver=true;
+    if(!replayEvents.length || replayEvents[replayEvents.length-1].type!=='end'){
+      replayEvents.push({type:'end', winner:w, snapshot:snapshot()});
+    }
     victoryText.textContent = t('victory').replace('{player}', w);
     victoryOverlay.style.display = 'flex';
   }
