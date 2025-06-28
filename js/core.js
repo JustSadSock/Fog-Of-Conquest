@@ -1405,7 +1405,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
           let btn=document.createElement('button');
           btn.textContent=`${UNIT_LABELS[t]} (${UNIT_TYPES[t].cost} зол.)`;
           if(state.gold[p] < UNIT_TYPES[t].cost) btn.style.color='red';
-          if(state.gold[p] < UNIT_TYPES[t].cost) btn.style.color='red';
           btn.onclick=()=>{
             spawnType=t;
             spawnZones=[
