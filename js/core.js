@@ -147,6 +147,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const MIN_INFO_HEIGHT = 140;
   let aiMode = false, aiLevel = 2;
   let lobbyConn = null;
+  let gameConn = null;
+  let onlineGame = false;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
   const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
   // Plain 1, Water 2, Forest 2 (extra cost), Hill 2, Mountain impassable
@@ -410,8 +412,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
     aiLevel,
     fogSnapshot,
     replayEvents,
-    replayPaused
+    replayPaused,
+    gameConn,
+    onlineGame
   });
+  window.gameConn = gameConn;
+  window.onlineGame = onlineGame;
 
   let cellW, cellH;
 
@@ -434,14 +440,18 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const p = state.currentPlayer;
     state.log[p].push(txt);
     if(aiMode && p===2) state.log[1].push(t('logEnemy').replace('{text}', txt));
-    replayEvents.push({type:'action',action:lastAction,text:txt,snapshot:snapshot()});
+    const ev = {type:'action',action:lastAction,text:txt,snapshot:snapshot()};
+    replayEvents.push(ev);
+    if(onlineGame && gameConn) gameConn.send({event:ev});
     lastAction=null;
     renderLog();
   }
   function recordTurn(){
     const p = state.currentPlayer;
     state.log[p].push(t('logTurn').replace('{turn}', state.turn+1));
-    replayEvents.push({type:'turn',turn:state.turn+1,snapshot:snapshot()});
+    const ev = {type:'turn',turn:state.turn+1,snapshot:snapshot()};
+    replayEvents.push(ev);
+    if(onlineGame && gameConn) gameConn.send({event:ev});
     renderLog();
   }
   function renderLog(){
@@ -780,7 +790,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     recordReplayVideo,
     replayIndex,
     saveGame, loadGameData, listSaves, deleteSave,
-    startMatchReplay, stopMatchReplay, seekReplay });
+    startMatchReplay, stopMatchReplay, seekReplay,
+    handleNetEvent, handleNetMessage, attachConnection });
 
   // === LOS ===
   function hasLOS(r0,c0,r1,c1,{forestBlock=true}={}){
@@ -1844,6 +1855,25 @@ window.addEventListener('DOMContentLoaded', ()=>{
     }
   }
 
+  function handleNetEvent(ev){
+    if(!ev) return;
+    replayEvents.push(ev);
+    applySnapshot(ev.snapshot);
+    handleReplayAction(ev.action);
+  }
+
+  function handleNetMessage(data){
+    if(data && data.event) handleNetEvent(data.event);
+  }
+
+  function attachConnection(conn){
+    gameConn = conn;
+    onlineGame = !!conn;
+    window.gameConn = gameConn;
+    window.onlineGame = onlineGame;
+    if(conn) conn.on('message', handleNetMessage);
+  }
+
   function startMatchReplay(){
     if(!replayEvents.length) return;
     replayIndex = 0;
@@ -1997,6 +2027,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   lobbyBackBtn.addEventListener('click', ()=>{
     if(lobbyConn){ lobbyConn.close(); lobbyConn=null; }
+    gameConn = null; onlineGame = false;
+    window.gameConn = gameConn; window.onlineGame = onlineGame;
     lobbyPanel.style.display='none';
     startPanel.style.display='flex';
     if(newGameOptions) newGameOptions.style.display='flex';
@@ -2009,13 +2041,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
       if(data && data.action==='start'){
         lobbyPanel.style.display='none';
         waitOverlay.style.display='none';
+        gameConn = lobbyConn;
+        onlineGame = true;
+        window.gameConn = gameConn;
+        window.onlineGame = onlineGame;
+        gameConn.on('message', handleNetMessage);
         twoBtn.click();
       }
     });
-    lobbyConn.on('disconnect', ()=>{
-      waitOverlay.style.display='none';
-      lobbyPanel.style.display='flex';
-    });
+  lobbyConn.on('disconnect', ()=>{
+    waitOverlay.style.display='none';
+    lobbyPanel.style.display='flex';
+    gameConn = null; onlineGame = false;
+    window.gameConn = gameConn; window.onlineGame = onlineGame;
+  });
   }
 
   createRoomBtn.addEventListener('click', ()=>{
