@@ -45,6 +45,11 @@ describe('Fog of Conquest core', () => {
     document.getElementById('twoBtn').click();
   });
 
+  test('difficulty selector contains new levels', () => {
+    const opts = Array.from(document.querySelectorAll('#aiLevelSelect option')).map(o => o.value);
+    expect(opts).toEqual(['0','1','2','3','4','5']);
+  });
+
   test('canvas существует и имеет правильные размеры', () => {
     const canvas = document.getElementById('canvas');
     expect(canvas).toBeTruthy();
