@@ -125,8 +125,8 @@ h1 {
 }
 
 #startHeader button:hover:not(:disabled) {
-  /* Use the same pulse animation as other buttons */
-  animation: pulse 0.4s ease;
+  /* Use pulseLift animation to keep the icon centered */
+  animation: pulseLift 0.4s ease;
   /* Maintain vertical centering so the gear icon doesn't shift */
   transform: translateY(-50%);
 }
@@ -415,7 +415,7 @@ h1 {
 }
 
 #settingsBtn:hover:not(:disabled) {
-  animation: pulse 0.4s ease;
+  animation: pulseLift 0.4s ease;
   transform: translateY(-50%);
 }
 
