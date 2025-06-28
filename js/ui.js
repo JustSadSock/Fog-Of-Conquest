@@ -33,7 +33,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     }catch(e){}
   }
 
-  function loadImages(){
+  function loadImages(basePath='assets'){
     const files = {
       tiles:[
         'grass1','grass2','hill','hill2','mountains1','mountains2','mountains3',
@@ -55,7 +55,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     Object.entries(files).forEach(([dir,names])=>{
       names.forEach(n=>{
         const img=new Image();
-        img.src=`assets/${dir}/${n}.png`;
+        img.src=`${basePath}/${dir}/${n}.png`;
         IMG[`${dir}/${n}`]=img;
         promises.push(new Promise(res=>{img.onload=res; img.onerror=res;}));
       });
@@ -104,7 +104,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         startSettingsBtn = document.getElementById('startSettingsBtn'),
         settingsBtn   = document.getElementById('settingsBtn'),
         settingsOverlay = document.getElementById('settingsOverlay'),
-        simplifyChk   = document.getElementById('simplifyChk'),
+        styleSelect   = document.getElementById('styleSelect'),
         musicEnableEl = document.getElementById('musicEnable'),
         musicVolumeEl = document.getElementById('musicVolume'),
         sfxEnableEl   = document.getElementById('sfxEnable'),
@@ -153,7 +153,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const SAVE_PREFIX = 'focSave_';
   const SAVE_VERSION = 2;
   const isTestEnv = navigator.userAgent.includes('jsdom');
-  let simpleView = false,
+  let style = 'toen',
       musicVolume = 0.5,
       sfxVolume = 0.5,
       musicEnabled = false,
@@ -165,7 +165,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     try{
       const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
       if(saved){
-        if(typeof saved.simplified==='boolean') simpleView = saved.simplified;
+        if(typeof saved.style==='string') style = saved.style;
+        else if(typeof saved.simplified==='boolean') style = saved.simplified ? 'simple' : 'toen';
         if(typeof saved.musicVolume==='number') musicVolume = saved.musicVolume;
         if(typeof saved.sfxVolume==='number') sfxVolume = saved.sfxVolume;
         if(typeof saved.musicEnabled==='boolean') musicEnabled = saved.musicEnabled;
@@ -177,7 +178,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function saveSettings(){
     const obj = {
-      simplified: simpleView,
+      style,
       musicVolume,
       sfxVolume,
       musicEnabled,
@@ -930,7 +931,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
 
   function redraw(){
-    if(simpleView){ redrawSimple(); return; }
+    if(style==='simple'){ redrawSimple(); return; }
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const p=state.currentPlayer, F=state.fog[p], S=state.seen[p];
 
@@ -1596,7 +1597,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   settingsBtn.addEventListener('click',()=>{
-    simplifyChk.checked = simpleView;
+    styleSelect.value = style;
     musicEnableEl.checked = musicEnabled;
     musicVolumeEl.disabled = !musicEnabled;
     musicVolumeEl.value = musicVolume;
@@ -1623,7 +1624,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     });
   }
   async function applySettings(){
-    simpleView = simplifyChk.checked;
+    style = styleSelect.value;
     musicEnabled = musicEnableEl.checked;
     musicVolumeEl.disabled = !musicEnabled;
     musicVolume = parseFloat(musicVolumeEl.value);
@@ -1636,11 +1637,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
     updateLabels();
     setupLegend();
     applyVolumes();
+    await loadImages(style==='ai'? 'assets2' : 'assets');
     saveSettings();
     updateAll();
   }
 
-  [simplifyChk,musicEnableEl,musicVolumeEl,sfxEnableEl,sfxVolumeEl,langSelect].forEach(el=>{
+  [styleSelect,musicEnableEl,musicVolumeEl,sfxEnableEl,sfxVolumeEl,langSelect].forEach(el=>{
     el.addEventListener('input', applySettings);
     el.addEventListener('change', applySettings);
   });
@@ -2037,7 +2039,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // === Инициализация ===
-  loadImages().then(()=>{
+  loadImages(style==='ai'? 'assets2' : 'assets').then(()=>{
     setupLegend();
     window.dispatchEvent(new Event('resize'));
     handleOrientation();

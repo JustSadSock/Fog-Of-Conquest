@@ -652,6 +652,10 @@ h1 {
   width: 100%;
   box-sizing: border-box;
 }
+#settingsOverlay .dropdown {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 #settingsOverlay button {
   flex: 1 1 45%;

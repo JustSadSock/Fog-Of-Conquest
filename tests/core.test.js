@@ -451,8 +451,8 @@ describe('Fog of Conquest core', () => {
     units.push({id:2,r:5,c:6,owner:1,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax-1,mp:UNIT_TYPES.swordsman.move,startR:5,startC:6});
     document.getElementById('revealBtn').click();
     Object.defineProperty(win, 'localStorage', {configurable:true, value:{getItem:()=>null,setItem:()=>{},removeItem:()=>{},clear:()=>{}}});
-    const chk=document.getElementById('simplifyChk');
-    chk.checked = true;
+    const chk=document.getElementById('styleSelect');
+    chk.value = 'simple';
     chk.dispatchEvent(new win.Event('input'));
     fills.length=0;
     const canvas=document.getElementById('canvas');
@@ -492,8 +492,8 @@ describe('Fog of Conquest core', () => {
     units.push({id:2,r:5,c:6,owner:2,type:'swordsman',hp:UNIT_TYPES.swordsman.hpMax,mp:UNIT_TYPES.swordsman.move,startR:5,startC:6});
     document.getElementById('revealBtn').click();
     Object.defineProperty(win, 'localStorage', {configurable:true, value:{getItem:()=>null,setItem:()=>{},removeItem:()=>{},clear:()=>{}}});
-    const chk2=document.getElementById('simplifyChk');
-    chk2.checked = true;
+    const chk2=document.getElementById('styleSelect');
+    chk2.value = 'simple';
     chk2.dispatchEvent(new win.Event('input'));
     fills.length=0;
     const canvas=document.getElementById('canvas');
