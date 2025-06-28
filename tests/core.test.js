@@ -653,6 +653,22 @@ describe('Fog of Conquest core', () => {
     window.stopMatchReplay();
   });
 
+  test('speed button selection toggles style', () => {
+    document.getElementById('twoBtn').click();
+    window.startMatchReplay();
+    const btn1 = document.querySelector('.speedBtn[data-speed="1"]');
+    const btn2 = document.querySelector('.speedBtn[data-speed="2"]');
+    expect(btn1.classList.contains('speed-selected')).toBe(true);
+    expect(btn2.classList.contains('speed-selected')).toBe(false);
+    btn2.click();
+    expect(btn1.classList.contains('speed-selected')).toBe(false);
+    expect(btn2.classList.contains('speed-selected')).toBe(true);
+    btn1.click();
+    expect(btn1.classList.contains('speed-selected')).toBe(true);
+    expect(btn2.classList.contains('speed-selected')).toBe(false);
+    window.stopMatchReplay();
+  });
+
   test('endGame appends final snapshot event', () => {
     document.getElementById('twoBtn').click();
     const { endGame, replayEvents, recordTurn } = window;
