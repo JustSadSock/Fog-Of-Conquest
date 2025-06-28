@@ -87,6 +87,33 @@ window.addEventListener('DOMContentLoaded', ()=>{
       IMG[key] = img;
       promises.push(new Promise(res=>{img.onload=res; img.onerror=res;}));
     });
+
+    const units = [
+      'archer_ally','archer_enemy','healer_ally','healer_enemy',
+      'heavy_warrior_ally','heavy_warrior_enemy','horseman_ally',
+      'horseman_enemy','warrior_ally','warrior_enemy'
+    ];
+    units.forEach(n=>{
+      const img = new Image();
+      img.src = `assets(ai)/${n}.png`;
+      IMG[`ai_units/${n}`] = img;
+      promises.push(new Promise(res=>{img.onload=res; img.onerror=res;}));
+    });
+
+    const buildings = [
+      'main_castle_ally','main_castle_enemy','heavy_barracks_ally',
+      'heavy_barracks_enemy','stable_ally','stable_enemy',
+      'healer_tent_ally','healer_tent_enemy','windmill_ally',
+      'windmill_enemy','field_fortifications_ally',
+      'field_fortification_enemy'
+    ];
+    buildings.forEach(n=>{
+      const img = new Image();
+      img.src = `assets(ai)/${n}.png`;
+      IMG[`ai_buildings/${n}`] = img;
+      promises.push(new Promise(res=>{img.onload=res; img.onerror=res;}));
+    });
+
     return Promise.all(promises);
   }
 
@@ -290,10 +317,33 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function getUnitSprite(u){
     const side = u.owner===1?'ally':'enemy';
+    if(style==='ai'){
+      const map = {
+        swordsman:'warrior',
+        archer:'archer',
+        heavy:'heavy_warrior',
+        cavalry:'horseman',
+        mage:'healer',
+        bog:'warrior'
+      };
+      return IMG[`ai_units/${map[u.type]}_${side}`];
+    }
     return IMG[`units/${UNIT_IMG_MAP[u.type]}_${side}`];
   }
 
   function getBuildingSprite(b){
+    if(style==='ai'){
+      const owner = b.owner===1?'ally':b.owner===2?'enemy':'ally';
+      const map = {
+        base:`ai_buildings/main_castle_${owner}`,
+        barracks:`ai_buildings/heavy_barracks_${owner}`,
+        stable:`ai_buildings/stable_${owner}`,
+        mageTower:`ai_buildings/healer_tent_${owner}`,
+        mill:`ai_buildings/windmill_${owner}`,
+        fort:`ai_buildings/${owner==='enemy'?'field_fortification_enemy':'field_fortifications_ally'}`
+      };
+      return IMG[map[b.type]];
+    }
     const owner = b.owner===1?'ally':b.owner===2?'enemy':'neutral';
     const map = {
       base:`buildings/base_${owner}`,
