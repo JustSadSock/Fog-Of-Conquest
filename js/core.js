@@ -168,7 +168,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   const SETTINGS_KEY = 'focSettings';
   const SAVE_PREFIX = 'focSave_';
-  const SAVE_VERSION = 1;
+  const SAVE_VERSION = 2;
   const isTestEnv = navigator.userAgent.includes('jsdom');
   let simpleView = false,
       musicVolume = 0.5,
@@ -525,7 +525,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
       units,
       state,
       mapSize,
-      nextUnitId
+      nextUnitId,
+      replayEvents
     };
     try{ localStorage.setItem(SAVE_PREFIX+data.timestamp, JSON.stringify(data)); }
     catch(e){}
@@ -540,6 +541,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
       buildings.length = 0; d.buildings.forEach(b=>buildings.push({...b}));
       units.length = 0; d.units.forEach(u=>units.push({...u}));
       Object.assign(state, d.state);
+      if(Array.isArray(d.replayEvents)){
+        replayEvents.length = 0;
+        d.replayEvents.forEach(ev => replayEvents.push(ev));
+        window.replayEvents = replayEvents;
+      }
       mapSize = d.mapSize || mapSize;
       ROWS = map.length; COLS = map[0].length;
       nextUnitId = d.nextUnitId || (Math.max(0,...units.map(u=>u.id))+1);

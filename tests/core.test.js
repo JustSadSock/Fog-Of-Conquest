@@ -729,4 +729,30 @@ describe('Fog of Conquest core', () => {
     expect(started).toBe(true);
     expect(stopped).toBe(true);
   });
+
+  test('save and load preserves replay history', () => {
+    document.getElementById('twoBtn').click();
+    const store = (() => {
+      let data = {};
+      return {
+        getItem: k => (k in data ? data[k] : null),
+        setItem: (k,v) => { data[k] = String(v); },
+        removeItem: k => { delete data[k]; },
+        clear: () => { data = {}; },
+        key: i => Object.keys(data)[i] || null,
+        get length(){ return Object.keys(data).length; }
+      };
+    })();
+    Object.defineProperty(window, 'localStorage', {configurable:true, value:store});
+    window.localStorage.clear();
+    window.replayEvents.length = 0;
+    window.recordTurn();
+    window.recordTurn();
+    const original = JSON.parse(JSON.stringify(window.replayEvents));
+    window.saveGame();
+    const key = window.localStorage.key(0);
+    window.replayEvents.length = 0;
+    window.loadGameData(key);
+    expect(window.replayEvents).toEqual(original);
+  });
 });
