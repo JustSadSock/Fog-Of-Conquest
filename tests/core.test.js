@@ -755,4 +755,20 @@ describe('Fog of Conquest core', () => {
     window.loadGameData(key);
     expect(window.replayEvents).toEqual(original);
   });
+
+  test('langSelect changes overlay text', () => {
+    const select = document.getElementById('langSelect');
+    select.value = 'ru';
+    select.dispatchEvent(new window.Event('input'));
+    document.getElementById('endTurnBtn').click();
+    const msgRu = document.getElementById('overlayMessage').textContent;
+    expect(msgRu).toMatch(/игроку/);
+    document.getElementById('yesBtn').click();
+    select.value = 'en';
+    select.dispatchEvent(new window.Event('input'));
+    document.getElementById('endTurnBtn').click();
+    const msgEn = document.getElementById('overlayMessage').textContent;
+    expect(msgEn).toMatch(/Player/);
+    document.getElementById('yesBtn').click();
+  });
 });

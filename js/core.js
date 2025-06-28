@@ -145,7 +145,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // Plain 1, Water 2, Forest 2 (extra cost), Hill 2, Mountain impassable
   const TERR_COST = [1,2,2,2,999];
   const TERR_DEF  = [0,-1,1,2,0];
-  const TERR_LABELS = ['Равнина','Вода','Лес','Холм','Горы'];
+  let TERR_LABELS = [];
 
   // tiles for drawing terrain
   const TILE_IMAGES = {
@@ -242,6 +242,24 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function t(key){ return strings[key] || key; }
 
+  function updateLabels(){
+    TERR_LABELS = [
+      t('terrPlain'),
+      t('terrWater'),
+      t('terrForest'),
+      t('terrHill'),
+      t('terrMountain')
+    ];
+    UNIT_LABELS = {
+      swordsman:t('unitSwordsman'),
+      archer:t('unitArcher'),
+      heavy:t('unitHeavy'),
+      cavalry:t('unitCavalry'),
+      mage:t('unitMage'),
+      bog:t('unitBog')
+    };
+  }
+
   function applyStrings(){
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -313,14 +331,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   const BASE_SPAWN_DEFAULT = [...BUILD_TYPES.base.spawn];
 
-  const UNIT_LABELS = {
-    swordsman:'Рубака',
-    archer:'Стрелок',
-    heavy:'Щитоносец',
-    cavalry:'Всадник',
-    mage:'Чародей',
-    bog:'Бог'
-  };
+  let UNIT_LABELS = {};
   const BUILD_LABELS = {
     base:'🏰',
     barracks:'⚔',
@@ -329,20 +340,21 @@ window.addEventListener('DOMContentLoaded', ()=>{
     mill:'🌾',
     fort:'🏯'
   };
+  updateLabels();
 
   function setupLegend(){
     const unitRows = Object.entries(UNIT_TYPES)
-      .filter(([t]) => t !== 'bog')
-      .map(([t, info]) =>
-        `<div class="legendItem"><span class="legendColor" style="background:${info.color}"></span>${UNIT_LABELS[t]} — ход ${info.move}, атк ${info.atk}, защ ${info.def}, дальн ${info.range}, HP ${info.hpMax}, ${info.cost} зол.</div>`
+      .filter(([type]) => type !== 'bog')
+      .map(([type, info]) =>
+        `<div class="legendItem"><span class="legendColor" style="background:${info.color}"></span>${UNIT_LABELS[type]} — ${t('moveShort')} ${info.move}, ${t('attackShort')} ${info.atk}, ${t('defShort')} ${info.def}, ${t('rangeShort')} ${info.range}, HP ${info.hpMax}, ${info.cost} ${t('goldShort')}</div>`
       ).join('');
     const terrRows = TERR_LABELS.map((label,i) => {
       const bonus = TERR_DEF[i];
-      const txt = i===TERRAIN.MOUNTAIN ? 'непроходимо' :
-        (bonus ? (bonus>0?`+${bonus}`:bonus)+' защ.' : '');
+      const txt = i===TERRAIN.MOUNTAIN ? t('impassable') :
+        (bonus ? (bonus>0?`+${bonus}`:bonus)+' '+t('defShort') : '');
       return `<div class="legendItem"><span class="legendColor" style="background:${TERR_COL[i]}"></span>${label} ${txt}</div>`;
     }).join('');
-    legendPanel.innerHTML = `<h3>Юниты</h3>${unitRows}<h3 style="margin-top:8px;">Рельеф</h3>${terrRows}`;
+    legendPanel.innerHTML = `<h3>${t('legendUnits')}</h3>${unitRows}<h3 style="margin-top:8px;">${t('legendTerrain')}</h3>${terrRows}`;
   }
 
   // === Состояние ===
@@ -414,14 +426,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
   function recordEvent(txt){
     const p = state.currentPlayer;
     state.log[p].push(txt);
-    if(aiMode && p===2) state.log[1].push('Враг: '+txt);
+    if(aiMode && p===2) state.log[1].push(t('logEnemy').replace('{text}', txt));
     replayEvents.push({type:'action',action:lastAction,text:txt,snapshot:snapshot()});
     lastAction=null;
     renderLog();
   }
   function recordTurn(){
     const p = state.currentPlayer;
-    state.log[p].push(`--- Ход ${state.turn+1} ---`);
+    state.log[p].push(t('logTurn').replace('{turn}', state.turn+1));
     replayEvents.push({type:'turn',turn:state.turn+1,snapshot:snapshot()});
     renderLog();
   }
@@ -1173,8 +1185,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
       const baseTaken = (building.gen ?? BUILD_TYPES[building.type].gen) === 0;
       if(!already){
         recordEvent(baseTaken
-          ? `Захвачена база`
-          : `Захвачена добыча (${BUILD_LABELS[building.type]})`);
+          ? t('eventBaseCaptured')
+          : t('eventResourceCaptured').replace('{building}', BUILD_LABELS[building.type]));
         playAudio(captureSfx);
         building.owner = unit.owner;
         if(!aiMode) addReplay({type:'capture', building});
@@ -1191,7 +1203,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     units.push(unit);
     if(!aiMode) addReplay({type:'spawn',unit});
     state.gold[p]-=cost;
-    recordEvent(`${UNIT_LABELS[type]} создан`);
+    recordEvent(t('eventUnitCreated').replace('{unit}', UNIT_LABELS[type]));
     spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones;
     updateAll();
   }
@@ -1244,11 +1256,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
             .replace('{move}', UNIT_TYPES[sel.type].move)
       : t('notSelected');
     leftStats.innerHTML=
-      `<div>Ход: ${state.turn} — Игрок ${p}</div>
-       <div>Золото: ${state.gold[p]} (+${income}/ход)</div>
-       <div>Военные базы: ${mbases}</div>
-       <div>Ресурсы: ${mres}</div>
-       <div>Юнитов:</div>
+      `<div>${t('statsTurn').replace('{turn}', state.turn).replace('{player}', p)}</div>
+       <div>${t('statsGold').replace('{gold}', state.gold[p]).replace('{income}', income)}</div>
+       <div>${t('statsBases').replace('{count}', mbases)}</div>
+       <div>${t('statsResources').replace('{count}', mres)}</div>
+       <div>${t('statsUnits')}</div>
        ${Object.entries(counts).map(([t,c])=>`<div style="margin-left:10px;">${UNIT_LABELS[t]}: ${c}</div>`).join('')}
        <div style="margin-top:8px;">${selInfo}</div>`;
   }
@@ -1290,13 +1302,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
       let bd=buildings.find(b=>b.r===y&&b.c===x&&b.owner===p&&BUILD_TYPES[b.type].spawn.length);
       if(bd&&sel.r===y&&sel.c===x){
         spawnPanel.innerHTML=`<strong>${BUILD_LABELS[bd.type]}</strong>`;
-        BUILD_TYPES[bd.type].spawn
-          .filter(t=>t!=='bog'||modeBeta)
-          .forEach(t=>{
-            let btn=document.createElement('button');
-            btn.textContent=`${UNIT_LABELS[t]} (${UNIT_TYPES[t].cost} зол.)`;
-            btn.onclick=()=>{
-              spawnType=t;
+          BUILD_TYPES[bd.type].spawn
+            .filter(type=>type!=='bog'||modeBeta)
+            .forEach(type=>{
+              let btn=document.createElement('button');
+              btn.textContent=`${UNIT_LABELS[type]} (${UNIT_TYPES[type].cost} ${t('goldShort')})`;
+              btn.onclick=()=>{
+                spawnType=type;
               spawnZones=[
                 {r:bd.r-1,c:bd.c},{r:bd.r+1,c:bd.c},
                 {r:bd.r,c:bd.c-1},{r:bd.r,c:bd.c+1}
@@ -1337,8 +1349,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
             bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c);
             if(bb) attemptCapture(sel, bb);
           }
-          recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${UNIT_LABELS[tgt.type]} за ${dmg}`+
-                      (rdmg?`, получил ${rdmg}`:''));
+          recordEvent(
+            t('eventAttackUnit')
+              .replace('{attacker}', UNIT_LABELS[sel.type])
+              .replace('{target}', UNIT_LABELS[tgt.type])
+              .replace('{dmg}', dmg)
+              + (rdmg ? t('eventRetaliation').replace('{dmg}', rdmg) : '')
+          );
           if(sel.mp>0){
             let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
           } else {
@@ -1364,7 +1381,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
             sel.r=bldTgt.r; sel.c=bldTgt.c;
             attemptCapture(sel,bldTgt);
           }
-          recordEvent(`${UNIT_LABELS[sel.type]} атаковал ${BUILD_LABELS[bldTgt.type]} за ${dmg}`);
+          recordEvent(
+            t('eventAttackBuilding')
+              .replace('{attacker}', UNIT_LABELS[sel.type])
+              .replace('{building}', BUILD_LABELS[bldTgt.type])
+              .replace('{dmg}', dmg)
+          );
           if(sel.mp>0){
             let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
           } else {
@@ -1383,7 +1405,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
           sel.r=y; sel.c=x;
           bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c);
           if(bb) attemptCapture(sel, bb);
-          if(moved) recordEvent(`Перемещён ${UNIT_LABELS[sel.type]}`);
+          if(moved) recordEvent(t('eventMove').replace('{unit}', UNIT_LABELS[sel.type]));
           if(sel.mp>0){
             let cz=computeZone(sel); zoneMap=cz; zoneList=cz.list;
           } else {
@@ -1405,14 +1427,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
     let bld=buildings.find(b=>b.owner===p&&BUILD_TYPES[b.type].spawn.length&&b.r===y&&b.c===x);
     if(bld){
       spawnPanel.innerHTML=`<strong>${BUILD_LABELS[bld.type]}</strong>`;
-      BUILD_TYPES[bld.type].spawn
-        .filter(t=>t!=='bog'||modeBeta)
-        .forEach(t=>{
-          let btn=document.createElement('button');
-          btn.textContent=`${UNIT_LABELS[t]} (${UNIT_TYPES[t].cost} зол.)`;
-          if(state.gold[p] < UNIT_TYPES[t].cost) btn.style.color='red';
-          btn.onclick=()=>{
-            spawnType=t;
+        BUILD_TYPES[bld.type].spawn
+          .filter(type=>type!=='bog'||modeBeta)
+          .forEach(type=>{
+            let btn=document.createElement('button');
+            btn.textContent=`${UNIT_LABELS[type]} (${UNIT_TYPES[type].cost} ${t('goldShort')})`;
+            if(state.gold[p] < UNIT_TYPES[type].cost) btn.style.color='red';
+            btn.onclick=()=>{
+              spawnType=type;
             spawnZones=[
               {r:bld.r-1,c:bld.c},{r:bld.r+1,c:bld.c},
               {r:bld.r,c:bld.c-1},{r:bld.r,c:bld.c+1}
@@ -1466,14 +1488,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
   endTurnBtn.addEventListener('click',()=>{
     if(gameOver) return;
     spawnMode=false; spawnZones=[]; window.spawnZones = spawnZones; spawnPanel.style.display='none';
-    overlayMsg.textContent = `Ход переходит игроку ${state.currentPlayer===1?2:1}. Продолжить?`;
+    overlayMsg.textContent = t('passTurnConfirm').replace('{player}', state.currentPlayer===1?2:1);
     overlay.style.display = 'flex';
     continueAfter = ()=>{
       overlay.style.display='none';
       if(aiMode){
         fogSnapshot = state.fog[1].map(r=>r.slice());
         window.fogSnapshot = fogSnapshot;
-        waitText.textContent = 'Ход противника...';
+        waitText.textContent = t('waitEnemyTurn');
         skipReplayBtn.style.display='none';
         waitOverlay.style.display='flex';
         nextTurn();
@@ -1482,7 +1504,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       } else {
         nextTurn();
         if(aiReplay.length){
-          waitText.textContent = 'Повтор хода соперника...';
+          waitText.textContent = t('replayEnemyTurn');
           skipReplayBtn.style.display='block';
           waitOverlay.style.display='flex';
           replayAI();
@@ -1630,6 +1652,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     lang = langSelect.value;
     loadLangStrings();
     applyStrings();
+    updateLabels();
+    setupLegend();
     applyVolumes();
     saveSettings();
     updateAll();
@@ -1691,8 +1715,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
       row.className='load-item';
       const date=new Date(s.timestamp).toLocaleString();
       row.innerHTML = `<span>${date}</span>`+
-        `<span><button data-key="${s.key}" class="loadBtn game-btn" data-i18n="loadSave">Загрузить</button>`+
-        `<button data-key="${s.key}" class="delBtn game-btn" data-i18n="deleteSave">Удалить</button></span>`;
+        `<span><button data-key="${s.key}" class="loadBtn game-btn" data-i18n="loadSave">${t('loadSave')}</button>`+
+        `<button data-key="${s.key}" class="delBtn game-btn" data-i18n="deleteSave">${t('deleteSave')}</button></span>`;
       loadList.appendChild(row);
     });
     applyStrings();
@@ -1767,7 +1791,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
     aiReplay=[];
     waitOverlay.style.display='none';
-    waitText.textContent='Подождите...';
+    waitText.textContent=t('wait');
     skipReplayBtn.style.display='none';
     updateAll();
   }
