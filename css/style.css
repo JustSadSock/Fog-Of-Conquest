@@ -109,7 +109,9 @@ h1 {
 }
 
 #startHeader button:hover:not(:disabled) {
+  /* Use the same pulse animation as other buttons */
   animation: pulse 0.4s ease;
+  /* Maintain vertical centering so the gear icon doesn't shift */
   transform: translateY(-50%);
 }
 
