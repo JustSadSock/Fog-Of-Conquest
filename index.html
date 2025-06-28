@@ -142,7 +142,12 @@
   <div id="settingsOverlay">
     <div class="panel">
       <div class="settings-group">
-        <label><input type="checkbox" id="simplifyChk"/> <span data-i18n="simplify">Simplified view</span></label>
+        <label for="styleSelect" data-i18n="styleLabel">Style</label>
+        <select id="styleSelect">
+          <option value="simple" data-i18n="simplify">Simplified view</option>
+          <option value="toen" data-i18n="styleToen">Toen`s</option>
+          <option value="ai" data-i18n="styleAi">AI</option>
+        </select>
         <label><input type="checkbox" id="hintsChk"/> <span data-i18n="tooltip">Hints</span></label>
       </div>
       <div class="settings-group">
