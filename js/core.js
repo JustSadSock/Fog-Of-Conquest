@@ -1352,7 +1352,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
           playAudio(attackSfx);
           animateShake(bldTgt);
           let destroyed = bldTgt.hp<=0;
-          if(destroyed && hadMove){
+          if(destroyed && hadMove && dist===1){
             if(!aiMode) addReplay({type:'move',unit:sel,from:{r:sel.r,c:sel.c},to:{r:bldTgt.r,c:bldTgt.c}});
             animateMove(sel,sel.r,sel.c,bldTgt.r,bldTgt.c);
             sel.r=bldTgt.r; sel.c=bldTgt.c;
