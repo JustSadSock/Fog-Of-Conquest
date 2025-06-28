@@ -148,7 +148,7 @@
         const cz=global.computeZone(u);
         if(!cz.list.length) break;
         let target=null;
-        if(aiLevel===1){
+        if(aiLevel<=1){
           target=cz.list[Math.random()*cz.list.length|0];
         }else if(aiLevel===2){
           if(allDist){
@@ -161,9 +161,16 @@
             const br=baseDist?baseDist[pos.r][pos.c]:null,
                   bd=buildDist?buildDist[pos.r][pos.c]:null,
                   ud=unitDist?unitDist[pos.r][pos.c]:null;
-            const bw = aiLevel>=4?5:(aiLevel===3?4:3);
-            const blw=aiLevel>=4?3:1;
-            const uw=aiLevel>=4?4:2;
+            let bw,blw,uw;
+            if(aiLevel>=5){
+              bw=6; blw=4; uw=5;
+            }else if(aiLevel===4){
+              bw=5; blw=3; uw=4;
+            }else if(aiLevel===3){
+              bw=4; blw=1; uw=2;
+            }else{
+              bw=3; blw=1; uw=2;
+            }
             if(baseDist) score-= (br||100)*bw;
             if(buildDist) score-= (bd||100)*blw;
             if(unitDist) score-= (ud||100)*uw;
