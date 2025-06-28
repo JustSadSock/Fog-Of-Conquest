@@ -357,6 +357,30 @@ describe('Fog of Conquest core', () => {
     expect(archer.c).toBe(base.c);
   });
 
+  test('ranged unit stays in place after destroying building from afar', () => {
+    const { map, TERRAIN, buildings, units, state, BUILD_TYPES, UNIT_TYPES } = window;
+    document.getElementById('twoBtn').click();
+    units.length = 0;
+    buildings.length = 0;
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++) map[r][c]=TERRAIN.PLAIN;
+    buildings.push({r:0,c:2,owner:1,type:'base',gen:BUILD_TYPES.base.gen,hp:1});
+    units.push({id:1,r:0,c:0,owner:2,type:'archer',hp:UNIT_TYPES.archer.hpMax,mp:UNIT_TYPES.archer.move,startR:0,startC:0});
+    state.currentPlayer = 2;
+    const canvas = document.getElementById('canvas');
+    canvas.getBoundingClientRect = () => ({left:0,top:0,width:canvas.width,height:canvas.height});
+    const cellW = canvas.width / map[0].length;
+    const cellH = canvas.height / map.length;
+    const click = (r,c) => canvas.dispatchEvent(new window.MouseEvent('click',{clientX:(c+0.5)*cellW,clientY:(r+0.5)*cellH}));
+    click(0,0);
+    click(0,2);
+    const base = buildings[0];
+    const archer = units[0];
+    expect(base.owner).toBe(2);
+    expect(base.hp).toBe(0);
+    expect(archer.r).toBe(0);
+    expect(archer.c).toBe(0);
+  });
+
   test('mage highlights adjacent injured allies', async () => {
     const draws = [];
     HTMLCanvasElement.prototype.getContext = () => {
