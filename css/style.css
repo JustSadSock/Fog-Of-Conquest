@@ -413,6 +413,9 @@ h1 {
 
 #settingsBtn {
   /* Flex alignment in #controls keeps this centered */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #settingsBtn:hover:not(:disabled) {
