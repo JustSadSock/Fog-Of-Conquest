@@ -94,4 +94,8 @@
   ,"statsUnits": "Units:"
   ,"logEnemy": "Enemy: {text}"
   ,"logTurn": "--- Turn {turn} ---"
+  ,"startOnline": "Online"
+  ,"createRoom": "Create room"
+  ,"joinRoom": "Join room"
+  ,"onlineTitle": "Online lobby"
 }

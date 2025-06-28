@@ -128,6 +128,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
         fullscreenBtn = document.getElementById('fullscreenBtn'),
         newGameBtn   = document.getElementById('newGameBtn'),
         newGameOptions = document.getElementById('newGameOptions'),
+        onlineBtn   = document.getElementById('onlineBtn'),
+        lobbyPanel  = document.getElementById('lobbyPanel'),
+        roomIdInput = document.getElementById('roomIdInput'),
+        createRoomBtn = document.getElementById('createRoomBtn'),
+        joinRoomBtn = document.getElementById('joinRoomBtn'),
+        lobbyBackBtn = document.getElementById('lobbyBackBtn'),
         replaySideBtn = document.getElementById('replaySideBtn'),
         replayToggleBtn = document.getElementById('replayToggleBtn'),
         replayPauseBtn = document.getElementById('replayPauseBtn');
@@ -140,6 +146,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   let mapSize = 'medium';
   const MIN_INFO_HEIGHT = 140;
   let aiMode = false, aiLevel = 2;
+  let lobbyConn = null;
   const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
   const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
   // Plain 1, Water 2, Forest 2 (extra cost), Hill 2, Mountain impassable
@@ -1980,6 +1987,51 @@ window.addEventListener('DOMContentLoaded', ()=>{
     startPanel.style.display='none';
     generateWorld();
     recordTurn(); updateAll();
+  });
+
+  onlineBtn.addEventListener('click', ()=>{
+    if(newGameOptions) newGameOptions.style.display='none';
+    startPanel.style.display='none';
+    lobbyPanel.style.display='flex';
+  });
+
+  lobbyBackBtn.addEventListener('click', ()=>{
+    if(lobbyConn){ lobbyConn.close(); lobbyConn=null; }
+    lobbyPanel.style.display='none';
+    startPanel.style.display='flex';
+    if(newGameOptions) newGameOptions.style.display='flex';
+  });
+
+  function connectLobby(){
+    if(lobbyConn){ lobbyConn.close(); }
+    lobbyConn = connect((location.protocol==='https:'?'wss':'ws')+'://'+location.host);
+    lobbyConn.on('message', data=>{
+      if(data && data.action==='start'){
+        lobbyPanel.style.display='none';
+        waitOverlay.style.display='none';
+        twoBtn.click();
+      }
+    });
+    lobbyConn.on('disconnect', ()=>{
+      waitOverlay.style.display='none';
+      lobbyPanel.style.display='flex';
+    });
+  }
+
+  createRoomBtn.addEventListener('click', ()=>{
+    connectLobby();
+    const room = roomIdInput.value.trim();
+    lobbyConn.on('connected', ()=> lobbyConn.send({action:'create', room}));
+    lobbyPanel.style.display='none';
+    waitOverlay.style.display='flex';
+  });
+
+  joinRoomBtn.addEventListener('click', ()=>{
+    connectLobby();
+    const room = roomIdInput.value.trim();
+    lobbyConn.on('connected', ()=> lobbyConn.send({action:'join', room}));
+    lobbyPanel.style.display='none';
+    waitOverlay.style.display='flex';
   });
 
   // === Инициализация ===
