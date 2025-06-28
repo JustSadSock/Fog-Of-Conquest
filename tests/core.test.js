@@ -628,4 +628,36 @@ describe('Fog of Conquest core', () => {
     expect(window.replayPaused).toBe(false);
     window.stopMatchReplay();
   });
+
+  test('endGame appends final snapshot event', () => {
+    document.getElementById('twoBtn').click();
+    const { endGame, replayEvents, recordTurn } = window;
+    recordTurn();
+    endGame(1);
+    expect(replayEvents.length).toBeGreaterThan(0);
+    expect(replayEvents[replayEvents.length - 1].type).toBe('end');
+  });
+
+  test('saving a long replay records until the last turn', () => {
+    document.getElementById('twoBtn').click();
+    window.replayEvents.length = 0;
+    for(let i=0;i<20;i++){
+      window.recordTurn();
+    }
+    const canvas = document.getElementById('canvas');
+    canvas.captureStream = () => ({ });
+    window.URL.createObjectURL = () => 'blob:';
+    let started = false, stopped = false;
+    window.MediaRecorder = function(){
+      this.state = 'inactive';
+      this.start = () => { this.state = 'recording'; started = true; };
+      this.stop = () => { this.state = 'inactive'; stopped = true; if(this.onstop) this.onstop(); };
+    };
+    window.startMatchReplay();
+    window.recordReplayVideo();
+    window.seekReplay(window.replayEvents.length - 1);
+    window.stopMatchReplay();
+    expect(started).toBe(true);
+    expect(stopped).toBe(true);
+  });
 });
