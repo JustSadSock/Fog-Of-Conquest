@@ -1551,10 +1551,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     replayToggleBtn.addEventListener('click',()=>{
       const collapsed = replayControls.classList.toggle('collapsed');
       if(collapsed){
-        if(replayPauseBtn){ updateReplayPauseBtn(); replayPauseBtn.style.display='block'; }
         replayToggleBtn.setAttribute('title', t('replayExpand'));
       }else{
-        if(replayPauseBtn) replayPauseBtn.style.display='none';
         replayToggleBtn.setAttribute('title', t('replayCollapse'));
       }
       window.replayPaused = replayPaused;
@@ -1817,7 +1815,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
     replayPaused = false;
     replayControls.classList.remove('collapsed');
     if(replayPauseBtn){
-      replayPauseBtn.style.display='none';
       updateReplayPauseBtn();
     }
     if(replayToggleBtn) replayToggleBtn.setAttribute('title', t('replayCollapse'));
@@ -1906,7 +1903,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
     replayOverlay.style.display='none';
     replayControls.classList.remove('collapsed');
     if(replayPauseBtn){
-      replayPauseBtn.style.display='none';
       updateReplayPauseBtn();
     }
     if(replayToggleBtn) replayToggleBtn.setAttribute('title', t('replayCollapse'));
