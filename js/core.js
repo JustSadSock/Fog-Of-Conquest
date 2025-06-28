@@ -1345,13 +1345,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
             recordEvent(t('noAttackWater'));
             sel=null; zoneMap=null; zoneList=[]; updateAll(); return;
           }
+          const hadMove = sel.mp>0;
           sel.mp=0;
           const {dmg}=doAttackBuilding(sel,bldTgt);
           if(!aiMode) addReplay({type:'attack',target:bldTgt});
           playAudio(attackSfx);
           animateShake(bldTgt);
           let destroyed = bldTgt.hp<=0;
-          if(destroyed && UNIT_TYPES[sel.type].range===1){
+          if(destroyed && hadMove){
             if(!aiMode) addReplay({type:'move',unit:sel,from:{r:sel.r,c:sel.c},to:{r:bldTgt.r,c:bldTgt.c}});
             animateMove(sel,sel.r,sel.c,bldTgt.r,bldTgt.c);
             sel.r=bldTgt.r; sel.c=bldTgt.c;
