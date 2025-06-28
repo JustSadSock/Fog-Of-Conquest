@@ -399,7 +399,9 @@ h1 {
   flex: 0 0 auto;
   padding: 8px;
   border-bottom: 1px solid #555;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 #controls button {
@@ -410,13 +412,11 @@ h1 {
 }
 
 #settingsBtn {
-  transform: translateY(-50%);
-  transform-origin: center;
+  /* Flex alignment in #controls keeps this centered */
 }
 
 #settingsBtn:hover:not(:disabled) {
-  animation: pulseLift 0.4s ease;
-  transform: translateY(-50%);
+  animation: pulse 0.4s ease;
 }
 
 #statsLog {
@@ -463,6 +463,7 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
   }
   #controls button {
