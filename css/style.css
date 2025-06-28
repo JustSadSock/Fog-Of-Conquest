@@ -393,8 +393,14 @@ h1 {
   animation: pulse 0.4s ease;
 }
 
+#settingsBtn {
+  transform: translateY(-50%);
+  transform-origin: center;
+}
+
 #settingsBtn:hover:not(:disabled) {
   animation: pulse 0.4s ease;
+  transform: translateY(-50%);
 }
 
 #statsLog {
