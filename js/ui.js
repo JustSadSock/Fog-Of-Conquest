@@ -63,6 +63,33 @@ window.addEventListener('DOMContentLoaded', ()=>{
     return Promise.all(promises);
   }
 
+  function loadAiTiles(){
+    const map = {
+      'tiles/grass1':'tile_grass',
+      'tiles/grass2':'tile_grass_bottom',
+      'tiles/hill':'tile_hill',
+      'tiles/hill2':'tile_hill',
+      'tiles/mountains1':'tile_mountain',
+      'tiles/mountains2':'tile_mountain',
+      'tiles/mountains3':'tile_mountain',
+      'tiles/trees1':'tile_trees',
+      'tiles/trees2':'tile_trees',
+      'tiles/trees3':'tile_trees',
+      'tiles/water':'tile_water',
+      'tiles/pound':'tile_water',
+      'tiles/pound2':'tile_water',
+      'tiles/pound3':'tile_water'
+    };
+    const promises = [];
+    Object.entries(map).forEach(([key,name])=>{
+      const img = new Image();
+      img.src = `assets(ai)/${name}.png`;
+      IMG[key] = img;
+      promises.push(new Promise(res=>{img.onload=res; img.onerror=res;}));
+    });
+    return Promise.all(promises);
+  }
+
   // === DOM-элементы ===
   const startPanel = document.getElementById('startPanel'),
         twoBtn      = document.getElementById('twoBtn'),
@@ -1637,7 +1664,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     updateLabels();
     setupLegend();
     applyVolumes();
-    await loadImages(style==='ai'? 'assets2' : 'assets');
+    await loadImages('assets');
+    if(style==='ai') await loadAiTiles();
     saveSettings();
     updateAll();
   }
@@ -2039,9 +2067,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // === Инициализация ===
-  loadImages(style==='ai'? 'assets2' : 'assets').then(()=>{
+  (async ()=>{
+    await loadImages('assets');
+    if(style==='ai') await loadAiTiles();
     setupLegend();
     window.dispatchEvent(new Event('resize'));
     handleOrientation();
-  });
+  })();
 });
