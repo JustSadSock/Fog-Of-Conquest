@@ -122,6 +122,9 @@ h1 {
   top: 50%;
   transform: translateY(-50%);
   transform-origin: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #startHeader button:hover:not(:disabled) {
