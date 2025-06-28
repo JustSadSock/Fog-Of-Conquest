@@ -94,4 +94,8 @@
   ,"statsUnits": "Юнитов:"
   ,"logEnemy": "Враг: {text}"
   ,"logTurn": "--- Ход {turn} ---"
+  ,"startOnline": "Онлайн"
+  ,"createRoom": "Создать комнату"
+  ,"joinRoom": "Присоединиться"
+  ,"onlineTitle": "Лобби"
 }

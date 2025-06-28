@@ -68,6 +68,7 @@
         </div>
         <button id="twoBtn" class="game-btn" data-i18n="startTwo">Start game</button>
         <button id="aiBtn" class="game-btn" data-i18n="startAi">Single player</button>
+        <button id="onlineBtn" class="game-btn" data-i18n="startOnline">Online</button>
         <button id="betaBtn" class="game-btn" data-i18n="startBeta">Extended mode (beta)</button>
       </div>
     </div>
@@ -84,6 +85,16 @@
       <option value="5" data-i18n="aiL5">Extreme</option>
     </select>
     <button id="aiStartBtn" class="game-btn" data-i18n="aiStart">Start</button>
+  </div>
+
+  <div id="lobbyPanel" style="display:none; flex-direction:column; align-items:center;">
+    <h1 data-i18n="onlineTitle">Online lobby</h1>
+    <input id="roomIdInput" placeholder="Room" />
+    <div>
+      <button id="createRoomBtn" class="game-btn" data-i18n="createRoom">Create room</button>
+      <button id="joinRoomBtn" class="game-btn" data-i18n="joinRoom">Join room</button>
+      <button id="lobbyBackBtn" class="game-btn" data-i18n="exitReplay">Menu</button>
+    </div>
   </div>
 
   <div id="overlay">
@@ -191,6 +202,7 @@
 
   <script src="js/ai.js"></script>
   <script src="js/dropdown.js"></script>
+  <script src="js/network.js"></script>
   <script src="js/core.js"></script>
 </body>
 </html>
