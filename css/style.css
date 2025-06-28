@@ -12,6 +12,21 @@ html, body {
   font-family: 'MedievalSharp', 'Ruslan Display', 'Lora', serif;
 }
 
+/* Use a Cyrillic-friendly stack when the document language is Russian or Ukrainian */
+html[lang="ru"],
+html[lang="uk"] {
+  font-family: 'Ruslan Display', 'MedievalSharp', 'Lora', serif;
+}
+
+html[lang="ru"] h1,
+html[lang="uk"] h1,
+html[lang="ru"] .game-btn,
+html[lang="uk"] .game-btn,
+html[lang="ru"] .dropdown-toggle,
+html[lang="uk"] .dropdown-toggle {
+  font-family: 'Ruslan Display', 'Cinzel Decorative', 'MedievalSharp', 'Lora', serif;
+}
+
 body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
            env(safe-area-inset-bottom) env(safe-area-inset-left);
