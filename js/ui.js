@@ -141,39 +141,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // === Константы ===
   // default orientation switched to horizontal
-  const BASE_ROWS = 20, BASE_COLS = 30;
-  let ROWS = BASE_ROWS, COLS = BASE_COLS;
-  let mapSize = 'medium';
+  // constants moved to gameState.js
   const MIN_INFO_HEIGHT = 140;
   let aiMode = false, aiLevel = 2;
   let lobbyConn = null;
   let gameConn = null;
   let onlineGame = false;
-  const TERRAIN = { PLAIN:0, WATER:1, FOREST:2, HILL:3, MOUNTAIN:4 };
-  const TERR_COL  = ['#a6d88c','#6db6f8','#2e8b3d','#d4b55c','#8d8d8d'];
-  // Plain 1, Water 2, Forest 2 (extra cost), Hill 2, Mountain impassable
-  const TERR_COST = [1,2,2,2,999];
-  const TERR_DEF  = [0,-1,1,2,0];
-  let TERR_LABELS = [];
-
-  // tiles for drawing terrain
-  const TILE_IMAGES = {
-    grass:['tiles/grass1'],
-    water:['tiles/water'],
-    pond:['tiles/pound','tiles/pound2','tiles/pound3'],
-    hill:['tiles/hill'],
-    mountain:['tiles/mountains3'],
-    forest:['tiles/trees1']
-  };
-
-  const UNIT_IMG_MAP = {
-    swordsman:'militia',
-    archer:'archer',
-    heavy:'heavy',
-    cavalry:'horseman',
-    mage:'healer',
-    bog:'militia'
-  };
+  // terrain and unit data moved to gameState.js
 
   const SETTINGS_KEY = 'focSettings';
   const SAVE_PREFIX = 'focSave_';
@@ -390,18 +364,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   Object.assign(window, { spawnZones });
 
-  const state = {
-    currentPlayer:1,
-    turn:0,
-    gold:{1:5,2:5},
-    fog:{}, seen:{},
-    grace:{1:null,2:null},
-    log:{1:[],2:[]}
-  };
-
-  const map = [];
-  const buildings = [], units = [];
-  let nextUnitId = 1;
+  // state and map data moved to gameState.js
 
   // expose for tests
   Object.assign(window, {
