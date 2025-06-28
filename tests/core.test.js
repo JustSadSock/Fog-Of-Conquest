@@ -771,4 +771,15 @@ describe('Fog of Conquest core', () => {
     expect(msgEn).toMatch(/Player/);
     document.getElementById('yesBtn').click();
   });
+
+  test('langSelect changes wait overlay text', () => {
+    const select = document.getElementById('langSelect');
+    const waitText = document.getElementById('waitText');
+    select.value = 'ru';
+    select.dispatchEvent(new window.Event('input'));
+    expect(waitText.textContent).toMatch(/Подождите/);
+    select.value = 'en';
+    select.dispatchEvent(new window.Event('input'));
+    expect(waitText.textContent).toBe('Please wait...');
+  });
 });
