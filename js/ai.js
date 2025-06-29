@@ -21,14 +21,28 @@
     const {map, TERRAIN, TERR_COST, units} = global;
     if(!map) return null;
     const ROWS = map.length, COLS = map[0].length;
-    const open = [];
+    const passCosts = TERR_COST.filter(c=>c<999);
+    const avgMove = passCosts.reduce((a,b)=>a+b,0)/passCosts.length;
+    class PriorityQueue{
+      constructor(compare){ this.compare=compare; this.data=[]; }
+      push(item){ this.data.push(item); this._up(this.data.length-1); }
+      _up(i){ const d=this.data,c=this.compare; while(i>0){ const p=(i-1)>>1; if(c(d[i],d[p])>=0) break; [d[i],d[p]]=[d[p],d[i]]; i=p; } }
+      pop(){ const d=this.data,c=this.compare;if(!d.length) return undefined; const top=d[0]; const last=d.pop(); if(d.length){ d[0]=last; this._down(0); } return top; }
+      _down(i){ const d=this.data,c=this.compare; const l=d.length; while(true){ let left=i*2+1,right=left+1,small=i; if(left<l&&c(d[left],d[small])<0) small=left; if(right<l&&c(d[right],d[small])<0) small=right; if(small===i) break; [d[i],d[small]]=[d[small],d[i]]; i=small; } }
+      isEmpty(){ return this.data.length===0; }
+    }
+    const open = new PriorityQueue((a,b)=>a.f-b.f);
+    const openMap = new Map();
     const closed = new Set();
     const key = (r,c) => r+","+c;
-    open.push({r:unit.r, c:unit.c, g:0, f:0, prev:null});
-    while(open.length){
-      open.sort((a,b)=>a.f-b.f);
-      const cur = open.shift();
+    const startNode = {r:unit.r, c:unit.c, g:0, f:0, prev:null};
+    open.push(startNode);
+    openMap.set(key(unit.r,unit.c), startNode);
+    while(!open.isEmpty()){
+      const cur = open.pop();
       const k = key(cur.r,cur.c);
+      if(openMap.get(k)!==cur) continue;
+      openMap.delete(k);
       if(closed.has(k)) continue;
       if(cur.r===target.r && cur.c===target.c){
         const path=[];
@@ -44,12 +58,13 @@
         if(map[rr][cc]===TERRAIN.MOUNTAIN) return;
         if(units.some(us=>us!==unit && us.r===rr && us.c===cc)) return;
         const g=cur.g+TERR_COST[map[rr][cc]];
-        const h=Math.abs(target.r-rr)+Math.abs(target.c-cc);
-        const existing=open.find(o=>o.r===rr&&o.c===cc);
-        if(existing){
-          if(g<existing.g){ existing.g=g; existing.f=g+h; existing.prev=cur; }
-        }else{
-          open.push({r:rr,c:cc,g, f:g+h, prev:cur});
+        const h=(Math.abs(target.r-rr)+Math.abs(target.c-cc))*avgMove;
+        const nodeKey = key(rr,cc);
+        const existing=openMap.get(nodeKey);
+        if(!existing || g<existing.g){
+          const node={r:rr,c:cc,g,f:g+h,prev:cur};
+          open.push(node);
+          openMap.set(nodeKey,node);
         }
       });
     }
