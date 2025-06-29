@@ -170,8 +170,34 @@
     }
   }
 
-  function balanceStarts(){}
-  function spiceRandom(){}
+  function balanceStarts(){
+    for(let r=0;r<global.ROWS;r++){
+      for(let c=0;c<global.COLS;c++){
+        const rr=global.ROWS-1-r, cc=global.COLS-1-c;
+        if(r>rr || (r===rr && c>cc)) continue;
+        const t1=global.map[r][c], t2=global.map[rr][cc];
+        if(t1===t2) continue;
+        const pass=t=>t!==global.TERRAIN.MOUNTAIN && t!==global.TERRAIN.WATER;
+        let chosen;
+        if(pass(t1) && !pass(t2)) chosen=t1;
+        else if(pass(t2) && !pass(t1)) chosen=t2;
+        else chosen=rand2(r,c)<0.5?t1:t2;
+        global.map[r][c]=global.map[rr][cc]=chosen;
+      }
+    }
+  }
+
+  function spiceRandom(){
+    const safe=START_CLEAR_RADIUS+3;
+    for(let r=0;r<global.ROWS;r++)for(let c=0;c<global.COLS;c++){
+      if(abs(r-1)<=safe && abs(c-1)<=safe) continue;
+      if(abs(r-(global.ROWS-2))<=safe && abs(c-(global.COLS-2))<=safe) continue;
+      if(global.map[r][c]!==global.TERRAIN.PLAIN) continue;
+      const v=rand2(r+77,c+33);
+      if(v<RESOURCE_CHANCE/2) global.map[r][c]=global.TERRAIN.FOREST;
+      else if(v<RESOURCE_CHANCE) global.map[r][c]=global.TERRAIN.HILL;
+    }
+  }
 
   function rand2(x,y){
     return Math.abs(Math.sin(x*374761393 + y*668265263 + 1337))%1;
