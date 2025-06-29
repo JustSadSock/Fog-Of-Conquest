@@ -2,7 +2,7 @@
 
 /**
  * Базовые юнит-тесты для core.js
- * Для запуска: выполните `npm install` и затем `npm test`
+ * Для запуска: выполните `npm ci --no-audit --no-fund` и затем `npm test`
  */
 
 const fs = require('fs');

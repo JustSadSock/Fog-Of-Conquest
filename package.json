@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "pretest": "test -d node_modules || npm install",
+    "pretest": "test -d node_modules || npm ci --no-audit --no-fund",
     "test": "jest",
     "lint": "eslint js tests"
   },
