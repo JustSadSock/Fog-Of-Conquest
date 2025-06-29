@@ -83,6 +83,7 @@ h1 {
   background: #d8c18f;
   border-color: #d8c18f;
   outline: 2px solid #3a2e1a;
+  box-shadow: 0 0 4px 2px #3a2e1a;
 }
 
 
