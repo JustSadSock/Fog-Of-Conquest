@@ -1039,16 +1039,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(att.type==='cavalry' && BUILD_TYPES[bld.type].def>0) atk--;
     let defV=BUILD_TYPES[bld.type].def+TERR_DEF[map[bld.r][bld.c]];
     let dmg=Math.max(1,atk-defV);
-    damageBuilding(bld, att.owner, dmg);
+    damageBuilding(bld, dmg);
     return {dmg};
   }
 
-  function damageBuilding(b, newOwner, dmg=1){
+  function damageBuilding(b, dmg=1){
     if(!b) return;
     b.hp -= dmg;
     if(b.hp <= 0){
       b.hp = 0;
-      if(newOwner!==undefined) b.owner = newOwner;
     }
   }
 
@@ -1219,7 +1218,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
             animateMove(sel,sel.r,sel.c,tgt.r,tgt.c);
             sel.r=tgt.r; sel.c=tgt.c;
             let bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c&&b.owner!==p);
-            if(bb) damageBuilding(bb,p);
+            if(bb) damageBuilding(bb);
             bb=buildings.find(b=>b.r===sel.r&&b.c===sel.c);
             if(bb) attemptCapture(sel, bb);
           }
@@ -1273,7 +1272,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
           sel.mp=zoneMap.rem[y][x];
           let moved = (y!==sel.r || x!==sel.c);
           let bb=buildings.find(b=>b.r===y&&b.c===x&&b.owner!==p);
-          if(bb) damageBuilding(bb,p);
+          if(bb) damageBuilding(bb);
           if(moved && !aiMode) addReplay({type:'move',unit:sel,from,to:{r:y,c:x}});
           animateMove(sel,sel.r,sel.c,y,x);
           sel.r=y; sel.c=x;
