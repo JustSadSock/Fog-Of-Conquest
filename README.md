@@ -3,7 +3,7 @@
 This is a small browser strategy game. Interface texts are available in Russian, English and now Ukrainian.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for translation guidelines.
 
-Run `npm install` to install development dependencies and `npm test` to execute unit tests.
+Run `npm ci --no-audit --no-fund` to install development dependencies and `npm test` to execute unit tests.
 
 ## Running the game locally
 
