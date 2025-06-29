@@ -138,6 +138,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
         saveReplayBtn = document.getElementById('saveReplayBtn'),
         exitReplayBtn = document.getElementById('exitReplayBtn'),
         endTurnBtn  = document.getElementById('endTurnBtn'),
+        panelToggleBtn = document.getElementById('panelToggleBtn'),
+        infoPanel  = document.getElementById('infoPanel'),
         leftStats   = document.getElementById('leftStats'),
         rightLog    = document.getElementById('rightLog'),
         mapSizeSel  = document.getElementById('mapSizeSelect'),
@@ -307,6 +309,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
       const k=el.getAttribute('data-i18n-title');
       if(strings[k]) el.setAttribute('title', strings[k]);
     });
+    if(panelToggleBtn){
+      panelToggleBtn.textContent = infoPanel.classList.contains('collapsed') ? '▲' : '▼';
+    }
   }
 
   loadSettings();
@@ -512,7 +517,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // === Resize ===
   window.addEventListener('resize',()=>{
-    const infoPanel = document.getElementById('infoPanel');
     const size = Math.floor(Math.min(
       window.innerWidth / COLS,
       (window.innerHeight - MIN_INFO_HEIGHT) / ROWS
@@ -521,7 +525,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
     canvas.width  = cellW * COLS;
     canvas.height = cellH * ROWS;
     const panelH = Math.max(MIN_INFO_HEIGHT, window.innerHeight - canvas.height);
-    infoPanel.style.height = panelH + 'px';
+    if(!infoPanel.classList.contains('collapsed')){
+      infoPanel.style.height = panelH + 'px';
+    }
     infoPanel.style.bottom = '0';
     updateAll();
   });
@@ -1389,6 +1395,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
       e.preventDefault();
       legendOverlay.style.display='flex';
     }
+  });
+  panelToggleBtn.addEventListener('click',()=>{
+    const collapsed = infoPanel.classList.toggle('collapsed');
+    panelToggleBtn.textContent = collapsed ? '▲' : '▼';
+    panelToggleBtn.setAttribute('title', t(collapsed ? 'infoExpand' : 'infoCollapse'));
   });
   legendOverlay.addEventListener('keydown',e=>{
     if(e.key==='Escape'){

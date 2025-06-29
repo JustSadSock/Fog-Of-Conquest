@@ -38,6 +38,8 @@
   "settingsClose": "Закрыть",
   "legendBtnTitle": "Легенда",
   "settingsBtn": "Настройки",
+  "infoCollapse": "Свернуть панель",
+  "infoExpand": "Развернуть панель",
   "revealShow": "Показать карту",
   "revealHide": "Скрыть карту",
   "tooltip": "Подсказки",
