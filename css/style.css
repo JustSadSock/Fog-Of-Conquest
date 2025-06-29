@@ -443,6 +443,12 @@ h1 {
   transform-origin: center; /* Ensure smooth scaling */
 }
 
+#panelToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #settingsBtn:hover:not(:disabled) {
   animation: pulse 0.4s ease;
 }
@@ -517,6 +523,18 @@ h1 {
 #legendBtn {
   margin-left: 8px;
   padding: 6px 10px;
+}
+
+#infoPanel.collapsed {
+  height: auto;
+}
+
+#infoPanel.collapsed #statsLog {
+  display: none;
+}
+
+#infoPanel.collapsed #controls {
+  border-bottom: none;
 }
 
 #legendOverlay,

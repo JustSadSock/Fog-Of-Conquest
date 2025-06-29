@@ -38,6 +38,8 @@
   "settingsClose": "Close",
   "legendBtnTitle": "Legend",
   "settingsBtn": "Settings",
+  "infoCollapse": "Hide panel",
+  "infoExpand": "Show panel",
   "revealShow": "Show map",
   "revealHide": "Hide map",
   "tooltip": "Hints",
