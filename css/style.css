@@ -438,6 +438,8 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 0; /* Prevent baseline shift for the gear icon */
+  transform-origin: center; /* Ensure smooth scaling */
 }
 
 #settingsBtn:hover:not(:disabled) {
