@@ -8,4 +8,6 @@ Supported languages:
 - Russian (`ru.json`)
 - Ukrainian (`uk.json`)
 
+- Provide translations for any new user-facing text in `en.json`, `ru.json`, and `uk.json` in the same pull request. Pull requests lacking translations should not be merged.
+
 Please keep translations in sync to ensure consistent game experience across locales.
