@@ -1,4 +1,19 @@
 (function(global){
+  /**
+   * Shared global game state.
+   * @global {number} BASE_ROWS Default map rows
+   * @global {number} BASE_COLS Default map columns
+   * @global {number} ROWS Current map rows
+   * @global {number} COLS Current map columns
+   * @global {string} mapSize Human friendly map size label
+   * @global {Object} TERRAIN Enum of terrain types
+   * @global {string[]} TERR_COL Terrain colors
+   * @global {number[]} TERR_COST Movement costs per terrain
+   * @global {number[]} TERR_DEF Defense bonus per terrain
+   * @global {Object[]} buildings List of building objects
+   * @global {Object[]} units List of unit objects
+   * @global {Object} state Persistent match state
+   */
   const BASE_ROWS = 20, BASE_COLS = 30;
   let ROWS = BASE_ROWS, COLS = BASE_COLS;
   let mapSize = 'medium';

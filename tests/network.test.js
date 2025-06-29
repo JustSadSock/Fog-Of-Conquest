@@ -8,6 +8,7 @@ describe('network.connect', () => {
 
   beforeEach(() => {
     jest.resetModules();
+    jest.useFakeTimers();
     events = {};
     mockSocket = {
       send: jest.fn(),
@@ -16,11 +17,12 @@ describe('network.connect', () => {
     };
     global.WebSocket = jest.fn(() => mockSocket);
     connect = require('../js/network.js').connect;
-    conn = connect('ws://test');
+    conn = connect('ws://test', { pingInterval: 1000 });
   });
 
   afterEach(() => {
     delete global.WebSocket;
+    jest.useRealTimers();
   });
 
   test('emits connected on open', () => {
@@ -61,5 +63,17 @@ describe('network.connect', () => {
   test('close closes socket', () => {
     conn.close();
     expect(mockSocket.close).toHaveBeenCalled();
+  });
+
+  test('auto reconnects after close', () => {
+    events.close();
+    jest.advanceTimersByTime(1000);
+    expect(global.WebSocket).toHaveBeenCalledTimes(2);
+  });
+
+  test('sends ping messages', () => {
+    events.open();
+    jest.advanceTimersByTime(2000);
+    expect(mockSocket.send).toHaveBeenCalledWith('ping');
   });
 });

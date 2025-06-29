@@ -4,11 +4,13 @@
   "description": "",
   "scripts": {
     "pretest": "test -d node_modules || npm install",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint js tests"
   },
   "devDependencies": {
     "jest": "^29.6.2",
     "jest-environment-jsdom": "^29.6.2",
-    "ws": "^8.13.0"
+    "ws": "^8.13.0",
+    "eslint": "^8.56.0"
   }
 }
