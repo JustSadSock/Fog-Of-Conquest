@@ -77,11 +77,19 @@
     if(!map) return [];
     const ROWS = map.length, COLS = map[0].length;
     const dist=Array.from({length:ROWS},()=>Array(COLS).fill(Infinity));
-    const q=[];
+    class PriorityQueue{
+      constructor(compare){ this.compare=compare; this.data=[]; }
+      push(item){ this.data.push(item); this._up(this.data.length-1); }
+      _up(i){ const d=this.data,c=this.compare; while(i>0){ const p=(i-1)>>1; if(c(d[i],d[p])>=0) break; [d[i],d[p]]=[d[p],d[i]]; i=p; } }
+      pop(){ const d=this.data,c=this.compare;if(!d.length) return undefined; const top=d[0]; const last=d.pop(); if(d.length){ d[0]=last; this._down(0); } return top; }
+      _down(i){ const d=this.data,c=this.compare; const l=d.length; while(true){ let left=i*2+1,right=left+1,small=i; if(left<l&&c(d[left],d[small])<0) small=left; if(right<l&&c(d[right],d[small])<0) small=right; if(small===i) break; [d[i],d[small]]=[d[small],d[i]]; i=small; } }
+      isEmpty(){ return this.data.length===0; }
+    }
+    const q=new PriorityQueue((a,b)=>a.d-b.d);
     targets.forEach(t=>{ dist[t.r][t.c]=0; q.push({r:t.r,c:t.c,d:0}); });
-    while(q.length){
-      q.sort((a,b)=>a.d-b.d);
-      const o=q.shift();
+    while(!q.isEmpty()){
+      const o=q.pop();
+      if(o.d!==dist[o.r][o.c]) continue;
       const d=dist[o.r][o.c];
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
         const rr=o.r+dr, cc=o.c+dc;
