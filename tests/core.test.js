@@ -256,12 +256,16 @@ describe('Fog of Conquest core', () => {
   });
 
   test('destroying a building captures it for the attacker', () => {
-    const { buildings, damageBuilding, BUILD_TYPES } = window;
+    const { buildings, damageBuilding, attemptCapture, BUILD_TYPES } = window;
     document.getElementById('twoBtn').click();
     const base = buildings.find(b => b.owner === 1 && b.type === 'base');
     base.hp = 1;
-    damageBuilding(base, 2, 1);
+    damageBuilding(base, 1);
     expect(base.hp).toBe(0);
+    // owner unchanged until capture
+    expect(base.owner).toBe(1);
+    // simulate unit on tile capturing
+    attemptCapture({r:base.r,c:base.c,owner:2}, base);
     expect(base.owner).toBe(2);
   });
 
@@ -291,9 +295,10 @@ describe('Fog of Conquest core', () => {
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(1);
     for(let i=1;i<BUILD_TYPES.base.hpMax;i++){
-      window.damageBuilding(buildings[0],2);
+      window.damageBuilding(buildings[0]);
     }
-    expect(buildings[0].owner).toBe(2);
+    // owner should remain until capture
+    expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(0);
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(2);
@@ -318,13 +323,14 @@ describe('Fog of Conquest core', () => {
     window.attemptCapture(archer, base);
     expect(base.owner).toBe(1);
     doAttackBuilding(archer, base);
-    expect(base.owner).toBe(2);
+    // owner unchanged until capture
+    expect(base.owner).toBe(1);
     expect(base.hp).toBe(0);
     expect(archer.r).toBe(0);
     expect(archer.c).toBe(0);
     window.attemptCapture(archer, base);
-    expect(base.owner).toBe(2);
-    // move archer onto the building and capture
+    expect(base.owner).toBe(1);
+    // move archer onto the building and capture/reset
     archer.r = base.r;
     archer.c = base.c;
     window.attemptCapture(archer, base);
@@ -398,7 +404,7 @@ describe('Fog of Conquest core', () => {
     click(0,2);
     const base = buildings[0];
     const archer = units[0];
-    expect(base.owner).toBe(2);
+    expect(base.owner).toBe(1);
     expect(base.hp).toBe(0);
     expect(archer.r).toBe(0);
     expect(archer.c).toBe(0);
@@ -577,8 +583,8 @@ describe('Fog of Conquest core', () => {
     expect(buildings[0].hp).toBe(BUILD_TYPES.base.hpMax - 1);
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(1);
-    for(let i=1;i<BUILD_TYPES.base.hpMax;i++) window.damageBuilding(buildings[0],2);
-    expect(buildings[0].owner).toBe(2);
+    for(let i=1;i<BUILD_TYPES.base.hpMax;i++) window.damageBuilding(buildings[0]);
+    expect(buildings[0].owner).toBe(1);
     expect(buildings[0].hp).toBe(0);
     window.attemptCapture(units[0], buildings[0]);
     expect(buildings[0].owner).toBe(2);
