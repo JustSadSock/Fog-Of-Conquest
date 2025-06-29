@@ -1,3 +1,4 @@
+(function(global){
   function stopReplay(){
     if(replayTimer){ clearTimeout(replayTimer); replayTimer=null; }
     aiReplay=[];
@@ -172,3 +173,11 @@
     revealAll = false;
   }
 
+  if(global){
+    Object.assign(global, {
+      stopReplay, replayAI, applySnapshot, handleReplayAction,
+      handleNetEvent, handleNetMessage, attachConnection,
+      startMatchReplay, recordReplayVideo, seekReplay, stopMatchReplay
+    });
+  }
+})(typeof window!=="undefined" ? window : global);
