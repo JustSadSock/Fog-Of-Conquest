@@ -412,7 +412,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // replay state globals
   window.aiReplay = [];
   window.replayTimer = null;
-  window.replayEvents = [];
+  let replayEvents = [];
+  window.replayEvents = replayEvents;
   window.replaySpeed = 1;
   window.replayPaused = false;
   window.replayIndex = 0;
@@ -1678,6 +1679,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
     generateWorld(modeBeta);
+    replayEvents.push({type:'start', snapshot:snapshot()});
     recordTurn(); updateAll();
   });
 
@@ -1696,6 +1698,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     setMapSize(mapSizeSel.value);
     aiPanel.style.display='none';
     generateWorld(modeBeta);
+    replayEvents.push({type:'start', snapshot:snapshot()});
     recordTurn(); updateAll();
   });
 
@@ -1707,6 +1710,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     setMapSize(mapSizeSel.value);
     startPanel.style.display='none';
     generateWorld(modeBeta);
+    replayEvents.push({type:'start', snapshot:snapshot()});
     recordTurn(); updateAll();
   });
 
