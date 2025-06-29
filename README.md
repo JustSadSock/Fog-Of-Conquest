@@ -4,6 +4,7 @@ This is a small browser strategy game. Interface texts are available in Russian,
 See [CONTRIBUTING.md](CONTRIBUTING.md) for translation guidelines.
 
 Run `npm ci --no-audit --no-fund` to install development dependencies and `npm test` to execute unit tests.
+During tests requests to Google Fonts are stubbed so jsdom does not emit network errors.
 
 ## Running the game locally
 

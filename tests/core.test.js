@@ -9,7 +9,25 @@ const fs = require('fs');
 const { TextEncoder, TextDecoder } = require('util');
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
-const { JSDOM } = require('jsdom');
+const { JSDOM, ResourceLoader } = require('jsdom');
+
+// jsdom tries to fetch Google Fonts referenced in index.html which fails in
+// the test environment. Provide a helper that stubs those requests.
+function createDOM(html) {
+  const loader = new ResourceLoader();
+  const origFetch = loader.fetch.bind(loader);
+  loader.fetch = (url, options) => {
+    if (typeof url === 'string' && url.startsWith('https://fonts.googleapis.com')) {
+      return Promise.resolve(Buffer.from(''));
+    }
+    return origFetch(url, options);
+  };
+  return new JSDOM(html, {
+    runScripts: 'dangerously',
+    resources: loader,
+    url: `file://${process.cwd()}/index.html`
+  });
+}
 HTMLCanvasElement.prototype.getContext = () => {
   return {
     fillRect:()=>{}, clearRect:()=>{}, beginPath:()=>{}, arc:()=>{}, fill:()=>{},
@@ -23,7 +41,7 @@ describe('Fog of Conquest core', () => {
 
   beforeAll(async () => {
     const html = fs.readFileSync('index.html', 'utf8');
-    const dom = new JSDOM(html, { runScripts: "dangerously", resources: "usable", url: `file://${process.cwd()}/index.html` });
+    const dom = createDOM(html);
     document = dom.window.document;
     window = dom.window;
     global.requestAnimationFrame = cb => setTimeout(cb,0);
@@ -399,7 +417,7 @@ describe('Fog of Conquest core', () => {
       };
     };
     const html = fs.readFileSync('index.html','utf8');
-    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const dom = createDOM(html);
     const win = dom.window;
     const { document } = win;
     win.requestAnimationFrame = cb => cb();
@@ -436,7 +454,7 @@ describe('Fog of Conquest core', () => {
       };
     };
     const html = fs.readFileSync('index.html','utf8');
-    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const dom = createDOM(html);
     const win = dom.window;
     const { document } = win;
     win.requestAnimationFrame = cb => cb();
@@ -477,7 +495,7 @@ describe('Fog of Conquest core', () => {
       };
     };
     const html = fs.readFileSync('index.html','utf8');
-    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const dom = createDOM(html);
     const win = dom.window;
     const { document } = win;
     win.requestAnimationFrame = cb => cb();
@@ -516,7 +534,7 @@ describe('Fog of Conquest core', () => {
       };
     };
     const html = fs.readFileSync('index.html','utf8');
-    const dom = new JSDOM(html,{runScripts:'dangerously',resources:'usable',url:`file://${process.cwd()}/index.html`});
+    const dom = createDOM(html);
     const win = dom.window;
     const { document } = win;
     win.requestAnimationFrame = cb => cb();
