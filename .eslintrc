@@ -1,0 +1,27 @@
+{
+  "env": {
+    "browser": true,
+    "jest": true,
+    "es2021": true
+  },
+  "globals": {
+    "module": "readonly",
+    "global": "readonly",
+    "process": "readonly",
+    "TextEncoder": "readonly",
+    "TextDecoder": "readonly",
+    "WebSocket": "readonly"
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-redeclare": "off",
+    "no-unused-vars": "off",
+    "no-undef": "off",
+    "no-empty": "off",
+    "no-constant-condition": "off"
+  }
+}
