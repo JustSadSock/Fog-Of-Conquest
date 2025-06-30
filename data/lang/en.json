@@ -17,6 +17,7 @@
   "aiL3": "Hard",
   "aiL4": "Impossible",
   "aiL5": "Extreme",
+  "aiL6": "Nightmare",
   "aiStart": "Start",
   "yes": "Ok",
   "no": "Cancel",
@@ -103,4 +104,7 @@
   ,"createRoom": "Create room"
   ,"joinRoom": "Join room"
   ,"onlineTitle": "Online lobby"
+  ,"tutorialBtn": "Tutorial"
+  ,"tutorialText": "Capture enemy bases to win. Use \u274c to cancel selections."
+  ,"tutorialClose": "Close"
 }

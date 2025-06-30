@@ -69,6 +69,7 @@
         <button id="twoBtn" class="game-btn" data-i18n="startTwo">Start game</button>
         <button id="aiBtn" class="game-btn" data-i18n="startAi">Single player</button>
         <button id="onlineBtn" class="game-btn" data-i18n="startOnline">Online</button>
+        <button id="tutorialBtn" class="game-btn" data-i18n="tutorialBtn">Tutorial</button>
         <button id="betaBtn" class="game-btn" data-i18n="startBeta">Extended mode (beta)</button>
       </div>
     </div>
@@ -83,6 +84,7 @@
       <option value="3" data-i18n="aiL3">Hard</option>
       <option value="4" data-i18n="aiL4">Impossible</option>
       <option value="5" data-i18n="aiL5">Extreme</option>
+      <option value="6" data-i18n="aiL6">Nightmare</option>
     </select>
     <button id="aiStartBtn" class="game-btn" data-i18n="aiStart">Start</button>
   </div>
@@ -137,6 +139,13 @@
   <div id="legendOverlay">
     <div class="panel" id="legendPanel"></div>
     <button id="legendCloseBtn" class="game-btn" data-i18n="legendClose">Close</button>
+  </div>
+
+  <div id="tutorialOverlay" style="display:none;">
+    <div class="panel">
+      <div id="tutorialText" data-i18n="tutorialText"></div>
+      <button id="tutorialCloseBtn" class="game-btn" data-i18n="tutorialClose">Close</button>
+    </div>
   </div>
 
   <div id="settingsOverlay">
@@ -212,6 +221,7 @@
   <script src="js/data.js"></script>
   <script src="js/gameState.js"></script>
   <script src="js/worldGen.js"></script>
+  <script src="js/lobby.js"></script>
   <script src="js/replay.js"></script>
   <script src="js/ui.js"></script>
 </body>

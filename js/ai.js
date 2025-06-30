@@ -185,7 +185,9 @@
                   bd=buildDist?buildDist[pos.r][pos.c]:null,
                   ud=unitDist?unitDist[pos.r][pos.c]:null;
             let bw,blw,uw;
-            if(aiLevel>=5){
+            if(aiLevel>=6){
+              bw=7; blw=5; uw=6;
+            }else if(aiLevel>=5){
               bw=6; blw=4; uw=5;
             }else if(aiLevel===4){
               bw=5; blw=3; uw=4;
