@@ -65,7 +65,7 @@ describe('Fog of Conquest core', () => {
 
   test('difficulty selector contains new levels', () => {
     const opts = Array.from(document.querySelectorAll('#aiLevelSelect option')).map(o => o.value);
-    expect(opts).toEqual(['0','1','2','3','4','5']);
+    expect(opts).toEqual(['0','1','2','3','4','5','6']);
   });
 
   test('canvas существует и имеет правильные размеры', () => {

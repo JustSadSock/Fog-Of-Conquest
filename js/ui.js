@@ -177,6 +177,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
         newGameBtn   = document.getElementById('newGameBtn'),
         newGameOptions = document.getElementById('newGameOptions'),
         onlineBtn   = document.getElementById('onlineBtn'),
+        tutorialBtn = document.getElementById('tutorialBtn'),
+        tutorialOverlay = document.getElementById('tutorialOverlay'),
+        tutorialCloseBtn = document.getElementById('tutorialCloseBtn'),
         lobbyPanel  = document.getElementById('lobbyPanel'),
         roomIdInput = document.getElementById('roomIdInput'),
         createRoomBtn = document.getElementById('createRoomBtn'),
@@ -1730,6 +1733,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
     lobbyPanel.style.display='flex';
   });
 
+  if(tutorialBtn){
+    tutorialBtn.addEventListener('click', ()=>{
+      startPanel.style.display='none';
+      tutorialOverlay.style.display='flex';
+    });
+  }
+
+  if(tutorialCloseBtn){
+    tutorialCloseBtn.addEventListener('click', ()=>{
+      tutorialOverlay.style.display='none';
+      startPanel.style.display='flex';
+    });
+  }
+
   lobbyBackBtn.addEventListener('click', ()=>{
     if(lobbyConn){ lobbyConn.close(); lobbyConn=null; }
     gameConn = null; onlineGame = false;
@@ -1739,9 +1756,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(newGameOptions) newGameOptions.style.display='flex';
   });
 
-  function connectLobby(){
+  function connectLobbyWrapper(){
     if(lobbyConn){ lobbyConn.close(); }
-    lobbyConn = connect((location.protocol==='https:'?'wss':'ws')+'://'+location.host);
+    lobbyConn = connectLobby();
     lobbyConn.on('message', data=>{
       if(data && data.action==='start'){
         lobbyPanel.style.display='none';
@@ -1763,7 +1780,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
 
   createRoomBtn.addEventListener('click', ()=>{
-    connectLobby();
+    connectLobbyWrapper();
     const room = roomIdInput.value.trim();
     lobbyConn.on('connected', ()=> lobbyConn.send({action:'create', room}));
     lobbyPanel.style.display='none';
@@ -1771,7 +1788,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   joinRoomBtn.addEventListener('click', ()=>{
-    connectLobby();
+    connectLobbyWrapper();
     const room = roomIdInput.value.trim();
     lobbyConn.on('connected', ()=> lobbyConn.send({action:'join', room}));
     lobbyPanel.style.display='none';

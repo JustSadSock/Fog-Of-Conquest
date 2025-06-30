@@ -40,7 +40,7 @@ describe('aiTakeTurn supports new difficulty levels', () => {
   });
 
   test('aiTakeTurn does not throw on extreme levels', () => {
-    [0,5].forEach(lvl => {
+    [0,6].forEach(lvl => {
       global.aiLevel = lvl;
       expect(() => aiTakeTurn()).not.toThrow();
     });
