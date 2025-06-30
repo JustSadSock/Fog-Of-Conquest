@@ -109,13 +109,21 @@
     const p=2,
           F=state.fog[p];
     const enemyUnits=units.filter(u=>u.owner===1 && !F[u.r][u.c]);
-    const enemyBuildings=buildings.filter(b=>b.owner===1 && !F[b.r][b.c]);
+    const captureBuildings=buildings.filter(b=>b.owner!==p && !F[b.r][b.c]);
+    const enemyBuildings=captureBuildings.filter(b=>b.owner===1);
     const enemyBases=enemyBuildings.filter(b=>BUILD_TYPES[b.type].gen===0);
     const baseDist=enemyBases.length?computeDistanceMap(enemyBases):null;
-    const buildDist=enemyBuildings.length?computeDistanceMap(enemyBuildings):null;
+    const captureDist=captureBuildings.length?computeDistanceMap(captureBuildings):null;
     const unitDist=enemyUnits.length?computeDistanceMap(enemyUnits):null;
     const allEnemies=[...enemyUnits,...enemyBuildings];
     const allDist=allEnemies.length?computeDistanceMap(allEnemies):null;
+    const unseenCells=[];
+    if(state.seen&&state.seen[p]){
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+        if(!state.seen[p][r][c]) unseenCells.push({r,c});
+      }
+    }
+    const exploreDist=unseenCells.length?computeDistanceMap(unseenCells):null;
     const enemyCounts={};
     enemyUnits.forEach(u=>enemyCounts[u.type]=(enemyCounts[u.type]||0)+1);
     buildings.filter(b=>b.owner===p && BUILD_TYPES[b.type].spawn.length).forEach(b=>{
@@ -176,13 +184,17 @@
         }else if(aiLevel===2){
           if(allDist){
             target=cz.list.sort((a,b)=>allDist[a.r][a.c]-allDist[b.r][b.c])[0];
-          } else target=cz.list[0];
+          } else if(captureDist){
+            target=cz.list.sort((a,b)=>captureDist[a.r][a.c]-captureDist[b.r][b.c])[0];
+          } else if(exploreDist){
+            target=cz.list.sort((a,b)=>exploreDist[a.r][a.c]-exploreDist[b.r][b.c])[0];
+          } else target=cz.list[Math.random()*cz.list.length|0];
         }else{
           let best=null,bestScore=-Infinity;
           cz.list.forEach(pos=>{
             let score=0;
             const br=baseDist?baseDist[pos.r][pos.c]:null,
-                  bd=buildDist?buildDist[pos.r][pos.c]:null,
+                  bd=captureDist?captureDist[pos.r][pos.c]:null,
                   ud=unitDist?unitDist[pos.r][pos.c]:null;
             let bw,blw,uw;
             if(aiLevel>=6){
@@ -197,7 +209,7 @@
               bw=3; blw=1; uw=2;
             }
             if(baseDist) score-= (br||100)*bw;
-            if(buildDist) score-= (bd||100)*blw;
+            if(captureDist) score-= (bd||100)*blw;
             if(unitDist) score-= (ud||100)*uw;
 
             const terrainBonus=(TERR_DEF?TERR_DEF[map[pos.r][pos.c]]:0);
@@ -248,6 +260,9 @@
             });
             if(risk>=u.hp) risk+= (UNIT_VALUE[u.type]||UNIT_TYPES[u.type].cost||0);
             score-=risk;
+            if(exploreDist){
+              score-= (exploreDist[pos.r][pos.c]||100)*0.5;
+            }
 
             if(aiLevel>=4 && u.hp<=UNIT_TYPES[u.type].hpMax/2){
               let distAway=allDist?allDist[pos.r][pos.c]:0;
