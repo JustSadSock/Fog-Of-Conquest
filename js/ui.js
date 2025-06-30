@@ -532,7 +532,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
       infoPanel.style.height = panelH + 'px';
     }
     infoPanel.style.bottom = '0';
-    updateAll();
+    if(state.fog[state.currentPlayer]){
+      updateAll();
+    }
   });
 
   // === Сброс перед новой игрой ===
@@ -1551,7 +1553,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
     await loadImages('assets');
     if(style==='ai') await loadAiTiles();
     saveSettings();
-    updateAll();
+    if(state.fog[state.currentPlayer]){
+      updateAll();
+    }
   }
 
   [styleSelect,musicEnableEl,musicVolumeEl,sfxEnableEl,sfxVolumeEl,langSelect].forEach(el=>{
