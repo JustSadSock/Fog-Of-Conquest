@@ -21,6 +21,7 @@
     ensureConnectivity();
     balanceStarts();
     spiceRandom();
+    ensureTerrainPresence();
 
     global.units.push({id:global.nextUnitId++,r:1,c:2,owner:1,type:'swordsman',
       hp:global.UNIT_TYPES.swordsman.hpMax,
@@ -59,7 +60,14 @@
     }
     let min=Infinity,max=-Infinity;
     for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const v=map[r][c];if(v<min)min=v;if(v>max)max=v;}
-    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){map[r][c]=(map[r][c]-min)/(max-min);}
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      let v=(map[r][c]-min)/(max-min);
+      const dx=r-rows/2, dy=c-cols/2;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const maxDist=Math.sqrt((rows/2)**2+(cols/2)**2);
+      const falloff=1-dist/maxDist;
+      map[r][c]=v*0.7+falloff*0.3;
+    }
     for(let k=0;k<2;k++) boxBlur(map);
     return map;
   }
@@ -197,6 +205,18 @@
       if(v<RESOURCE_CHANCE/2) global.map[r][c]=global.TERRAIN.FOREST;
       else if(v<RESOURCE_CHANCE) global.map[r][c]=global.TERRAIN.HILL;
     }
+  }
+
+  function ensureTerrainPresence(){
+    const types=[global.TERRAIN.WATER,global.TERRAIN.FOREST,global.TERRAIN.HILL,global.TERRAIN.MOUNTAIN];
+    types.forEach(t=>{
+      if(!global.map.some(row=>row.includes(t))){
+        for(let i=0;i<1000;i++){
+          const r=Math.random()*global.ROWS|0, c=Math.random()*global.COLS|0;
+          if(global.map[r][c]===global.TERRAIN.PLAIN){ global.map[r][c]=t; break; }
+        }
+      }
+    });
   }
 
   function rand2(x,y){
